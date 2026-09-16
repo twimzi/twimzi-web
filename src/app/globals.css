@@ -1,0 +1,112 @@
+@import "tailwindcss";
+
+:root {
+  --color-primary: #1879fd;
+  --color-primary-dark: #020d3a;
+  --color-primary-light: #e8f2ff;
+
+  --color-secondary: #f8fafc;
+
+  --color-accent: #8e07fb;
+  --color-accent-secondary: #05cdfc;
+  --color-accent-light: #f3e8ff;
+
+  --color-background: #ffffff;
+  --color-surface: #ffffff;
+
+  --color-text: #020d3a;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748b;
+
+  --color-border: #e2e8f0;
+
+  --color-brand-gradient: linear-gradient(
+    135deg,
+    #8e07fb 0%,
+    #1879fd 55%,
+    #05cdfc 100%
+  );
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 1px 2px rgba(2, 13, 58, 0.05);
+  --shadow-md: 0 4px 12px rgba(2, 13, 58, 0.08);
+  --shadow-lg: 0 10px 30px rgba(2, 13, 58, 0.1);
+
+  --container-max-width: 1280px;
+  --container-padding: 1.25rem;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-poppins), Arial, sans-serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  line-height: 1.15;
+}
+
+p {
+  margin: 0;
+}
+
+::selection {
+  background: var(--color-primary);
+  color: #ffffff;
+}
+
+.twimzi-container {
+  width: 100%;
+  max-width: var(--container-max-width);
+  margin: auto;
+  padding-inline: var(--container-padding);
+}
+
+@media (min-width: 640px) {
+  :root {
+    --container-padding: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --container-padding: 2rem;
+  }
+}

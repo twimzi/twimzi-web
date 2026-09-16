@@ -1,0 +1,9 @@
+import Link from "next/link";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+export default async function AdminBusinesses() {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.from("businesses").select("id,business_name,business_code,business_status,verification_status,is_active,is_featured,priority_score").order("created_at", { ascending:false }).limit(100);
+  return <div><p className="text-sm font-semibold text-[var(--color-primary)]">Business Management</p><h1 className="mt-1 text-3xl font-extrabold">Businesses</h1><p className="mt-2 text-sm text-[var(--color-text-muted)]">Real businesses from Supabase.</p>{error ? <Notice/> : <div className="mt-8 overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white overflow-x-auto"><table className="min-w-full text-left text-sm"><thead className="border-b bg-[var(--color-surface)]"><tr>{["Business","Status","Verification","Active","Featured","Priority"].map(h=><th key={h} className="px-5 py-4 font-bold">{h}</th>)}</tr></thead><tbody>{(data??[]).map(b=><tr key={b.id} className="border-b last:border-0"><td className="px-5 py-4"><Link href={`/admin/businesses/${b.id}`} className="font-bold text-[var(--color-primary)]">{b.business_name}</Link><div className="text-xs text-[var(--color-text-muted)]">{b.business_code}</div></td><td className="px-5 py-4">{b.business_status}</td><td className="px-5 py-4">{b.verification_status}</td><td className="px-5 py-4">{b.is_active?"Yes":"No"}</td><td className="px-5 py-4">{b.is_featured?"Yes":"No"}</td><td className="px-5 py-4">{b.priority_score??0}</td></tr>)}</tbody></table></div>}</div>;
+}
+function Notice(){return <div className="mt-8 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">Current RLS prevents this admin read. Install the secure owner-only admin RPC layer before enabling privileged access.</div>}
+

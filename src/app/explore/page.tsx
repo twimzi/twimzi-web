@@ -1,0 +1,4 @@
+import Link from "next/link"; import { Container } from "@/components/ui/container"; import { PageHero } from "@/components/ui/page-hero";
+const data=["ðŸ­ Manufacturers","ðŸ“¦ Traders & Wholesalers","ðŸ‘¨â€ðŸ’¼ Professionals","ðŸ› ï¸ Home Services","ðŸª Local Shops","ðŸ½ï¸ Restaurants","ðŸ›ï¸ Products","âš™ï¸ Services"];
+export default function Explore(){return <><PageHero eyebrow="Explore" title="Find what you need, close to you." description="Search local businesses, products and services from one connected discovery experience."/><Container><div className="py-14"><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{data.map(x=><Link key={x} href="/businesses" className="rounded-2xl border border-[var(--color-border)] p-6 font-semibold hover:border-[var(--color-primary)] hover:shadow-[var(--shadow-md)]">{x}<span className="mt-3 block text-xs font-normal text-[var(--color-text-muted)]">Explore now â†’</span></Link>)}</div></div></Container></>}
+

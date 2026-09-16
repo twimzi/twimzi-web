@@ -1,0 +1,4 @@
+import { Container } from "@/components/ui/container"; import { PageHero } from "@/components/ui/page-hero";
+const services=["Accounting & Tax","Legal Services","Home Repair","Electrical Services","Plumbing","Digital Marketing","Design Services","Business Consulting"];
+export default function Services(){return <><PageHero eyebrow="Services" title="Find trusted local services." description="Connect with professionals and service providers for everyday and business needs."/><Container><div className="py-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{services.map((s,i)=><div key={s} className="rounded-2xl border border-[var(--color-border)] p-6"><div className="text-3xl">{["ðŸ§¾","âš–ï¸","ðŸ ","ðŸ’¡","ðŸš°","ðŸ“£","ðŸŽ¨","ðŸ’¼"][i]}</div><h2 className="mt-5 font-semibold">{s}</h2><p className="mt-2 text-sm text-[var(--color-text-muted)]">Explore providers near you.</p></div>)}</div></Container></>}
+

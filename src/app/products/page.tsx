@@ -1,0 +1,4 @@
+import { Container } from "@/components/ui/container"; import { PageHero } from "@/components/ui/page-hero";
+const products=["Rotavator Blades","Cultivator Tines","Harrow Discs","Seed Drill Parts","Industrial Fasteners","Home Textiles"];
+export default function Products(){return <><PageHero eyebrow="Products" title="Products from local sellers." description="Discover products from manufacturers, traders and local businesses."/><Container><div className="py-14 grid grid-cols-2 gap-4 md:grid-cols-3">{products.map((p,i)=><div key={p} className="overflow-hidden rounded-2xl border border-[var(--color-border)]"><div className="flex h-40 items-center justify-center bg-[var(--color-secondary)] text-5xl">{["âš™ï¸","ðŸ”§","â­•","ðŸŒ¾","ðŸ”©","ðŸ§µ"][i]}</div><div className="p-5"><h2 className="font-semibold">{p}</h2><p className="mt-1 text-xs text-[var(--color-text-muted)]">Local product listing</p></div></div>)}</div></Container></>}
+
