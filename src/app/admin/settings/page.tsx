@@ -1,7 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
-
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type Setting = {
@@ -14,541 +13,414 @@ type Setting = {
   updated_at: string;
 };
 
-const supabase = createSupabaseBrowserClient();
+function formatDateTime(value: string | null) {
+  if (!value) return "—";
+
+  return new Intl.DateTimeFormat("en-IN", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+
+function formatSettingKey(value: string) {
+  return value
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (character) => character.toUpperCase());
+}
 
 export default function AdminSettingsPage() {
+  const supabase = createSupabaseBrowserClient();
+
   const [settings, setSettings] = useState<Setting[]>([]);
   const [search, setSearch] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const [editingKey, setEditingKey] = useState<string | null>(null);
-  const [settingKey, setSettingKey] = useState("");
-  const [settingValue, setSettingValue] = useState("");
-  const [description, setDescription] = useState("");
-  const [isPublic, setIsPublic] = useState(false);
+  const [sevenDaysAgo] = useState(
+    () => Date.now() - 7 * 24 * 60 * 60 * 1000,
+  );
 
-  async function loadSettings(query = "") {
-    setIsLoading(true);
-    setErrorMessage("");
+  const loadSettings = useCallback(async () => {
+    setLoading(true);
+    setError("");
 
-    const { data, error } = await supabase.rpc(
-      "admin_get_settings",
-      {
-        p_search: query.trim() || null,
-        p_limit: 100,
-        p_offset: 0,
-      },
-    );
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
 
-    if (error) {
-      setErrorMessage(error.message);
-      setSettings([]);
-    } else {
-      setSettings((data ?? []) as Setting[]);
-    }
+      if (userError) {
+        throw userError;
+      }
 
-    setIsLoading(false);
-  }
+      if (!user) {
+        throw new Error("You must be signed in.");
+      }
 
-  useEffect(() => {
-    let cancelled = false;
+      const { data: adminCheck, error: adminError } =
+        await supabase.rpc("is_super_admin");
 
-    async function initialLoad() {
-      const { data, error } = await supabase.rpc(
+      if (adminError) {
+        throw adminError;
+      }
+
+      if (!adminCheck) {
+        throw new Error(
+          "You do not have permission to access this page.",
+        );
+      }
+
+      const { data, error: settingsError } = await supabase.rpc(
         "admin_get_settings",
         {
-          p_search: null,
+          p_search: search.trim() || null,
           p_limit: 100,
           p_offset: 0,
         },
       );
 
-      if (cancelled) {
-        return;
+      if (settingsError) {
+        throw settingsError;
       }
 
-      if (error) {
-        setErrorMessage(error.message);
-        setSettings([]);
-      } else {
-        setSettings((data ?? []) as Setting[]);
-      }
+      setSettings((data ?? []) as Setting[]);
+    } catch (err) {
+      setSettings([]);
 
-      setIsLoading(false);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to load settings.",
+      );
+    } finally {
+      setLoading(false);
     }
+  }, [search, supabase]);
 
-    void initialLoad();
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void loadSettings();
+    }, 0);
 
     return () => {
-      cancelled = true;
+      window.clearTimeout(timer);
     };
-  }, []);
+  }, [loadSettings]);
 
-  function resetForm() {
-    setEditingKey(null);
-    setSettingKey("");
-    setSettingValue("");
-    setDescription("");
-    setIsPublic(false);
-  }
+  const statistics = useMemo(() => {
+    return {
+      total: settings.length,
+      public: settings.filter((setting) => setting.is_public).length,
+      private: settings.filter((setting) => !setting.is_public).length,
+      recentlyUpdated: settings.filter((setting) => {
+        const updatedAt = new Date(setting.updated_at).getTime();
 
-  function editSetting(setting: Setting) {
-    setEditingKey(setting.setting_key);
-    setSettingKey(setting.setting_key);
-    setSettingValue(setting.setting_value ?? "");
-    setDescription(setting.description ?? "");
-    setIsPublic(setting.is_public);
-    setSuccessMessage("");
-    setErrorMessage("");
-
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  }
-
-  async function handleSubmit(
-    event: FormEvent<HTMLFormElement>,
-  ) {
-    event.preventDefault();
-
-    setErrorMessage("");
-    setSuccessMessage("");
-
-    const key = settingKey.trim();
-
-    if (!key) {
-      setErrorMessage("Setting key is required.");
-      return;
-    }
-
-    setIsSaving(true);
-
-    const { error } = await supabase.rpc(
-      "admin_upsert_setting",
-      {
-        p_setting_key: key,
-        p_setting_value: settingValue,
-        p_description: description.trim() || null,
-        p_is_public: isPublic,
-      },
-    );
-
-    if (error) {
-      setErrorMessage(error.message);
-      setIsSaving(false);
-      return;
-    }
-
-    setSuccessMessage(
-      editingKey
-        ? "Setting updated successfully."
-        : "Setting created successfully.",
-    );
-
-    resetForm();
-
-    await loadSettings(search);
-
-    setIsSaving(false);
-  }
-
-  async function deleteSetting(setting: Setting) {
-    const confirmed = window.confirm(
-      `Delete "${setting.setting_key}"?\n\nThis action cannot be undone.`,
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    setErrorMessage("");
-    setSuccessMessage("");
-
-    const { data, error } = await supabase.rpc(
-      "admin_delete_setting",
-      {
-        p_setting_key: setting.setting_key,
-      },
-    );
-
-    if (error) {
-      setErrorMessage(error.message);
-      return;
-    }
-
-    if (!data) {
-      setErrorMessage(
-        "Setting was not found or could not be deleted.",
-      );
-      return;
-    }
-
-    if (editingKey === setting.setting_key) {
-      resetForm();
-    }
-
-    setSuccessMessage("Setting deleted successfully.");
-
-    await loadSettings(search);
-  }
-
-  async function handleSearch(
-    event: FormEvent<HTMLFormElement>,
-  ) {
-    event.preventDefault();
-
-    await loadSettings(search);
-  }
+        return updatedAt >= sevenDaysAgo;
+      }).length,
+    };
+  }, [settings, sevenDaysAgo]);
 
   return (
-    <div className="space-y-8">
-      <div>
-        <p className="text-sm font-semibold text-[var(--color-primary)]">
-          System
-        </p>
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p className="text-sm font-medium text-slate-500">
+            Administration
+          </p>
 
-        <h1 className="mt-1 text-3xl font-extrabold text-slate-900">
-          Settings
-        </h1>
+          <h1 className="mt-1 text-2xl font-semibold text-slate-900">
+            Settings
+          </h1>
 
-        <p className="mt-2 text-sm text-[var(--color-text-muted)]">
-          Manage secure platform configuration used across Twimzi.
-        </p>
+          <p className="mt-1 text-sm text-slate-500">
+            Review and manage Twimzi system configuration.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => void loadSettings()}
+          disabled={loading}
+          className="self-start rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 lg:self-auto"
+        >
+          {loading ? "Refreshing..." : "Refresh"}
+        </button>
       </div>
 
-      {errorMessage ? (
-        <div
-          role="alert"
-          className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700"
-        >
-          <p className="font-bold">Something went wrong</p>
-
-          <p className="mt-1 break-words">
-            {errorMessage}
-          </p>
-        </div>
-      ) : null}
-
-      {successMessage ? (
-        <div
-          role="status"
-          className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-sm text-emerald-700"
-        >
-          {successMessage}
-        </div>
-      ) : null}
-
-      <section className="rounded-2xl border border-[var(--color-border)] bg-white p-6">
-        <div>
-          <p className="text-lg font-bold text-slate-900">
-            {editingKey ? "Edit Setting" : "Add Setting"}
-          </p>
-
-          <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-            Configuration is protected by the SUPER_ADMIN security
-            layer.
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-sm text-slate-500">Settings</p>
+          <p className="mt-2 text-2xl font-semibold text-slate-900">
+            {statistics.total}
           </p>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="mt-6 grid gap-5"
+        <div className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">
+          <p className="text-sm text-slate-500">Public</p>
+          <p className="mt-2 text-2xl font-semibold text-emerald-700">
+            {statistics.public}
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-sm text-slate-500">Private</p>
+          <p className="mt-2 text-2xl font-semibold text-slate-700">
+            {statistics.private}
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm">
+          <p className="text-sm text-slate-500">
+            Updated Last 7 Days
+          </p>
+          <p className="mt-2 text-2xl font-semibold text-blue-700">
+            {statistics.recentlyUpdated}
+          </p>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <label
+          htmlFor="settings-search"
+          className="mb-2 block text-sm font-medium text-slate-700"
         >
-          <div className="grid gap-5 lg:grid-cols-2">
-            <div>
-              <label
-                htmlFor="setting-key"
-                className="mb-2 block text-sm font-semibold text-slate-700"
-              >
-                Setting Key
-              </label>
+          Search settings
+        </label>
 
-              <input
-                id="setting-key"
-                type="text"
-                value={settingKey}
-                onChange={(event) =>
-                  setSettingKey(event.target.value)
-                }
-                disabled={Boolean(editingKey)}
-                placeholder="example.setting_key"
-                maxLength={150}
-                required
-                className="w-full rounded-xl border border-[var(--color-border)] bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--color-primary)] disabled:bg-slate-100 disabled:text-slate-500"
-              />
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <input
+            id="settings-search"
+            type="search"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search by setting key or description..."
+            className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
+          />
 
-              {editingKey ? (
-                <p className="mt-2 text-xs text-[var(--color-text-muted)]">
-                  Setting keys cannot be changed while editing.
-                </p>
-              ) : null}
-            </div>
-
-            <div>
-              <label
-                htmlFor="setting-value"
-                className="mb-2 block text-sm font-semibold text-slate-700"
-              >
-                Value
-              </label>
-
-              <input
-                id="setting-value"
-                type="text"
-                value={settingValue}
-                onChange={(event) =>
-                  setSettingValue(event.target.value)
-                }
-                placeholder="Setting value"
-                className="w-full rounded-xl border border-[var(--color-border)] bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--color-primary)]"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label
-              htmlFor="setting-description"
-              className="mb-2 block text-sm font-semibold text-slate-700"
-            >
-              Description
-            </label>
-
-            <textarea
-              id="setting-description"
-              value={description}
-              onChange={(event) =>
-                setDescription(event.target.value)
-              }
-              placeholder="Explain what this setting controls..."
-              rows={3}
-              className="w-full resize-y rounded-xl border border-[var(--color-border)] bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--color-primary)]"
-            />
-          </div>
-
-          <label className="flex cursor-pointer items-center gap-3">
-            <input
-              type="checkbox"
-              checked={isPublic}
-              onChange={(event) =>
-                setIsPublic(event.target.checked)
-              }
-              className="h-4 w-4 rounded border-slate-300"
-            />
-
-            <span>
-              <span className="block text-sm font-semibold text-slate-800">
-                Public setting
-              </span>
-
-              <span className="block text-xs text-[var(--color-text-muted)]">
-                Mark this setting as safe for public application
-                consumption.
-              </span>
-            </span>
-          </label>
-
-          <div className="flex flex-col gap-3 sm:flex-row">
+          {search && (
             <button
-              type="submit"
-              disabled={isSaving}
-              className="rounded-xl bg-[var(--color-primary)] px-5 py-3 text-sm font-bold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+              type="button"
+              onClick={() => setSearch("")}
+              className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50"
             >
-              {isSaving
-                ? "Saving..."
-                : editingKey
-                  ? "Update Setting"
-                  : "Create Setting"}
+              Clear
             </button>
+          )}
+        </div>
+      </div>
 
-            {editingKey ? (
-              <button
-                type="button"
-                onClick={resetForm}
-                disabled={isSaving}
-                className="rounded-xl border border-[var(--color-border)] bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50 disabled:opacity-60"
-              >
-                Cancel
-              </button>
-            ) : null}
-          </div>
-        </form>
-      </section>
+      {error && (
+        <div className="flex flex-col gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 sm:flex-row sm:items-center sm:justify-between">
+          <span>{error}</span>
 
-      <section>
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <p className="text-lg font-bold text-slate-900">
-              Platform Settings
-            </p>
-
-            <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-              {settings.length.toLocaleString("en-IN")} setting
-              {settings.length === 1 ? "" : "s"} loaded.
-            </p>
-          </div>
-
-          <form
-            onSubmit={handleSearch}
-            className="flex w-full max-w-xl gap-2"
+          <button
+            type="button"
+            onClick={() => void loadSettings()}
+            className="rounded-lg border border-red-200 bg-white px-3 py-2 font-medium text-red-700 hover:bg-red-100"
           >
-            <input
-              type="search"
-              value={search}
-              onChange={(event) =>
-                setSearch(event.target.value)
-              }
-              placeholder="Search settings..."
-              className="min-w-0 flex-1 rounded-xl border border-[var(--color-border)] bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--color-primary)]"
-            />
+            Retry
+          </button>
+        </div>
+      )}
 
-            <button
-              type="submit"
-              className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white transition hover:opacity-90"
-            >
-              Search
-            </button>
-          </form>
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-200 px-5 py-4">
+          <h2 className="font-semibold text-slate-900">
+            System Configuration
+          </h2>
+
+          <p className="mt-1 text-xs text-slate-500">
+            Configuration values are displayed from the protected
+            admin settings RPC.
+          </p>
         </div>
 
-        <div className="mt-5 overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white">
-          {isLoading ? (
-            <div className="p-10 text-center text-sm text-[var(--color-text-muted)]">
-              Loading settings...
+        {loading ? (
+          <div className="space-y-3 p-5">
+            {[1, 2, 3, 4, 5].map((item) => (
+              <div
+                key={item}
+                className="h-20 animate-pulse rounded-xl bg-slate-100"
+              />
+            ))}
+          </div>
+        ) : settings.length === 0 ? (
+          <div className="px-5 py-16 text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-lg text-slate-500">
+              S
             </div>
-          ) : settings.length === 0 ? (
-            <div className="p-10 text-center">
-              <p className="font-semibold text-slate-700">
-                No settings found
-              </p>
 
-              <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-                Create a setting above or change your search.
-              </p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-[1000px] w-full text-left text-sm">
-                <thead className="border-b bg-[var(--color-surface)]">
-                  <tr>
-                    <th className="px-5 py-4 font-bold">
-                      Setting
-                    </th>
+            <h3 className="mt-4 font-semibold text-slate-900">
+              No settings found
+            </h3>
 
-                    <th className="px-5 py-4 font-bold">
-                      Value
-                    </th>
-
-                    <th className="px-5 py-4 font-bold">
-                      Description
-                    </th>
-
-                    <th className="px-5 py-4 font-bold">
-                      Visibility
-                    </th>
-
-                    <th className="px-5 py-4 font-bold">
-                      Updated
-                    </th>
-
-                    <th className="px-5 py-4 text-right font-bold">
-                      Actions
-                    </th>
+            <p className="mt-1 text-sm text-slate-500">
+              {search
+                ? "Try a different search term."
+                : "There are currently no system settings available."}
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="hidden overflow-x-auto lg:block">
+              <table className="min-w-full">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <th className="px-5 py-3">Setting</th>
+                    <th className="px-5 py-3">Value</th>
+                    <th className="px-5 py-3">Visibility</th>
+                    <th className="px-5 py-3">Updated</th>
                   </tr>
                 </thead>
 
-                <tbody>
-                  {settings.map((setting) => (
-                    <tr
-                      key={setting.id}
-                      className="border-b last:border-0 hover:bg-slate-50"
-                    >
-                      <td className="px-5 py-4">
-                        <p className="font-mono text-xs font-bold text-[var(--color-primary)]">
-                          {setting.setting_key}
-                        </p>
-                      </td>
+                <tbody className="divide-y divide-slate-100">
+                  {settings.map((setting) => {
+                    const expanded = expandedId === setting.id;
 
-                      <td className="max-w-[280px] px-5 py-4">
-                        <p className="break-words text-sm text-slate-700">
-                          {setting.setting_value || "â€”"}
-                        </p>
-                      </td>
+                    return (
+                      <tr
+                        key={setting.id}
+                        className="align-top transition hover:bg-slate-50"
+                      >
+                        <td className="max-w-xs px-5 py-4">
+                          <p className="font-medium text-slate-900">
+                            {formatSettingKey(setting.setting_key)}
+                          </p>
 
-                      <td className="max-w-[320px] px-5 py-4">
-                        <p className="break-words text-sm text-[var(--color-text-muted)]">
-                          {setting.description || "â€”"}
-                        </p>
-                      </td>
+                          <p className="mt-1 font-mono text-xs text-slate-400">
+                            {setting.setting_key}
+                          </p>
 
-                      <td className="px-5 py-4">
-                        {setting.is_public ? (
-                          <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
-                            Public
-                          </span>
-                        ) : (
-                          <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
-                            Private
-                          </span>
-                        )}
-                      </td>
+                          {setting.description && (
+                            <p className="mt-2 text-sm leading-5 text-slate-500">
+                              {setting.description}
+                            </p>
+                          )}
+                        </td>
 
-                      <td className="px-5 py-4 text-xs text-[var(--color-text-muted)]">
-                        {formatDate(setting.updated_at)}
-                      </td>
-
-                      <td className="px-5 py-4">
-                        <div className="flex justify-end gap-2">
-                          <button
-                            type="button"
-                            onClick={() => editSetting(setting)}
-                            className="rounded-lg border border-[var(--color-border)] px-3 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-100"
-                          >
-                            Edit
-                          </button>
-
+                        <td className="max-w-md px-5 py-4">
                           <button
                             type="button"
                             onClick={() =>
-                              void deleteSetting(setting)
+                              setExpandedId(
+                                expanded ? null : setting.id,
+                              )
                             }
-                            className="rounded-lg border border-red-200 px-3 py-2 text-xs font-bold text-red-600 transition hover:bg-red-50"
+                            className="w-full text-left"
                           >
-                            Delete
+                            <div
+                              className={`rounded-xl border border-slate-200 bg-slate-50 p-3 font-mono text-xs leading-5 text-slate-700 ${
+                                expanded
+                                  ? "whitespace-pre-wrap break-words"
+                                  : "truncate"
+                              }`}
+                            >
+                              {setting.setting_value || "—"}
+                            </div>
                           </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+
+                        <td className="px-5 py-4">
+                          <span
+                            className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                              setting.is_public
+                                ? "bg-emerald-50 text-emerald-700"
+                                : "bg-slate-100 text-slate-600"
+                            }`}
+                          >
+                            {setting.is_public ? "Public" : "Private"}
+                          </span>
+                        </td>
+
+                        <td className="whitespace-nowrap px-5 py-4 text-sm text-slate-500">
+                          {formatDateTime(setting.updated_at)}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
-          )}
-        </div>
-      </section>
+
+            <div className="divide-y divide-slate-100 lg:hidden">
+              {settings.map((setting) => {
+                const expanded = expandedId === setting.id;
+
+                return (
+                  <div key={setting.id} className="p-5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <h3 className="font-semibold text-slate-900">
+                          {formatSettingKey(setting.setting_key)}
+                        </h3>
+
+                        <p className="mt-1 break-all font-mono text-xs text-slate-400">
+                          {setting.setting_key}
+                        </p>
+                      </div>
+
+                      <span
+                        className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${
+                          setting.is_public
+                            ? "bg-emerald-50 text-emerald-700"
+                            : "bg-slate-100 text-slate-600"
+                        }`}
+                      >
+                        {setting.is_public ? "Public" : "Private"}
+                      </span>
+                    </div>
+
+                    {setting.description && (
+                      <p className="mt-3 text-sm leading-6 text-slate-500">
+                        {setting.description}
+                      </p>
+                    )}
+
+                    <div className="mt-4">
+                      <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-400">
+                        Value
+                      </p>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExpandedId(
+                            expanded ? null : setting.id,
+                          )
+                        }
+                        className="w-full text-left"
+                      >
+                        <div
+                          className={`rounded-xl border border-slate-200 bg-slate-50 p-3 font-mono text-xs leading-5 text-slate-700 ${
+                            expanded
+                              ? "whitespace-pre-wrap break-words"
+                              : "truncate"
+                          }`}
+                        >
+                          {setting.setting_value || "—"}
+                        </div>
+                      </button>
+                    </div>
+
+                    <p className="mt-3 text-xs text-slate-400">
+                      Updated {formatDateTime(setting.updated_at)}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="border-t border-slate-200 px-5 py-4 text-xs text-slate-500">
+              Showing {settings.length} setting
+              {settings.length === 1 ? "" : "s"}.
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
-}
-
-function formatDate(value: string | null) {
-  if (!value) {
-    return "â€”";
-  }
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "â€”";
-  }
-
-  return new Intl.DateTimeFormat("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
 }

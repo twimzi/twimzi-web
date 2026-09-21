@@ -9,7 +9,7 @@ type Business = {
   id: string;
   business_code: string;
   business_name: string;
-  slug: string;
+  slug: string | null;
   description: string | null;
   business_type: string | null;
   business_type_id: string | null;
@@ -138,6 +138,7 @@ function asNumber(value: unknown): number | null {
   return null;
 }
 
+
 function formatPrice(value: number | null): string | null {
   if (value === null) {
     return null;
@@ -233,8 +234,14 @@ function getStoragePublicUrl(
 async function getBusiness(slug: string): Promise<Business | null> {
   const supabase = await createSupabaseServerClient();
 
+  /*
+   * The public RPC intentionally searches public business fields only.
+   * For UUID-based URLs we therefore retrieve the public result set and
+   * match the returned public ID locally. This keeps the existing secure
+   * public RPC unchanged.
+   */
   const { data, error } = await supabase.rpc("get_public_businesses", {
-    p_search: slug,
+    p_search: null,
     p_limit: 100,
     p_offset: 0,
   });
@@ -245,12 +252,21 @@ async function getBusiness(slug: string): Promise<Business | null> {
 
   const businesses = data as Business[];
 
+  const normalizedSlug = slug.trim().toLowerCase();
+
   return (
-    businesses.find(
-      (business) =>
-        business.slug.toLowerCase() === slug.toLowerCase() ||
-        business.public_handle?.toLowerCase() === slug.toLowerCase(),
-    ) ?? null
+    businesses.find((business) => {
+      const businessId = business.id.toLowerCase();
+      const businessSlug = business.slug?.trim().toLowerCase() ?? "";
+      const publicHandle =
+        business.public_handle?.trim().toLowerCase() ?? "";
+
+      return (
+        businessId === normalizedSlug ||
+        businessSlug === normalizedSlug ||
+        publicHandle === normalizedSlug
+      );
+    }) ?? null
   );
 }
 

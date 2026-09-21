@@ -13,13 +13,83 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: siteConfig.seo.title,
+  metadataBase: new URL(siteConfig.url),
+
+  title: {
+    default: siteConfig.seo.title,
+    template: "%s | Twimzi",
+  },
+
   description: siteConfig.seo.description,
+
   keywords: [...siteConfig.seo.keywords],
+
+  applicationName: siteConfig.name,
+
+  authors: [
+    {
+      name: siteConfig.name,
+      url: siteConfig.url,
+    },
+  ],
+
+  creator: siteConfig.name,
+  publisher: siteConfig.name,
+
+  alternates: {
+    canonical: siteConfig.url,
+  },
+
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+
   icons: {
-    icon: "/icon.png",
+    icon: [
+      {
+        url: "/icon.png",
+        type: "image/png",
+      },
+      {
+        url: "/favicon.ico",
+      },
+    ],
     apple: "/apple-icon.png",
   },
+
+  openGraph: {
+    type: "website",
+    locale: "en_IN",
+    url: siteConfig.url,
+    siteName: siteConfig.name,
+    title: siteConfig.seo.title,
+    description: siteConfig.seo.description,
+    images: [
+      {
+        url: "/twimzi-logo.png",
+        width: 1200,
+        height: 630,
+        alt: "Twimzi",
+      },
+    ],
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: siteConfig.seo.title,
+    description: siteConfig.seo.description,
+    images: ["/twimzi-logo.png"],
+  },
+
+  category: "business",
 };
 
 export default function RootLayout({
@@ -37,4 +107,3 @@ export default function RootLayout({
     </html>
   );
 }
-

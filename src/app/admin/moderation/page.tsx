@@ -1,7 +1,7 @@
-import Link from "next/link";
-import { redirect } from "next/navigation";
+"use client";
 
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type ModerationItem = {
   id: string;
@@ -10,124 +10,273 @@ type ModerationItem = {
   status: string | null;
   assigned_to: string | null;
   remarks: string | null;
-  created_at: string;
-  updated_at: string;
+  created_at: string | null;
+  updated_at: string | null;
 };
 
-type PageProps = {
-  searchParams: Promise<{
-    q?: string;
-    status?: string;
-    module?: string;
-  }>;
-};
+function formatDateTime(value: string | null) {
+  if (!value) return "—";
 
-export default async function AdminModeration({
-  searchParams,
-}: PageProps) {
-  const params = await searchParams;
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
 
-  const search = params.q?.trim() ?? "";
-  const status = params.status?.trim() ?? "";
-  const moduleName = params.module?.trim() ?? "";
+function formatStatus(status: string | null) {
+  if (!status) return "Unknown";
 
-  const supabase = await createSupabaseServerClient();
+  return status
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (character) => character.toUpperCase());
+}
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+function statusClasses(status: string | null) {
+  switch (status?.toLowerCase()) {
+    case "pending":
+      return "bg-amber-50 text-amber-700";
 
-  if (!user) {
-    redirect("/login");
+    case "in_review":
+      return "bg-blue-50 text-blue-700";
+
+    case "approved":
+      return "bg-emerald-50 text-emerald-700";
+
+    case "rejected":
+      return "bg-red-50 text-red-700";
+
+    default:
+      return "bg-slate-100 text-slate-600";
+  }
+}
+
+function truncateId(value: string | null) {
+  if (!value) return "—";
+  if (value.length <= 18) return value;
+
+  return `${value.slice(0, 8)}...${value.slice(-6)}`;
+}
+
+export default function AdminModerationPage() {
+  const supabase = createSupabaseBrowserClient();
+
+  const [items, setItems] = useState<ModerationItem[]>([]);
+  const [search, setSearch] = useState("");
+  const [submittedSearch, setSubmittedSearch] = useState("");
+  const [status, setStatus] = useState("");
+  const [moduleName, setModuleName] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+
+  const loadModeration = useCallback(async () => {
+    setLoading(true);
+    setError("");
+
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError) {
+        throw userError;
+      }
+
+      if (!user) {
+        throw new Error("You must be signed in.");
+      }
+
+      const { data: adminCheck, error: adminError } =
+        await supabase.rpc("is_super_admin");
+
+      if (adminError) {
+        throw adminError;
+      }
+
+      if (!adminCheck) {
+        setIsSuperAdmin(false);
+        throw new Error(
+          "You do not have permission to access this page.",
+        );
+      }
+
+      setIsSuperAdmin(true);
+
+      const { data, error: moderationError } = await supabase.rpc(
+        "admin_get_moderation_queue",
+        {
+          p_search: submittedSearch.trim() || null,
+          p_status: status || null,
+          p_module_name: moduleName || null,
+          p_limit: 100,
+          p_offset: 0,
+        },
+      );
+
+      if (moderationError) {
+        throw moderationError;
+      }
+
+      setItems((data ?? []) as ModerationItem[]);
+    } catch (err) {
+      setItems([]);
+
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to load moderation queue.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [moduleName, status, submittedSearch, supabase]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void loadModeration();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [loadModeration]);
+
+  function handleSearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSubmittedSearch(search);
   }
 
-  const {
-    data: isAdmin,
-    error: adminError,
-  } = await supabase.rpc("is_super_admin");
-
-  if (adminError || !isAdmin) {
-    redirect("/");
+  function clearFilters() {
+    setSearch("");
+    setSubmittedSearch("");
+    setStatus("");
+    setModuleName("");
   }
 
-  const { data, error } = await supabase.rpc(
-    "admin_get_moderation_queue",
-    {
-      p_search: search || null,
-      p_status: status || null,
-      p_module_name: moduleName || null,
-      p_limit: 100,
-      p_offset: 0,
-    },
-  );
+  const statistics = useMemo(() => {
+    return {
+      pending: items.filter((item) => item.status === "pending").length,
+      inReview: items.filter(
+        (item) => item.status === "in_review",
+      ).length,
+      approved: items.filter(
+        (item) => item.status === "approved",
+      ).length,
+      rejected: items.filter(
+        (item) => item.status === "rejected",
+      ).length,
+    };
+  }, [items]);
 
-  const moderationItems = (data ?? []) as ModerationItem[];
-
-  const pendingCount = moderationItems.filter(
-    (item) => item.status === "pending",
-  ).length;
-
-  const reviewCount = moderationItems.filter(
-    (item) => item.status === "in_review",
-  ).length;
-
-  const approvedCount = moderationItems.filter(
-    (item) => item.status === "approved",
-  ).length;
-
-  const rejectedCount = moderationItems.filter(
-    (item) => item.status === "rejected",
-  ).length;
-
-  return (
-    <div>
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+  if (!isSuperAdmin && !loading && error.includes("permission")) {
+    return (
+      <div className="space-y-6">
         <div>
-          <p className="text-sm font-semibold text-[var(--color-primary)]">
-            Platform
+          <p className="text-sm font-medium text-slate-500">
+            Administration
           </p>
 
-          <h1 className="mt-1 text-3xl font-extrabold">
+          <h1 className="mt-1 text-2xl font-semibold text-slate-900">
             Moderation
           </h1>
+        </div>
 
-          <p className="mt-2 text-sm text-[var(--color-text-muted)]">
-            Review and monitor content moderation activity.
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">
+          {error}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <p className="text-sm font-medium text-slate-500">
+          Administration
+        </p>
+
+        <h1 className="mt-1 text-2xl font-semibold text-slate-900">
+          Moderation
+        </h1>
+
+        <p className="mt-1 text-sm text-slate-500">
+          Review and monitor content waiting for moderation.
+        </p>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-sm text-slate-500">
+            Queue Items
+          </p>
+
+          <p className="mt-2 text-2xl font-semibold text-slate-900">
+            {items.length}
           </p>
         </div>
 
+        <div className="rounded-2xl border border-amber-100 bg-white p-5 shadow-sm">
+          <p className="text-sm text-slate-500">Pending</p>
+
+          <p className="mt-2 text-2xl font-semibold text-amber-700">
+            {statistics.pending}
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm">
+          <p className="text-sm text-slate-500">In Review</p>
+
+          <p className="mt-2 text-2xl font-semibold text-blue-700">
+            {statistics.inReview}
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">
+          <p className="text-sm text-slate-500">Approved</p>
+
+          <p className="mt-2 text-2xl font-semibold text-emerald-700">
+            {statistics.approved}
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-red-100 bg-white p-5 shadow-sm">
+          <p className="text-sm text-slate-500">Rejected</p>
+
+          <p className="mt-2 text-2xl font-semibold text-red-700">
+            {statistics.rejected}
+          </p>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <form
-          method="get"
-          className="flex w-full max-w-3xl flex-col gap-2 sm:flex-row"
+          onSubmit={handleSearch}
+          className="flex flex-col gap-3 xl:flex-row"
         >
-          <input
-            type="search"
-            name="q"
-            defaultValue={search}
-            placeholder="Search module, entity ID or remarks..."
-            className="min-w-0 flex-1 rounded-xl border border-[var(--color-border)] bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--color-primary)]"
-          />
+          <div className="flex-1">
+            <label htmlFor="moderation-search" className="sr-only">
+              Search moderation queue
+            </label>
+
+            <input
+              id="moderation-search"
+              type="search"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search by module, remarks or entity ID..."
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
+            />
+          </div>
 
           <select
-            name="module"
-            defaultValue={moduleName}
-            className="rounded-xl border border-[var(--color-border)] bg-white px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)]"
-          >
-            <option value="">All modules</option>
-            <option value="business">Business</option>
-            <option value="product">Product</option>
-            <option value="service">Service</option>
-            <option value="post">Post</option>
-            <option value="comment">Comment</option>
-            <option value="offer">Offer</option>
-            <option value="media">Media</option>
-            <option value="user">User</option>
-          </select>
-
-          <select
-            name="status"
-            defaultValue={status}
-            className="rounded-xl border border-[var(--color-border)] bg-white px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)]"
+            value={status}
+            onChange={(event) => setStatus(event.target.value)}
+            aria-label="Filter by moderation status"
+            className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-400 focus:bg-white"
           >
             <option value="">All statuses</option>
             <option value="pending">Pending</option>
@@ -136,295 +285,228 @@ export default async function AdminModeration({
             <option value="rejected">Rejected</option>
           </select>
 
+          <select
+            value={moduleName}
+            onChange={(event) => setModuleName(event.target.value)}
+            aria-label="Filter by module"
+            className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-400 focus:bg-white"
+          >
+            <option value="">All modules</option>
+            <option value="business">Business</option>
+            <option value="product">Product</option>
+            <option value="service">Service</option>
+            <option value="post">Post</option>
+            <option value="offer">Offer</option>
+            <option value="community">Community</option>
+            <option value="profile">Profile</option>
+            <option value="media">Media</option>
+          </select>
+
           <button
             type="submit"
-            className="rounded-xl bg-[var(--color-primary)] px-5 py-3 text-sm font-bold text-white transition hover:opacity-90"
+            className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
           >
             Search
           </button>
+
+          {(submittedSearch || status || moduleName) && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+            >
+              Clear
+            </button>
+          )}
         </form>
       </div>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          label="Pending"
-          value={pendingCount.toLocaleString("en-IN")}
-        />
+      {error && !error.includes("permission") && (
+        <div className="flex flex-col gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 sm:flex-row sm:items-center sm:justify-between">
+          <span>{error}</span>
 
-        <StatCard
-          label="In Review"
-          value={reviewCount.toLocaleString("en-IN")}
-        />
-
-        <StatCard
-          label="Approved"
-          value={approvedCount.toLocaleString("en-IN")}
-        />
-
-        <StatCard
-          label="Rejected"
-          value={rejectedCount.toLocaleString("en-IN")}
-        />
-      </div>
-
-      {error ? (
-        <div className="mt-8 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
-          <p className="font-bold">
-            Unable to load moderation queue.
-          </p>
-
-          <p className="mt-1">
-            Verify that the secure admin moderation RPC migration
-            has been installed and that the current account is a
-            SUPER_ADMIN.
-          </p>
-
-          <p className="mt-2 text-xs opacity-80">
-            {error.message}
-          </p>
-        </div>
-      ) : (
-        <div className="mt-8 overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white">
-          <div className="flex items-center justify-between border-b bg-[var(--color-surface)] px-5 py-4">
-            <div>
-              <p className="font-bold text-slate-900">
-                Moderation Queue
-              </p>
-
-              <p className="mt-1 text-xs text-[var(--color-text-muted)]">
-                {moderationItems.length} moderation item
-                {moderationItems.length === 1 ? "" : "s"} in the
-                current result.
-              </p>
-            </div>
-
-            <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-500">
-              Up to 100 results
-            </span>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="min-w-[1250px] w-full text-left text-sm">
-              <thead className="border-b">
-                <tr>
-                  <th className="px-5 py-4 font-bold">
-                    Module
-                  </th>
-
-                  <th className="px-5 py-4 font-bold">
-                    Entity
-                  </th>
-
-                  <th className="px-5 py-4 font-bold">
-                    Status
-                  </th>
-
-                  <th className="px-5 py-4 font-bold">
-                    Assigned To
-                  </th>
-
-                  <th className="px-5 py-4 font-bold">
-                    Remarks
-                  </th>
-
-                  <th className="px-5 py-4 font-bold">
-                    Created
-                  </th>
-
-                  <th className="px-5 py-4 font-bold">
-                    Updated
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {moderationItems.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="px-5 py-16 text-center"
-                    >
-                      <p className="font-semibold text-slate-700">
-                        No moderation items found
-                      </p>
-
-                      <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-                        Try changing your search or filters.
-                      </p>
-                    </td>
-                  </tr>
-                ) : (
-                  moderationItems.map((item) => (
-                    <tr
-                      key={item.id}
-                      className="border-b last:border-0 hover:bg-slate-50"
-                    >
-                      <td className="px-5 py-4">
-                        <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-bold uppercase text-slate-700">
-                          {formatModule(item.module_name)}
-                        </span>
-
-                        <p className="mt-2 text-[10px] text-slate-400">
-                          {item.id}
-                        </p>
-                      </td>
-
-                      <td className="px-5 py-4">
-                        {item.entity_id ? (
-                          <span className="font-mono text-xs text-slate-600">
-                            {item.entity_id}
-                          </span>
-                        ) : (
-                          <span className="text-slate-400">
-                            â€”
-                          </span>
-                        )}
-                      </td>
-
-                      <td className="px-5 py-4">
-                        <StatusBadge status={item.status} />
-                      </td>
-
-                      <td className="px-5 py-4">
-                        {item.assigned_to ? (
-                          <Link
-                            href={`/admin/users?q=${encodeURIComponent(
-                              item.assigned_to,
-                            )}`}
-                            className="font-mono text-xs text-[var(--color-primary)] hover:underline"
-                          >
-                            {item.assigned_to}
-                          </Link>
-                        ) : (
-                          <span className="text-xs text-slate-400">
-                            Unassigned
-                          </span>
-                        )}
-                      </td>
-
-                      <td className="px-5 py-4">
-                        <p className="max-w-[400px] whitespace-pre-wrap break-words text-sm text-slate-600">
-                          {item.remarks || "â€”"}
-                        </p>
-                      </td>
-
-                      <td className="px-5 py-4 text-xs text-[var(--color-text-muted)]">
-                        {formatDate(item.created_at)}
-                      </td>
-
-                      <td className="px-5 py-4 text-xs text-[var(--color-text-muted)]">
-                        {formatDate(item.updated_at)}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {moderationItems.length > 0 ? (
-            <div className="border-t bg-[var(--color-surface)] px-5 py-4 text-xs text-[var(--color-text-muted)]">
-              Showing the newest {moderationItems.length} moderation
-              item{moderationItems.length === 1 ? "" : "s"}.
-            </div>
-          ) : null}
+          <button
+            type="button"
+            onClick={() => void loadModeration()}
+            className="rounded-lg border border-red-200 bg-white px-3 py-2 font-medium text-red-700 hover:bg-red-100"
+          >
+            Retry
+          </button>
         </div>
       )}
+
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="flex flex-col gap-2 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="font-semibold text-slate-900">
+              Moderation Queue
+            </h2>
+
+            <p className="mt-1 text-xs text-slate-500">
+              Pending and in-review items are returned first.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => void loadModeration()}
+            disabled={loading}
+            className="self-start rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {loading ? "Refreshing..." : "Refresh"}
+          </button>
+        </div>
+
+        {loading ? (
+          <div className="space-y-3 p-5">
+            {[1, 2, 3, 4, 5].map((item) => (
+              <div
+                key={item}
+                className="h-20 animate-pulse rounded-xl bg-slate-100"
+              />
+            ))}
+          </div>
+        ) : items.length === 0 ? (
+          <div className="px-5 py-16 text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-lg text-slate-500">
+              M
+            </div>
+
+            <h3 className="mt-4 font-semibold text-slate-900">
+              Moderation queue is empty
+            </h3>
+
+            <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">
+              {submittedSearch || status || moduleName
+                ? "No moderation items match the selected filters."
+                : "There are currently no moderation items to review."}
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="hidden overflow-x-auto lg:block">
+              <table className="min-w-full">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <th className="px-5 py-3">Module</th>
+                    <th className="px-5 py-3">Entity</th>
+                    <th className="px-5 py-3">Status</th>
+                    <th className="px-5 py-3">Assigned To</th>
+                    <th className="px-5 py-3">Remarks</th>
+                    <th className="px-5 py-3">Created</th>
+                  </tr>
+                </thead>
+
+                <tbody className="divide-y divide-slate-100">
+                  {items.map((item) => (
+                    <tr
+                      key={item.id}
+                      className="transition hover:bg-slate-50"
+                    >
+                      <td className="px-5 py-4">
+                        <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
+                          {item.module_name || "Unknown"}
+                        </span>
+                      </td>
+
+                      <td className="px-5 py-4">
+                        <p className="font-mono text-xs text-slate-500">
+                          {truncateId(item.entity_id)}
+                        </p>
+                      </td>
+
+                      <td className="px-5 py-4">
+                        <span
+                          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${statusClasses(
+                            item.status,
+                          )}`}
+                        >
+                          {formatStatus(item.status)}
+                        </span>
+                      </td>
+
+                      <td className="px-5 py-4">
+                        <span className="font-mono text-xs text-slate-500">
+                          {truncateId(item.assigned_to)}
+                        </span>
+                      </td>
+
+                      <td className="max-w-sm px-5 py-4">
+                        <p className="truncate text-sm text-slate-600">
+                          {item.remarks || "No remarks"}
+                        </p>
+                      </td>
+
+                      <td className="px-5 py-4 text-sm text-slate-500">
+                        {formatDateTime(item.created_at)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="divide-y divide-slate-100 lg:hidden">
+              {items.map((item) => (
+                <div key={item.id} className="p-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">
+                      {item.module_name || "Unknown"}
+                    </span>
+
+                    <span
+                      className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusClasses(
+                        item.status,
+                      )}`}
+                    >
+                      {formatStatus(item.status)}
+                    </span>
+                  </div>
+
+                  <div className="mt-4 rounded-xl bg-slate-50 p-4">
+                    <p className="text-xs text-slate-500">
+                      Entity ID
+                    </p>
+
+                    <p className="mt-1 break-all font-mono text-xs text-slate-700">
+                      {item.entity_id || "—"}
+                    </p>
+                  </div>
+
+                  <div className="mt-4">
+                    <p className="text-xs text-slate-500">
+                      Remarks
+                    </p>
+
+                    <p className="mt-1 text-sm text-slate-700">
+                      {item.remarks || "No remarks"}
+                    </p>
+                  </div>
+
+                  <div className="mt-4 flex flex-col gap-1 text-xs text-slate-500">
+                    <p>
+                      Assigned to:{" "}
+                      <span className="font-mono">
+                        {item.assigned_to || "Unassigned"}
+                      </span>
+                    </p>
+
+                    <p>
+                      Created:{" "}
+                      {formatDateTime(item.created_at)}
+                    </p>
+
+                    <p>
+                      Updated:{" "}
+                      {formatDateTime(item.updated_at)}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
-
-function StatCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-[var(--color-border)] bg-white p-5">
-      <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-text-muted)]">
-        {label}
-      </p>
-
-      <p className="mt-2 text-2xl font-extrabold text-slate-900">
-        {value}
-      </p>
-    </div>
-  );
-}
-
-function StatusBadge({
-  status,
-}: {
-  status: string | null;
-}) {
-  const normalized = status?.toLowerCase() ?? "";
-
-  if (normalized === "pending") {
-    return (
-      <span className="inline-flex rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">
-        Pending
-      </span>
-    );
-  }
-
-  if (normalized === "in_review") {
-    return (
-      <span className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
-        In Review
-      </span>
-    );
-  }
-
-  if (normalized === "approved") {
-    return (
-      <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
-        Approved
-      </span>
-    );
-  }
-
-  if (normalized === "rejected") {
-    return (
-      <span className="inline-flex rounded-full bg-red-50 px-3 py-1 text-xs font-bold text-red-700">
-        Rejected
-      </span>
-    );
-  }
-
-  return (
-    <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
-      {status || "Unknown"}
-    </span>
-  );
-}
-
-function formatModule(value: string | null) {
-  if (!value) {
-    return "Unknown";
-  }
-
-  return value.replace(/[_-]+/g, " ");
-}
-
-function formatDate(value: string | null) {
-  if (!value) {
-    return "â€”";
-  }
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "â€”";
-  }
-
-  return new Intl.DateTimeFormat("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
-}
-

@@ -1,132 +1,291 @@
-import Link from "next/link";
-import { redirect } from "next/navigation";
+"use client";
 
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
-type ReportItem = {
+type Report = {
   id: string;
   reported_by: string | null;
   entity_type: string | null;
   entity_id: string | null;
   reason: string | null;
   status: string | null;
-  created_at: string;
+  created_at: string | null;
 };
 
-type PageProps = {
-  searchParams: Promise<{
-    q?: string;
-    status?: string;
-    entity?: string;
-  }>;
-};
+function formatDateTime(value: string | null) {
+  if (!value) return "—";
 
-export default async function AdminReports({
-  searchParams,
-}: PageProps) {
-  const params = await searchParams;
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
 
-  const search = params.q?.trim() ?? "";
-  const status = params.status?.trim() ?? "";
-  const entityType = params.entity?.trim() ?? "";
+function statusClasses(status: string | null) {
+  switch (status?.toLowerCase()) {
+    case "pending":
+      return "bg-amber-50 text-amber-700";
 
-  const supabase = await createSupabaseServerClient();
+    case "in_review":
+      return "bg-blue-50 text-blue-700";
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    case "resolved":
+      return "bg-emerald-50 text-emerald-700";
 
-  if (!user) {
-    redirect("/login");
+    case "dismissed":
+      return "bg-slate-100 text-slate-600";
+
+    default:
+      return "bg-slate-100 text-slate-600";
+  }
+}
+
+function formatStatus(status: string | null) {
+  if (!status) return "Unknown";
+
+  return status
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (character) => character.toUpperCase());
+}
+
+function truncateId(value: string | null) {
+  if (!value) return "—";
+  if (value.length <= 18) return value;
+
+  return `${value.slice(0, 8)}...${value.slice(-6)}`;
+}
+
+export default function AdminReportsPage() {
+  const supabase = createSupabaseBrowserClient();
+
+  const [reports, setReports] = useState<Report[]>([]);
+  const [search, setSearch] = useState("");
+  const [submittedSearch, setSubmittedSearch] = useState("");
+  const [status, setStatus] = useState("");
+  const [entityType, setEntityType] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+
+  const loadReports = useCallback(async () => {
+    setLoading(true);
+    setError("");
+
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError) {
+        throw userError;
+      }
+
+      if (!user) {
+        throw new Error("You must be signed in.");
+      }
+
+      const { data: adminCheck, error: adminError } =
+        await supabase.rpc("is_super_admin");
+
+      if (adminError) {
+        throw adminError;
+      }
+
+      if (!adminCheck) {
+        setIsSuperAdmin(false);
+        throw new Error(
+          "You do not have permission to access this page.",
+        );
+      }
+
+      setIsSuperAdmin(true);
+
+      const { data, error: reportsError } = await supabase.rpc(
+        "admin_get_reports",
+        {
+          p_search: submittedSearch.trim() || null,
+          p_status: status || null,
+          p_entity_type: entityType || null,
+          p_limit: 100,
+          p_offset: 0,
+        },
+      );
+
+      if (reportsError) {
+        throw reportsError;
+      }
+
+      setReports((data ?? []) as Report[]);
+    } catch (err) {
+      setReports([]);
+
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to load reports.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [entityType, status, submittedSearch, supabase]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void loadReports();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [loadReports]);
+
+  function handleSearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSubmittedSearch(search);
   }
 
-  const {
-    data: isAdmin,
-    error: adminError,
-  } = await supabase.rpc("is_super_admin");
-
-  if (adminError || !isAdmin) {
-    redirect("/");
+  function clearFilters() {
+    setSearch("");
+    setSubmittedSearch("");
+    setStatus("");
+    setEntityType("");
   }
 
-  const { data, error } = await supabase.rpc(
-    "admin_get_reports",
-    {
-      p_search: search || null,
-      p_status: status || null,
-      p_entity_type: entityType || null,
-      p_limit: 100,
-      p_offset: 0,
-    },
-  );
+  const statistics = useMemo(() => {
+    const pending = reports.filter(
+      (report) => report.status === "pending",
+    ).length;
 
-  const reports = (data ?? []) as ReportItem[];
+    const inReview = reports.filter(
+      (report) => report.status === "in_review",
+    ).length;
 
-  const pendingCount = reports.filter(
-    (item) => item.status === "pending",
-  ).length;
+    const resolved = reports.filter(
+      (report) => report.status === "resolved",
+    ).length;
 
-  const reviewCount = reports.filter(
-    (item) => item.status === "in_review",
-  ).length;
+    const dismissed = reports.filter(
+      (report) => report.status === "dismissed",
+    ).length;
 
-  const resolvedCount = reports.filter(
-    (item) => item.status === "resolved",
-  ).length;
+    return {
+      pending,
+      inReview,
+      resolved,
+      dismissed,
+    };
+  }, [reports]);
 
-  const dismissedCount = reports.filter(
-    (item) => item.status === "dismissed",
-  ).length;
-
-  return (
-    <div>
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+  if (!isSuperAdmin && !loading && error.includes("permission")) {
+    return (
+      <div className="space-y-6">
         <div>
-          <p className="text-sm font-semibold text-[var(--color-primary)]">
-            Platform
+          <p className="text-sm font-medium text-slate-500">
+            Administration
           </p>
 
-          <h1 className="mt-1 text-3xl font-extrabold">
+          <h1 className="mt-1 text-2xl font-semibold text-slate-900">
             Reports
           </h1>
+        </div>
 
-          <p className="mt-2 text-sm text-[var(--color-text-muted)]">
-            Review reports submitted against Twimzi entities.
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">
+          {error}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <p className="text-sm font-medium text-slate-500">
+          Administration
+        </p>
+
+        <h1 className="mt-1 text-2xl font-semibold text-slate-900">
+          Reports
+        </h1>
+
+        <p className="mt-1 text-sm text-slate-500">
+          Review reports submitted against Twimzi entities.
+        </p>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-sm text-slate-500">
+            Reports Loaded
+          </p>
+
+          <p className="mt-2 text-2xl font-semibold text-slate-900">
+            {reports.length}
           </p>
         </div>
 
+        <div className="rounded-2xl border border-amber-100 bg-white p-5 shadow-sm">
+          <p className="text-sm text-slate-500">Pending</p>
+
+          <p className="mt-2 text-2xl font-semibold text-amber-700">
+            {statistics.pending}
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm">
+          <p className="text-sm text-slate-500">In Review</p>
+
+          <p className="mt-2 text-2xl font-semibold text-blue-700">
+            {statistics.inReview}
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">
+          <p className="text-sm text-slate-500">Resolved</p>
+
+          <p className="mt-2 text-2xl font-semibold text-emerald-700">
+            {statistics.resolved}
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-sm text-slate-500">Dismissed</p>
+
+          <p className="mt-2 text-2xl font-semibold text-slate-700">
+            {statistics.dismissed}
+          </p>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <form
-          method="get"
-          className="flex w-full max-w-3xl flex-col gap-2 sm:flex-row"
+          onSubmit={handleSearch}
+          className="flex flex-col gap-3 xl:flex-row"
         >
-          <input
-            type="search"
-            name="q"
-            defaultValue={search}
-            placeholder="Search entity, reason or report ID..."
-            className="min-w-0 flex-1 rounded-xl border border-[var(--color-border)] bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--color-primary)]"
-          />
+          <div className="flex-1">
+            <label htmlFor="report-search" className="sr-only">
+              Search reports
+            </label>
+
+            <input
+              id="report-search"
+              type="search"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search by entity type, reason, entity ID or reporter ID..."
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
+            />
+          </div>
 
           <select
-            name="entity"
-            defaultValue={entityType}
-            className="rounded-xl border border-[var(--color-border)] bg-white px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)]"
-          >
-            <option value="">All entities</option>
-            <option value="business">Business</option>
-            <option value="product">Product</option>
-            <option value="service">Service</option>
-            <option value="post">Post</option>
-            <option value="comment">Comment</option>
-            <option value="offer">Offer</option>
-            <option value="user">User</option>
-            <option value="media">Media</option>
-          </select>
-
-          <select
-            name="status"
-            defaultValue={status}
-            className="rounded-xl border border-[var(--color-border)] bg-white px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)]"
+            value={status}
+            onChange={(event) => setStatus(event.target.value)}
+            aria-label="Filter reports by status"
+            className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-400 focus:bg-white"
           >
             <option value="">All statuses</option>
             <option value="pending">Pending</option>
@@ -135,298 +294,242 @@ export default async function AdminReports({
             <option value="dismissed">Dismissed</option>
           </select>
 
+          <select
+            value={entityType}
+            onChange={(event) => setEntityType(event.target.value)}
+            aria-label="Filter reports by entity type"
+            className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-400 focus:bg-white"
+          >
+            <option value="">All entity types</option>
+            <option value="business">Business</option>
+            <option value="product">Product</option>
+            <option value="service">Service</option>
+            <option value="post">Post</option>
+            <option value="offer">Offer</option>
+            <option value="profile">Profile</option>
+            <option value="message">Message</option>
+            <option value="comment">Comment</option>
+          </select>
+
           <button
             type="submit"
-            className="rounded-xl bg-[var(--color-primary)] px-5 py-3 text-sm font-bold text-white transition hover:opacity-90"
+            className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
           >
             Search
           </button>
+
+          {(submittedSearch || status || entityType) && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+            >
+              Clear
+            </button>
+          )}
         </form>
       </div>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          label="Pending"
-          value={pendingCount.toLocaleString("en-IN")}
-        />
+      {error && !error.includes("permission") && (
+        <div className="flex flex-col gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 sm:flex-row sm:items-center sm:justify-between">
+          <span>{error}</span>
 
-        <StatCard
-          label="In Review"
-          value={reviewCount.toLocaleString("en-IN")}
-        />
-
-        <StatCard
-          label="Resolved"
-          value={resolvedCount.toLocaleString("en-IN")}
-        />
-
-        <StatCard
-          label="Dismissed"
-          value={dismissedCount.toLocaleString("en-IN")}
-        />
-      </div>
-
-      {error ? (
-        <div className="mt-8 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
-          <p className="font-bold">
-            Unable to load reports.
-          </p>
-
-          <p className="mt-1">
-            Verify that the secure admin reports RPC migration has
-            been installed and that the current account is a
-            SUPER_ADMIN.
-          </p>
-
-          <p className="mt-2 text-xs opacity-80">
-            {error.message}
-          </p>
+          <button
+            type="button"
+            onClick={() => void loadReports()}
+            className="rounded-lg border border-red-200 bg-white px-3 py-2 font-medium text-red-700 hover:bg-red-100"
+          >
+            Retry
+          </button>
         </div>
-      ) : (
-        <div className="mt-8 overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white">
-          <div className="flex items-center justify-between border-b bg-[var(--color-surface)] px-5 py-4">
-            <div>
-              <p className="font-bold text-slate-900">
-                Report Queue
-              </p>
+      )}
 
-              <p className="mt-1 text-xs text-[var(--color-text-muted)]">
-                {reports.length} report
-                {reports.length === 1 ? "" : "s"} in the current
-                result.
-              </p>
-            </div>
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="flex flex-col gap-2 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="font-semibold text-slate-900">
+              Report Queue
+            </h2>
 
-            <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-500">
-              Up to 100 results
-            </span>
+            <p className="mt-1 text-xs text-slate-500">
+              Pending and in-review reports are returned first.
+            </p>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="min-w-[1250px] w-full text-left text-sm">
-              <thead className="border-b">
-                <tr>
-                  <th className="px-5 py-4 font-bold">
-                    Report
-                  </th>
+          <button
+            type="button"
+            onClick={() => void loadReports()}
+            disabled={loading}
+            className="self-start rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {loading ? "Refreshing..." : "Refresh"}
+          </button>
+        </div>
 
-                  <th className="px-5 py-4 font-bold">
-                    Reporter
-                  </th>
+        {loading ? (
+          <div className="space-y-3 p-5">
+            {[1, 2, 3, 4, 5].map((item) => (
+              <div
+                key={item}
+                className="h-20 animate-pulse rounded-xl bg-slate-100"
+              />
+            ))}
+          </div>
+        ) : reports.length === 0 ? (
+          <div className="px-5 py-16 text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-lg text-slate-500">
+              R
+            </div>
 
-                  <th className="px-5 py-4 font-bold">
-                    Entity
-                  </th>
+            <h3 className="mt-4 font-semibold text-slate-900">
+              No reports found
+            </h3>
 
-                  <th className="px-5 py-4 font-bold">
-                    Entity ID
-                  </th>
-
-                  <th className="px-5 py-4 font-bold">
-                    Reason
-                  </th>
-
-                  <th className="px-5 py-4 font-bold">
-                    Status
-                  </th>
-
-                  <th className="px-5 py-4 font-bold">
-                    Created
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {reports.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="px-5 py-16 text-center"
-                    >
-                      <p className="font-semibold text-slate-700">
-                        No reports found
-                      </p>
-
-                      <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-                        Try changing your search or filters.
-                      </p>
-                    </td>
+            <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">
+              {submittedSearch || status || entityType
+                ? "No reports match the selected filters."
+                : "There are currently no reports available to display."}
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="hidden overflow-x-auto lg:block">
+              <table className="min-w-full">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <th className="px-5 py-3">Report</th>
+                    <th className="px-5 py-3">Entity</th>
+                    <th className="px-5 py-3">Reason</th>
+                    <th className="px-5 py-3">Status</th>
+                    <th className="px-5 py-3">Reported By</th>
+                    <th className="px-5 py-3">Created</th>
                   </tr>
-                ) : (
-                  reports.map((report) => (
+                </thead>
+
+                <tbody className="divide-y divide-slate-100">
+                  {reports.map((report) => (
                     <tr
                       key={report.id}
-                      className="border-b last:border-0 hover:bg-slate-50"
+                      className="transition hover:bg-slate-50"
                     >
                       <td className="px-5 py-4">
-                        <p className="font-bold text-slate-900">
-                          Report
+                        <p className="font-medium text-slate-900">
+                          {report.reason || "No reason provided"}
                         </p>
 
-                        <p className="mt-1 font-mono text-[10px] text-slate-400">
-                          {report.id}
+                        <p className="mt-1 text-xs text-slate-400">
+                          Report ID: {truncateId(report.id)}
                         </p>
                       </td>
 
                       <td className="px-5 py-4">
-                        {report.reported_by ? (
-                          <Link
-                            href={`/admin/users?q=${encodeURIComponent(
-                              report.reported_by,
-                            )}`}
-                            className="font-mono text-xs text-[var(--color-primary)] hover:underline"
-                          >
-                            {report.reported_by}
-                          </Link>
-                        ) : (
-                          <span className="text-xs text-slate-400">
-                            Unknown
-                          </span>
-                        )}
+                        <p className="font-medium text-slate-700">
+                          {report.entity_type || "Unknown"}
+                        </p>
+
+                        <p className="mt-1 font-mono text-xs text-slate-400">
+                          {truncateId(report.entity_id)}
+                        </p>
+                      </td>
+
+                      <td className="max-w-sm px-5 py-4">
+                        <p className="truncate text-sm text-slate-600">
+                          {report.reason || "—"}
+                        </p>
                       </td>
 
                       <td className="px-5 py-4">
-                        <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-bold uppercase text-slate-700">
-                          {formatEntityType(
-                            report.entity_type,
-                          )}
+                        <span
+                          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${statusClasses(
+                            report.status,
+                          )}`}
+                        >
+                          {formatStatus(report.status)}
                         </span>
                       </td>
 
                       <td className="px-5 py-4">
-                        {report.entity_id ? (
-                          <span className="font-mono text-xs text-slate-600">
-                            {report.entity_id}
-                          </span>
-                        ) : (
-                          <span className="text-slate-400">
-                            â€”
-                          </span>
-                        )}
+                        <span className="font-mono text-xs text-slate-500">
+                          {truncateId(report.reported_by)}
+                        </span>
                       </td>
 
-                      <td className="px-5 py-4">
-                        <p className="max-w-[420px] whitespace-pre-wrap break-words text-sm text-slate-600">
-                          {report.reason || "No reason provided"}
-                        </p>
-                      </td>
-
-                      <td className="px-5 py-4">
-                        <StatusBadge status={report.status} />
-                      </td>
-
-                      <td className="px-5 py-4 text-xs text-[var(--color-text-muted)]">
-                        {formatDate(report.created_at)}
+                      <td className="px-5 py-4 text-sm text-slate-500">
+                        {formatDateTime(report.created_at)}
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {reports.length > 0 ? (
-            <div className="border-t bg-[var(--color-surface)] px-5 py-4 text-xs text-[var(--color-text-muted)]">
-              Showing the newest {reports.length} report
-              {reports.length === 1 ? "" : "s"}.
+                  ))}
+                </tbody>
+              </table>
             </div>
-          ) : null}
-        </div>
-      )}
+
+            <div className="divide-y divide-slate-100 lg:hidden">
+              {reports.map((report) => (
+                <div key={report.id} className="p-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <p className="font-semibold text-slate-900">
+                        {report.reason ||
+                          "No reason provided"}
+                      </p>
+
+                      <p className="mt-1 text-xs text-slate-400">
+                        Report ID: {truncateId(report.id)}
+                      </p>
+                    </div>
+
+                    <span
+                      className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${statusClasses(
+                        report.status,
+                      )}`}
+                    >
+                      {formatStatus(report.status)}
+                    </span>
+                  </div>
+
+                  <div className="mt-4 rounded-xl bg-slate-50 p-4">
+                    <p className="text-xs text-slate-500">
+                      Entity
+                    </p>
+
+                    <p className="mt-1 font-medium text-slate-900">
+                      {report.entity_type || "Unknown"}
+                    </p>
+
+                    <p className="mt-1 break-all font-mono text-xs text-slate-400">
+                      {report.entity_id || "—"}
+                    </p>
+                  </div>
+
+                  <div className="mt-3">
+                    <p className="text-xs text-slate-500">
+                      Reason
+                    </p>
+
+                    <p className="mt-1 text-sm text-slate-700">
+                      {report.reason || "No reason provided"}
+                    </p>
+                  </div>
+
+                  <div className="mt-4 flex flex-col gap-1 text-xs text-slate-500">
+                    <p>
+                      Reported by:{" "}
+                      <span className="font-mono">
+                        {report.reported_by || "—"}
+                      </span>
+                    </p>
+
+                    <p>
+                      Created:{" "}
+                      {formatDateTime(report.created_at)}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
-}
-
-function StatCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-[var(--color-border)] bg-white p-5">
-      <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-text-muted)]">
-        {label}
-      </p>
-
-      <p className="mt-2 text-2xl font-extrabold text-slate-900">
-        {value}
-      </p>
-    </div>
-  );
-}
-
-function StatusBadge({
-  status,
-}: {
-  status: string | null;
-}) {
-  const normalized = status?.toLowerCase() ?? "";
-
-  if (normalized === "pending") {
-    return (
-      <span className="inline-flex rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">
-        Pending
-      </span>
-    );
-  }
-
-  if (normalized === "in_review") {
-    return (
-      <span className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
-        In Review
-      </span>
-    );
-  }
-
-  if (normalized === "resolved") {
-    return (
-      <span className="inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
-        Resolved
-      </span>
-    );
-  }
-
-  if (normalized === "dismissed") {
-    return (
-      <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
-        Dismissed
-      </span>
-    );
-  }
-
-  return (
-    <span className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">
-      {status || "Unknown"}
-    </span>
-  );
-}
-
-function formatEntityType(value: string | null) {
-  if (!value) {
-    return "Unknown";
-  }
-
-  return value.replace(/[_-]+/g, " ");
-}
-
-function formatDate(value: string | null) {
-  if (!value) {
-    return "â€”";
-  }
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "â€”";
-  }
-
-  return new Intl.DateTimeFormat("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
 }

@@ -1,7 +1,8 @@
-import Link from "next/link";
-import { redirect } from "next/navigation";
+"use client";
 
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { siteConfig } from "@/config/site";
 
 type MediaItem = {
   id: string;
@@ -22,358 +23,477 @@ type MediaItem = {
   updated_at: string;
 };
 
-type PageProps = {
-  searchParams: Promise<{
-    q?: string;
-    type?: string;
-  }>;
+type MediaResponse = {
+  data: MediaItem[] | null;
+  error: { message: string } | null;
 };
 
-export default async function AdminMedia({
-  searchParams,
-}: PageProps) {
-  const params = await searchParams;
+function formatFileSize(bytes: number | null) {
+  if (!bytes || bytes <= 0) return "—";
 
-  const search = params.q?.trim() ?? "";
-  const type = params.type?.trim() ?? "";
+  const units = ["B", "KB", "MB", "GB"];
+  let size = bytes;
+  let unitIndex = 0;
 
-  const supabase = await createSupabaseServerClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex += 1;
   }
 
-  const {
-    data: isAdmin,
-    error: adminError,
-  } = await supabase.rpc("is_super_admin");
+  return `${size.toFixed(size >= 10 || unitIndex === 0 ? 0 : 1)} ${
+    units[unitIndex]
+  }`;
+}
 
-  if (adminError || !isAdmin) {
-    redirect("/");
+function formatDate(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "—";
   }
 
-  const { data, error } = await supabase.rpc(
-    "admin_get_media",
-    {
-      p_search: search || null,
-      p_mime_type: type || null,
+  return new Intl.DateTimeFormat("en-IN", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
+}
+
+function formatDimensions(item: MediaItem) {
+  if (!item.width || !item.height) {
+    return "—";
+  }
+
+  return `${item.width} × ${item.height}`;
+}
+
+function getMediaUrl(item: MediaItem) {
+  if (!item.object_path || !item.is_public) {
+    return null;
+  }
+
+  const baseUrl = siteConfig.media.publicUrl.replace(/\/$/, "");
+
+  const objectPath = item.object_path
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+
+  return `${baseUrl}/media/${objectPath}`;
+}
+
+function isImage(item: MediaItem) {
+  return Boolean(item.mime_type?.startsWith("image/"));
+}
+
+function isVideo(item: MediaItem) {
+  return Boolean(item.mime_type?.startsWith("video/"));
+}
+
+function isAudio(item: MediaItem) {
+  return Boolean(item.mime_type?.startsWith("audio/"));
+}
+
+function mediaTypeLabel(item: MediaItem) {
+  if (isImage(item)) return "Image";
+  if (isVideo(item)) return "Video";
+  if (isAudio(item)) return "Audio";
+  return "File";
+}
+
+function mediaTypeClasses(item: MediaItem) {
+  if (isImage(item)) {
+    return "bg-blue-50 text-blue-700 ring-blue-200";
+  }
+
+  if (isVideo(item)) {
+    return "bg-purple-50 text-purple-700 ring-purple-200";
+  }
+
+  if (isAudio(item)) {
+    return "bg-amber-50 text-amber-700 ring-amber-200";
+  }
+
+  return "bg-slate-100 text-slate-700 ring-slate-200";
+}
+
+function getDisplayName(item: MediaItem) {
+  return item.original_name || item.file_name || "Untitled media";
+}
+
+function getShortPath(path: string) {
+  if (path.length <= 70) {
+    return path;
+  }
+
+  return `${path.slice(0, 34)}…${path.slice(-32)}`;
+}
+
+export default function AdminMediaPage() {
+  const supabase = useMemo(() => createSupabaseBrowserClient(), []);
+
+  const [media, setMedia] = useState<MediaItem[]>([]);
+  const [search, setSearch] = useState("");
+  const [mimeType, setMimeType] = useState("all");
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [authorized, setAuthorized] = useState(false);
+
+  const loadMedia = useCallback(async () => {
+    setLoading(true);
+    setErrorMessage(null);
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      setAuthorized(false);
+      setMedia([]);
+      setLoading(false);
+      setErrorMessage("Please sign in to access the media library.");
+      return;
+    }
+
+    const { data: isSuperAdmin, error: adminError } = await supabase.rpc(
+      "is_super_admin",
+    );
+
+    if (adminError || !isSuperAdmin) {
+      setAuthorized(false);
+      setMedia([]);
+      setLoading(false);
+      setErrorMessage("You do not have permission to access media.");
+      return;
+    }
+
+    setAuthorized(true);
+
+    const { data, error } = (await supabase.rpc("admin_get_media", {
+      p_search: search.trim() || null,
+      p_mime_type: mimeType === "all" ? null : mimeType,
       p_limit: 100,
       p_offset: 0,
-    },
-  );
+    })) as MediaResponse;
 
-  const media = (data ?? []) as MediaItem[];
+    if (error) {
+      setMedia([]);
+      setErrorMessage(error.message);
+      setLoading(false);
+      return;
+    }
 
-  const imageCount = media.filter(
-    (item) => item.mime_type?.startsWith("image/"),
-  ).length;
+    setMedia(data ?? []);
+    setLoading(false);
+  }, [mimeType, search, supabase]);
 
-  const videoCount = media.filter(
-    (item) => item.mime_type?.startsWith("video/"),
-  ).length;
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void loadMedia();
+    }, 0);
 
-  const publicCount = media.filter(
-    (item) => item.is_public,
-  ).length;
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [loadMedia]);
 
-  const totalSize = media.reduce(
-    (total, item) => total + (item.file_size ?? 0),
-    0,
-  );
+  const stats = useMemo(() => {
+    const images = media.filter(isImage).length;
+    const videos = media.filter(isVideo).length;
+    const audio = media.filter(isAudio).length;
+    const publicCount = media.filter((item) => item.is_public).length;
+    const totalBytes = media.reduce(
+      (total, item) => total + (item.file_size ?? 0),
+      0,
+    );
+
+    return {
+      total: media.length,
+      images,
+      videos,
+      audio,
+      publicCount,
+      totalBytes,
+    };
+  }, [media]);
+
+  if (!authorized && !loading) {
+    return (
+      <main className="min-h-screen bg-slate-50 px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-3xl">
+          <div className="rounded-3xl border border-red-200 bg-white p-8 shadow-sm">
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-red-50 text-red-600">
+              !
+            </div>
+
+            <h1 className="text-2xl font-semibold tracking-tight text-slate-950">
+              Media Library
+            </h1>
+
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              {errorMessage ||
+                "You do not have permission to access the media library."}
+            </p>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
-    <div>
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <p className="text-sm font-semibold text-[var(--color-primary)]">
-            Platform
-          </p>
-
-          <h1 className="mt-1 text-3xl font-extrabold">
-            Media
-          </h1>
-
-          <p className="mt-2 text-sm text-[var(--color-text-muted)]">
-            Manage platform media metadata and storage objects.
-          </p>
-        </div>
-
-        <form
-          method="get"
-          className="flex w-full max-w-xl flex-col gap-2 sm:flex-row"
-        >
-          <input
-            type="search"
-            name="q"
-            defaultValue={search}
-            placeholder="Search file, name or object path..."
-            className="min-w-0 flex-1 rounded-xl border border-[var(--color-border)] bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--color-primary)]"
-          />
-
-          <select
-            name="type"
-            defaultValue={type}
-            className="rounded-xl border border-[var(--color-border)] bg-white px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)]"
-          >
-            <option value="">All media</option>
-            <option value="image/">Images</option>
-            <option value="video/">Videos</option>
-            <option value="audio/">Audio</option>
-            <option value="application/">Documents</option>
-          </select>
-
-          <button
-            type="submit"
-            className="rounded-xl bg-[var(--color-primary)] px-5 py-3 text-sm font-bold text-white transition hover:opacity-90"
-          >
-            Search
-          </button>
-        </form>
-      </div>
-
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          label="Total"
-          value={media.length.toLocaleString("en-IN")}
-        />
-
-        <StatCard
-          label="Images"
-          value={imageCount.toLocaleString("en-IN")}
-        />
-
-        <StatCard
-          label="Videos"
-          value={videoCount.toLocaleString("en-IN")}
-        />
-
-        <StatCard
-          label="Storage"
-          value={formatBytes(totalSize)}
-        />
-      </div>
-
-      {error ? (
-        <div className="mt-8 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
-          <p className="font-bold">
-            Unable to load media.
-          </p>
-
-          <p className="mt-1">
-            Verify that the secure admin media RPC migration has
-            been installed and that the current account is a
-            SUPER_ADMIN.
-          </p>
-
-          <p className="mt-2 text-xs opacity-80">
-            {error.message}
-          </p>
-        </div>
-      ) : (
-        <div className="mt-8 overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white">
-          <div className="flex items-center justify-between border-b bg-[var(--color-surface)] px-5 py-4">
+    <main className="min-h-screen bg-slate-50 px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-8">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="font-bold text-slate-900">
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">
+                Super Admin
+              </p>
+
+              <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-950">
                 Media Library
-              </p>
+              </h1>
 
-              <p className="mt-1 text-xs text-[var(--color-text-muted)]">
-                {publicCount} public media item
-                {publicCount === 1 ? "" : "s"} in the current
-                result.
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                Review uploaded images, videos, audio and other media stored
+                through the Twimzi media infrastructure.
               </p>
             </div>
 
-            <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-500">
-              Up to 100 results
-            </span>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="min-w-[1500px] w-full text-left text-sm">
-              <thead className="border-b">
-                <tr>
-                  <th className="px-5 py-4 font-bold">
-                    File
-                  </th>
-
-                  <th className="px-5 py-4 font-bold">
-                    Type
-                  </th>
-
-                  <th className="px-5 py-4 font-bold">
-                    Size
-                  </th>
-
-                  <th className="px-5 py-4 font-bold">
-                    Dimensions
-                  </th>
-
-                  <th className="px-5 py-4 font-bold">
-                    Visibility
-                  </th>
-
-                  <th className="px-5 py-4 font-bold">
-                    Bucket
-                  </th>
-
-                  <th className="px-5 py-4 font-bold">
-                    Object Path
-                  </th>
-
-                  <th className="px-5 py-4 font-bold">
-                    Uploaded By
-                  </th>
-
-                  <th className="px-5 py-4 font-bold">
-                    Created
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {media.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={9}
-                      className="px-5 py-16 text-center"
-                    >
-                      <p className="font-semibold text-slate-700">
-                        No media found
-                      </p>
-
-                      <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-                        Try changing your search or media type
-                        filter.
-                      </p>
-                    </td>
-                  </tr>
-                ) : (
-                  media.map((item) => (
-                    <tr
-                      key={item.id}
-                      className="border-b last:border-0 hover:bg-slate-50"
-                    >
-                      <td className="px-5 py-4">
-                        <p className="max-w-[280px] truncate font-bold text-slate-900">
-                          {item.original_name ||
-                            item.file_name ||
-                            "Unnamed file"}
-                        </p>
-
-                        {item.file_name &&
-                        item.original_name &&
-                        item.file_name !==
-                          item.original_name ? (
-                          <p className="mt-1 max-w-[280px] truncate text-xs text-[var(--color-text-muted)]">
-                            Stored: {item.file_name}
-                          </p>
-                        ) : null}
-
-                        <p className="mt-1 text-[10px] text-slate-400">
-                          {item.id}
-                        </p>
-                      </td>
-
-                      <td className="px-5 py-4">
-                        <div className="flex flex-col gap-1">
-                          <span className="w-fit rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
-                            {item.mime_type || "Unknown"}
-                          </span>
-
-                          {item.extension ? (
-                            <span className="text-xs uppercase text-slate-400">
-                              {item.extension.replace(".", "")}
-                            </span>
-                          ) : null}
-                        </div>
-                      </td>
-
-                      <td className="px-5 py-4 font-semibold">
-                        {formatBytes(item.file_size)}
-                      </td>
-
-                      <td className="px-5 py-4 text-xs text-[var(--color-text-muted)]">
-                        {formatDimensions(
-                          item.width,
-                          item.height,
-                        )}
-
-                        {item.duration_seconds !== null ? (
-                          <span className="mt-1 block">
-                            {formatDuration(
-                              item.duration_seconds,
-                            )}
-                          </span>
-                        ) : null}
-                      </td>
-
-                      <td className="px-5 py-4">
-                        <span
-                          className={
-                            item.is_public
-                              ? "inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700"
-                              : "inline-flex rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700"
-                          }
-                        >
-                          {item.is_public
-                            ? "Public"
-                            : "Private"}
-                        </span>
-                      </td>
-
-                      <td className="px-5 py-4">
-                        <span className="text-xs font-semibold text-slate-700">
-                          {item.bucket_name || "â€”"}
-                        </span>
-                      </td>
-
-                      <td className="px-5 py-4">
-                        <p className="max-w-[360px] break-all font-mono text-xs text-slate-600">
-                          {item.object_path}
-                        </p>
-                      </td>
-
-                      <td className="px-5 py-4">
-                        {item.uploaded_by ? (
-                          <Link
-                            href={`/admin/users?q=${encodeURIComponent(
-                              item.uploaded_by,
-                            )}`}
-                            className="font-mono text-xs text-[var(--color-primary)] hover:underline"
-                          >
-                            {item.uploaded_by}
-                          </Link>
-                        ) : (
-                          <span className="text-xs text-slate-400">
-                            System
-                          </span>
-                        )}
-                      </td>
-
-                      <td className="px-5 py-4 text-xs text-[var(--color-text-muted)]">
-                        {formatDate(item.created_at)}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {media.length > 0 ? (
-            <div className="border-t bg-[var(--color-surface)] px-5 py-4 text-xs text-[var(--color-text-muted)]">
-              Showing the newest {media.length} media item
-              {media.length === 1 ? "" : "s"}.
+            <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+              <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                Total storage represented
+              </p>
+              <p className="mt-1 text-lg font-semibold text-slate-950">
+                {formatFileSize(stats.totalBytes)}
+              </p>
             </div>
-          ) : null}
+          </div>
         </div>
-      )}
-    </div>
+
+        <section className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+          <StatCard label="Total" value={stats.total} />
+          <StatCard label="Images" value={stats.images} />
+          <StatCard label="Videos" value={stats.videos} />
+          <StatCard label="Audio" value={stats.audio} />
+          <StatCard label="Public" value={stats.publicCount} />
+        </section>
+
+        <section className="mb-6 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+          <div className="grid gap-4 md:grid-cols-[1fr_220px_auto] md:items-end">
+            <div>
+              <label
+                htmlFor="media-search"
+                className="mb-2 block text-sm font-medium text-slate-700"
+              >
+                Search media
+              </label>
+
+              <input
+                id="media-search"
+                type="search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="File name, path or alt text..."
+                className="h-11 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="media-type"
+                className="mb-2 block text-sm font-medium text-slate-700"
+              >
+                Media type
+              </label>
+
+              <select
+                id="media-type"
+                value={mimeType}
+                onChange={(event) => setMimeType(event.target.value)}
+                className="h-11 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
+              >
+                <option value="all">All types</option>
+                <option value="image/">Images</option>
+                <option value="video/">Videos</option>
+                <option value="audio/">Audio</option>
+                <option value="application/">Documents</option>
+              </select>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => void loadMedia()}
+              disabled={loading}
+              className="h-11 rounded-xl bg-slate-950 px-5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {loading ? "Loading..." : "Refresh"}
+            </button>
+          </div>
+        </section>
+
+        {errorMessage ? (
+          <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            {errorMessage}
+          </div>
+        ) : null}
+
+        {loading ? (
+          <section className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, index) => (
+              <div
+                key={index}
+                className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm"
+              >
+                <div className="aspect-[4/3] animate-pulse bg-slate-200" />
+
+                <div className="space-y-3 p-4">
+                  <div className="h-4 w-3/4 animate-pulse rounded bg-slate-200" />
+                  <div className="h-3 w-1/2 animate-pulse rounded bg-slate-200" />
+                  <div className="h-3 w-2/3 animate-pulse rounded bg-slate-200" />
+                </div>
+              </div>
+            ))}
+          </section>
+        ) : media.length === 0 ? (
+          <section className="rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-xl text-slate-500">
+              M
+            </div>
+
+            <h2 className="mt-4 text-lg font-semibold text-slate-950">
+              No media found
+            </h2>
+
+            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+              No media matches the current search and filter.
+            </p>
+          </section>
+        ) : (
+          <section className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {media.map((item) => {
+              const mediaUrl = getMediaUrl(item);
+              const displayName = getDisplayName(item);
+
+              return (
+                <article
+                  key={item.id}
+                  className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                >
+                  <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+                    {isImage(item) && mediaUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={mediaUrl}
+                        alt={item.alt_text || displayName}
+                        className="absolute inset-0 h-full w-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
+                        <div
+                          className={`flex h-14 w-14 items-center justify-center rounded-2xl text-sm font-bold ring-1 ${mediaTypeClasses(
+                            item,
+                          )}`}
+                        >
+                          {mediaTypeLabel(item).slice(0, 1)}
+                        </div>
+
+                        <p className="mt-3 text-sm font-semibold text-slate-700">
+                          {mediaTypeLabel(item)}
+                        </p>
+
+                        {mediaUrl ? (
+                          <a
+                            href={mediaUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="mt-2 text-xs font-medium text-slate-600 underline underline-offset-2 hover:text-slate-950"
+                          >
+                            Open media
+                          </a>
+                        ) : null}
+                      </div>
+                    )}
+
+                    <div className="absolute left-3 top-3">
+                      <span
+                        className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ${mediaTypeClasses(
+                          item,
+                        )}`}
+                      >
+                        {mediaTypeLabel(item)}
+                      </span>
+                    </div>
+
+                    {item.is_public ? (
+                      <div className="absolute right-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 shadow-sm backdrop-blur">
+                        Public
+                      </div>
+                    ) : (
+                      <div className="absolute right-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-slate-600 shadow-sm backdrop-blur">
+                        Private
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="p-4">
+                    <div className="min-w-0">
+                      <h2
+                        className="truncate text-sm font-semibold text-slate-950"
+                        title={displayName}
+                      >
+                        {displayName}
+                      </h2>
+
+                      <p
+                        className="mt-1 truncate text-xs text-slate-500"
+                        title={item.object_path}
+                      >
+                        {getShortPath(item.object_path)}
+                      </p>
+                    </div>
+
+                    <div className="mt-4 grid grid-cols-2 gap-3">
+                      <InfoItem
+                        label="Size"
+                        value={formatFileSize(item.file_size)}
+                      />
+
+                      <InfoItem
+                        label="Dimensions"
+                        value={formatDimensions(item)}
+                      />
+
+                      <InfoItem
+                        label="Extension"
+                        value={item.extension || "—"}
+                      />
+
+                      <InfoItem
+                        label="Uploaded"
+                        value={formatDate(item.created_at)}
+                      />
+                    </div>
+
+                    {mediaUrl ? (
+                      <a
+                        href={mediaUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-4 flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-4 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-100 hover:text-slate-950"
+                      >
+                        Open original
+                      </a>
+                    ) : null}
+                  </div>
+                </article>
+              );
+            })}
+          </section>
+        )}
+      </div>
+    </main>
   );
 }
 
@@ -382,76 +502,37 @@ function StatCard({
   value,
 }: {
   label: string;
-  value: string;
+  value: number;
 }) {
   return (
-    <div className="rounded-2xl border border-[var(--color-border)] bg-white p-5">
-      <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-text-muted)]">
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
         {label}
       </p>
 
-      <p className="mt-2 text-2xl font-extrabold text-slate-900">
+      <p className="mt-2 text-2xl font-bold tracking-tight text-slate-950">
         {value}
       </p>
     </div>
   );
 }
 
-function formatBytes(value: number | null) {
-  if (!value || value <= 0) {
-    return "0 B";
-  }
+function InfoItem({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="min-w-0">
+      <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">
+        {label}
+      </p>
 
-  const units = ["B", "KB", "MB", "GB", "TB"];
-
-  const index = Math.min(
-    Math.floor(Math.log(value) / Math.log(1024)),
-    units.length - 1,
+      <p className="mt-1 truncate text-xs font-medium text-slate-700" title={value}>
+        {value}
+      </p>
+    </div>
   );
-
-  const size = value / Math.pow(1024, index);
-
-  return `${size.toFixed(index === 0 ? 0 : 1)} ${units[index]}`;
-}
-
-function formatDimensions(
-  width: number | null,
-  height: number | null,
-) {
-  if (width && height) {
-    return `${width} Ã— ${height}`;
-  }
-
-  return "â€”";
-}
-
-function formatDuration(seconds: number) {
-  if (seconds < 60) {
-    return `${seconds}s`;
-  }
-
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-
-  return `${minutes}m ${remainingSeconds}s`;
-}
-
-function formatDate(value: string | null) {
-  if (!value) {
-    return "â€”";
-  }
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "â€”";
-  }
-
-  return new Intl.DateTimeFormat("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
 }

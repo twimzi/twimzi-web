@@ -1,14 +1,14 @@
-import Link from "next/link";
-import { redirect } from "next/navigation";
+"use client";
 
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type FeaturedBusiness = {
   id: string;
-  business_name: string;
-  business_code: string;
-  business_status: string;
-  verification_status: string;
+  business_name: string | null;
+  business_code: string | null;
+  business_status: string | null;
+  verification_status: string | null;
   is_active: boolean;
   is_featured: boolean;
   featured_until: string | null;
@@ -17,311 +17,412 @@ type FeaturedBusiness = {
   total_followers: number | null;
   total_views: number | null;
   profile_completion: number | null;
-  created_at: string;
+  created_at: string | null;
 };
 
-type PageProps = {
-  searchParams: Promise<{
-    q?: string;
-  }>;
-};
+function formatDateTime(value: string | null) {
+  if (!value) return "—";
 
-export default async function AdminFeatured({
-  searchParams,
-}: PageProps) {
-  const params = await searchParams;
-  const search = params.q?.trim() ?? "";
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
 
-  const supabase = await createSupabaseServerClient();
+function truncateId(value: string | null) {
+  if (!value) return "—";
+  if (value.length <= 18) return value;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  return `${value.slice(0, 8)}...${value.slice(-6)}`;
+}
 
-  if (!user) {
-    redirect("/login");
+function isFuture(value: string | null) {
+  if (!value) return false;
+
+  return new Date(value).getTime() > Date.now();
+}
+
+export default function AdminFeaturedPage() {
+  const supabase = createSupabaseBrowserClient();
+
+  const [businesses, setBusinesses] = useState<FeaturedBusiness[]>([]);
+  const [search, setSearch] = useState("");
+  const [submittedSearch, setSubmittedSearch] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const loadFeaturedBusinesses = useCallback(async () => {
+    setLoading(true);
+    setError("");
+
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError) {
+        throw userError;
+      }
+
+      if (!user) {
+        throw new Error("You must be signed in.");
+      }
+
+      const { data: adminCheck, error: adminError } =
+        await supabase.rpc("is_super_admin");
+
+      if (adminError) {
+        throw adminError;
+      }
+
+      if (!adminCheck) {
+        throw new Error(
+          "You do not have permission to access this page.",
+        );
+      }
+
+      const { data, error: featuredError } = await supabase.rpc(
+        "admin_get_featured_businesses",
+        {
+          p_search: submittedSearch.trim() || null,
+          p_limit: 100,
+          p_offset: 0,
+        },
+      );
+
+      if (featuredError) {
+        throw featuredError;
+      }
+
+      setBusinesses((data ?? []) as FeaturedBusiness[]);
+    } catch (err) {
+      setBusinesses([]);
+
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Unable to load featured businesses.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [submittedSearch, supabase]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void loadFeaturedBusinesses();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [loadFeaturedBusinesses]);
+
+  function handleSearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSubmittedSearch(search);
   }
 
-  const { data: isAdmin, error: adminError } =
-    await supabase.rpc("is_super_admin");
-
-  if (adminError || !isAdmin) {
-    redirect("/");
+  function clearSearch() {
+    setSearch("");
+    setSubmittedSearch("");
   }
 
-  const { data, error } = await supabase.rpc(
-    "admin_get_featured_businesses",
-    {
-      p_search: search || null,
-      p_limit: 100,
-      p_offset: 0,
-    },
-  );
-
-  const businesses = (data ?? []) as FeaturedBusiness[];
-
-  const now = new Date();
-
-  const featuredCount = businesses.filter(
-    (business) => business.is_featured,
-  ).length;
-
-  const boostedCount = businesses.filter(
-    (business) =>
-      business.boost_until !== null &&
-      new Date(business.boost_until).getTime() > now.getTime(),
-  ).length;
-
-  const activeCount = businesses.filter(
-    (business) => business.is_active,
-  ).length;
-
-  const verifiedCount = businesses.filter(
-    (business) =>
-      business.verification_status === "verified",
-  ).length;
+  const statistics = useMemo(() => {
+    return {
+      total: businesses.length,
+      featured: businesses.filter((business) => business.is_featured)
+        .length,
+      boosted: businesses.filter((business) =>
+        isFuture(business.boost_until),
+      ).length,
+      active: businesses.filter((business) => business.is_active).length,
+      verified: businesses.filter(
+        (business) =>
+          business.verification_status?.toLowerCase() === "verified",
+      ).length,
+      totalFollowers: businesses.reduce(
+        (sum, business) => sum + (business.total_followers ?? 0),
+        0,
+      ),
+      totalViews: businesses.reduce(
+        (sum, business) => sum + (business.total_views ?? 0),
+        0,
+      ),
+    };
+  }, [businesses]);
 
   return (
-    <div>
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <p className="text-sm font-semibold text-[var(--color-primary)]">
-            Growth
-          </p>
+    <div className="space-y-6">
+      <div>
+        <p className="text-sm font-medium text-slate-500">
+          Administration
+        </p>
 
-          <h1 className="mt-1 text-3xl font-extrabold">
-            Featured Control
-          </h1>
+        <h1 className="mt-1 text-2xl font-semibold text-slate-900">
+          Featured Businesses
+        </h1>
 
-          <p className="mt-2 text-sm text-[var(--color-text-muted)]">
-            Manage featured and boosted businesses.
+        <p className="mt-1 text-sm text-slate-500">
+          Review businesses currently featured or receiving an active boost.
+        </p>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-sm text-slate-500">Total</p>
+          <p className="mt-2 text-2xl font-semibold text-slate-900">
+            {statistics.total}
           </p>
         </div>
 
+        <div className="rounded-2xl border border-amber-100 bg-white p-5 shadow-sm">
+          <p className="text-sm text-slate-500">Featured</p>
+          <p className="mt-2 text-2xl font-semibold text-amber-700">
+            {statistics.featured}
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-purple-100 bg-white p-5 shadow-sm">
+          <p className="text-sm text-slate-500">Active Boost</p>
+          <p className="mt-2 text-2xl font-semibold text-purple-700">
+            {statistics.boosted}
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">
+          <p className="text-sm text-slate-500">Active</p>
+          <p className="mt-2 text-2xl font-semibold text-emerald-700">
+            {statistics.active}
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm">
+          <p className="text-sm text-slate-500">Verified</p>
+          <p className="mt-2 text-2xl font-semibold text-blue-700">
+            {statistics.verified}
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-sm text-slate-500">Views</p>
+          <p className="mt-2 text-2xl font-semibold text-slate-900">
+            {statistics.totalViews.toLocaleString("en-IN")}
+          </p>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <form
-          method="get"
-          className="flex w-full max-w-md gap-2"
+          onSubmit={handleSearch}
+          className="flex flex-col gap-3 sm:flex-row"
         >
-          <input
-            type="search"
-            name="q"
-            defaultValue={search}
-            placeholder="Search business or code..."
-            className="min-w-0 flex-1 rounded-xl border border-[var(--color-border)] bg-white px-4 py-3 text-sm outline-none transition focus:border-[var(--color-primary)]"
-          />
+          <div className="flex-1">
+            <label htmlFor="featured-search" className="sr-only">
+              Search featured businesses
+            </label>
+
+            <input
+              id="featured-search"
+              type="search"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search business name or business code..."
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
+            />
+          </div>
 
           <button
             type="submit"
-            className="rounded-xl bg-[var(--color-primary)] px-5 py-3 text-sm font-bold text-white transition hover:opacity-90"
+            className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
           >
             Search
           </button>
+
+          {submittedSearch && (
+            <button
+              type="button"
+              onClick={clearSearch}
+              className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+            >
+              Clear
+            </button>
+          )}
         </form>
       </div>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          label="Featured"
-          value={featuredCount}
-        />
+      {error && (
+        <div className="flex flex-col gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 sm:flex-row sm:items-center sm:justify-between">
+          <span>{error}</span>
 
-        <StatCard
-          label="Boosted"
-          value={boostedCount}
-        />
-
-        <StatCard
-          label="Active"
-          value={activeCount}
-        />
-
-        <StatCard
-          label="Verified"
-          value={verifiedCount}
-        />
-      </div>
-
-      {error ? (
-        <div className="mt-8 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
-          <p className="font-bold">
-            Unable to load featured businesses.
-          </p>
-
-          <p className="mt-1">
-            Verify that the secure admin featured RPC migration has
-            been installed and that the current account is a
-            SUPER_ADMIN.
-          </p>
-
-          <p className="mt-2 text-xs opacity-80">
-            {error.message}
-          </p>
+          <button
+            type="button"
+            onClick={() => void loadFeaturedBusinesses()}
+            className="rounded-lg border border-red-200 bg-white px-3 py-2 font-medium text-red-700 hover:bg-red-100"
+          >
+            Retry
+          </button>
         </div>
-      ) : (
-        <div className="mt-8 overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white">
-          <div className="overflow-x-auto">
-            <table className="min-w-[1300px] w-full text-left text-sm">
-              <thead className="border-b bg-[var(--color-surface)]">
-                <tr>
-                  <th className="px-5 py-4 font-bold">
-                    Business
-                  </th>
+      )}
 
-                  <th className="px-5 py-4 font-bold">
-                    Status
-                  </th>
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="flex flex-col gap-2 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="font-semibold text-slate-900">
+              Featured Business Directory
+            </h2>
 
-                  <th className="px-5 py-4 font-bold">
-                    Featured
-                  </th>
+            <p className="mt-1 text-xs text-slate-500">
+              Featured and actively boosted businesses are included.
+            </p>
+          </div>
 
-                  <th className="px-5 py-4 font-bold">
-                    Boost
-                  </th>
+          <button
+            type="button"
+            onClick={() => void loadFeaturedBusinesses()}
+            disabled={loading}
+            className="self-start rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {loading ? "Refreshing..." : "Refresh"}
+          </button>
+        </div>
 
-                  <th className="px-5 py-4 font-bold">
-                    Priority
-                  </th>
+        {loading ? (
+          <div className="space-y-3 p-5">
+            {[1, 2, 3, 4, 5].map((item) => (
+              <div
+                key={item}
+                className="h-24 animate-pulse rounded-xl bg-slate-100"
+              />
+            ))}
+          </div>
+        ) : businesses.length === 0 ? (
+          <div className="px-5 py-16 text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-lg text-slate-500">
+              F
+            </div>
 
-                  <th className="px-5 py-4 font-bold">
-                    Profile
-                  </th>
+            <h3 className="mt-4 font-semibold text-slate-900">
+              No featured businesses found
+            </h3>
 
-                  <th className="px-5 py-4 font-bold">
-                    Followers
-                  </th>
-
-                  <th className="px-5 py-4 font-bold">
-                    Views
-                  </th>
-
-                  <th className="px-5 py-4 font-bold">
-                    Created
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {businesses.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={9}
-                      className="px-5 py-14 text-center text-sm text-[var(--color-text-muted)]"
-                    >
-                      {search
-                        ? "No featured businesses matched your search."
-                        : "No featured or boosted businesses found."}
-                    </td>
+            <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">
+              {submittedSearch
+                ? "No featured businesses match your search."
+                : "There are currently no featured or actively boosted businesses."}
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="hidden overflow-x-auto lg:block">
+              <table className="min-w-full">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <th className="px-5 py-3">Business</th>
+                    <th className="px-5 py-3">Status</th>
+                    <th className="px-5 py-3">Promotion</th>
+                    <th className="px-5 py-3">Priority</th>
+                    <th className="px-5 py-3">Audience</th>
+                    <th className="px-5 py-3">Profile</th>
+                    <th className="px-5 py-3">Created</th>
                   </tr>
-                ) : (
-                  businesses.map((business) => (
+                </thead>
+
+                <tbody className="divide-y divide-slate-100">
+                  {businesses.map((business) => (
                     <tr
                       key={business.id}
-                      className="border-b last:border-0 hover:bg-slate-50"
+                      className="transition hover:bg-slate-50"
                     >
-                      <td className="px-5 py-4">
-                        <Link
-                          href={`/admin/businesses/${business.id}`}
-                          className="font-bold text-[var(--color-primary)] hover:underline"
-                        >
-                          {business.business_name}
-                        </Link>
-
-                        <p className="mt-1 text-xs text-[var(--color-text-muted)]">
-                          {business.business_code}
+                      <td className="max-w-xs px-5 py-4">
+                        <p className="truncate font-medium text-slate-900">
+                          {business.business_name || "Unnamed business"}
                         </p>
 
-                        <p className="mt-1 text-[10px] text-slate-400">
-                          {business.id}
+                        <p className="mt-1 font-mono text-xs text-slate-500">
+                          {business.business_code || truncateId(business.id)}
                         </p>
                       </td>
 
                       <td className="px-5 py-4">
-                        <div className="flex flex-col gap-2">
-                          <StatusBadge
-                            status={business.business_status}
-                          />
+                        <div className="flex flex-wrap gap-1.5">
+                          <span
+                            className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                              business.is_active
+                                ? "bg-emerald-50 text-emerald-700"
+                                : "bg-slate-100 text-slate-600"
+                            }`}
+                          >
+                            {business.is_active ? "Active" : "Inactive"}
+                          </span>
 
-                          <BooleanBadge
-                            value={business.is_active}
-                            yes="Active"
-                            no="Inactive"
-                          />
-
-                          <span className="text-xs capitalize text-[var(--color-text-muted)]">
-                            {formatLabel(
-                              business.verification_status,
-                            )}
+                          <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+                            {business.business_status || "Unknown"}
                           </span>
                         </div>
                       </td>
 
                       <td className="px-5 py-4">
-                        <BooleanBadge
-                          value={business.is_featured}
-                          yes="Featured"
-                          no="No"
-                        />
+                        <div className="flex flex-col gap-1.5">
+                          {business.is_featured && (
+                            <span className="w-fit rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">
+                              Featured
+                            </span>
+                          )}
 
-                        {business.featured_until ? (
-                          <p className="mt-2 text-xs text-[var(--color-text-muted)]">
-                            Until{" "}
-                            {formatDate(
-                              business.featured_until,
-                            )}
-                          </p>
-                        ) : business.is_featured ? (
-                          <p className="mt-2 text-xs text-slate-400">
-                            No expiry
-                          </p>
-                        ) : null}
-                      </td>
-
-                      <td className="px-5 py-4">
-                        {isBoosted(
-                          business.boost_until,
-                          now.getTime(),
-                        ) ? (
-                          <>
-                            <span className="inline-flex rounded-full bg-orange-50 px-3 py-1 text-xs font-bold text-orange-700">
+                          {isFuture(business.boost_until) && (
+                            <span className="w-fit rounded-full bg-purple-50 px-2.5 py-1 text-xs font-medium text-purple-700">
                               Boosted
                             </span>
+                          )}
 
-                            <p className="mt-2 text-xs text-[var(--color-text-muted)]">
-                              Until{" "}
-                              {formatDate(
-                                business.boost_until,
-                              )}
-                            </p>
-                          </>
-                        ) : (
                           <span className="text-xs text-slate-400">
-                            Not boosted
+                            {business.featured_until
+                              ? `Featured until ${formatDateTime(
+                                  business.featured_until,
+                                )}`
+                              : "No feature expiry"}
                           </span>
-                        )}
+                        </div>
                       </td>
 
                       <td className="px-5 py-4">
-                        <span className="font-extrabold text-slate-900">
+                        <span className="font-semibold text-slate-700">
                           {business.priority_score ?? 0}
                         </span>
                       </td>
 
                       <td className="px-5 py-4">
-                        <div className="w-28">
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="font-semibold">
-                              {business.profile_completion ?? 0}%
+                        <div className="space-y-1 text-xs text-slate-500">
+                          <p>
+                            Followers:{" "}
+                            <span className="font-medium text-slate-700">
+                              {(business.total_followers ?? 0).toLocaleString(
+                                "en-IN",
+                              )}
                             </span>
+                          </p>
 
-                            <span className="text-slate-400">
-                              Complete
+                          <p>
+                            Views:{" "}
+                            <span className="font-medium text-slate-700">
+                              {(business.total_views ?? 0).toLocaleString(
+                                "en-IN",
+                              )}
                             </span>
-                          </div>
+                          </p>
+                        </div>
+                      </td>
 
-                          <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100">
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-2">
+                          <div className="h-2 w-20 overflow-hidden rounded-full bg-slate-100">
                             <div
-                              className="h-full rounded-full bg-[var(--color-primary)]"
+                              className="h-full rounded-full bg-slate-700"
                               style={{
                                 width: `${Math.min(
                                   Math.max(
@@ -333,146 +434,125 @@ export default async function AdminFeatured({
                               }}
                             />
                           </div>
+
+                          <span className="text-xs text-slate-500">
+                            {business.profile_completion ?? 0}%
+                          </span>
                         </div>
                       </td>
 
-                      <td className="px-5 py-4 font-semibold">
-                        {formatNumber(
-                          business.total_followers ?? 0,
-                        )}
-                      </td>
-
-                      <td className="px-5 py-4 font-semibold">
-                        {formatNumber(
-                          business.total_views ?? 0,
-                        )}
-                      </td>
-
-                      <td className="px-5 py-4 text-xs text-[var(--color-text-muted)]">
-                        {formatDate(business.created_at)}
+                      <td className="whitespace-nowrap px-5 py-4 text-sm text-slate-500">
+                        {formatDateTime(business.created_at)}
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {businesses.length > 0 ? (
-            <div className="border-t bg-[var(--color-surface)] px-5 py-4 text-xs text-[var(--color-text-muted)]">
-              Showing up to 100 featured or boosted businesses.
+                  ))}
+                </tbody>
+              </table>
             </div>
-          ) : null}
-        </div>
-      )}
+
+            <div className="divide-y divide-slate-100 lg:hidden">
+              {businesses.map((business) => (
+                <div key={business.id} className="p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h3 className="truncate font-semibold text-slate-900">
+                        {business.business_name || "Unnamed business"}
+                      </h3>
+
+                      <p className="mt-1 font-mono text-xs text-slate-500">
+                        {business.business_code || truncateId(business.id)}
+                      </p>
+                    </div>
+
+                    <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
+                      {business.is_featured && (
+                        <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">
+                          Featured
+                        </span>
+                      )}
+
+                      {isFuture(business.boost_until) && (
+                        <span className="rounded-full bg-purple-50 px-2.5 py-1 text-xs font-medium text-purple-700">
+                          Boosted
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <p className="text-slate-400">Status</p>
+                      <p className="mt-1 font-medium text-slate-700">
+                        {business.is_active ? "Active" : "Inactive"}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-slate-400">Verification</p>
+                      <p className="mt-1 font-medium text-slate-700">
+                        {business.verification_status || "Unknown"}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-slate-400">Priority</p>
+                      <p className="mt-1 font-medium text-slate-700">
+                        {business.priority_score ?? 0}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-slate-400">Profile</p>
+                      <p className="mt-1 font-medium text-slate-700">
+                        {business.profile_completion ?? 0}%
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-slate-400">Followers</p>
+                      <p className="mt-1 font-medium text-slate-700">
+                        {(business.total_followers ?? 0).toLocaleString(
+                          "en-IN",
+                        )}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-slate-400">Views</p>
+                      <p className="mt-1 font-medium text-slate-700">
+                        {(business.total_views ?? 0).toLocaleString(
+                          "en-IN",
+                        )}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 space-y-1 text-xs text-slate-500">
+                    <p>
+                      Featured until:{" "}
+                      {formatDateTime(business.featured_until)}
+                    </p>
+
+                    <p>
+                      Boost until:{" "}
+                      {formatDateTime(business.boost_until)}
+                    </p>
+
+                    <p>
+                      Created: {formatDateTime(business.created_at)}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="border-t border-slate-200 px-5 py-4 text-xs text-slate-500">
+              Showing {businesses.length} featured business
+              {businesses.length === 1 ? "" : "es"}.
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
-}
-
-function StatCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: number;
-}) {
-  return (
-    <div className="rounded-2xl border border-[var(--color-border)] bg-white p-5">
-      <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-text-muted)]">
-        {label}
-      </p>
-
-      <p className="mt-2 text-3xl font-extrabold text-slate-900">
-        {value.toLocaleString("en-IN")}
-      </p>
-    </div>
-  );
-}
-
-function BooleanBadge({
-  value,
-  yes,
-  no,
-}: {
-  value: boolean;
-  yes: string;
-  no: string;
-}) {
-  return (
-    <span
-      className={
-        value
-          ? "inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700"
-          : "inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500"
-      }
-    >
-      {value ? yes : no}
-    </span>
-  );
-}
-
-function StatusBadge({
-  status,
-}: {
-  status: string;
-}) {
-  const styles: Record<string, string> = {
-    draft: "bg-slate-100 text-slate-600",
-    pending: "bg-amber-50 text-amber-700",
-    approved: "bg-emerald-50 text-emerald-700",
-    rejected: "bg-red-50 text-red-700",
-    suspended: "bg-red-50 text-red-700",
-  };
-
-  return (
-    <span
-      className={`inline-flex w-fit rounded-full px-3 py-1 text-xs font-bold capitalize ${
-        styles[status] ?? "bg-slate-100 text-slate-600"
-      }`}
-    >
-      {status || "Unknown"}
-    </span>
-  );
-}
-
-function isBoosted(
-  value: string | null,
-  nowTimestamp: number,
-) {
-  if (!value) {
-    return false;
-  }
-
-  const timestamp = new Date(value).getTime();
-
-  return (
-    !Number.isNaN(timestamp) &&
-    timestamp > nowTimestamp
-  );
-}
-
-function formatLabel(value: string) {
-  return value.replaceAll("_", " ");
-}
-
-function formatNumber(value: number) {
-  return new Intl.NumberFormat("en-IN").format(value);
-}
-
-function formatDate(value: string | null) {
-  if (!value) {
-    return "â€”";
-  }
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "â€”";
-  }
-
-  return new Intl.DateTimeFormat("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(date);
 }

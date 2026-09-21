@@ -3,7 +3,7 @@ export const siteConfig = {
   tagline: "Digital Operating System for Every Local Business",
   description:
     "Discover local businesses, products, services, offers and opportunities with Twimzi.",
-  url: "https://twimzi.com",
+  url: "https://www.twimzi.com",
 
   media: {
     publicUrl: "https://twimzi-media.twimziofficial.workers.dev",
@@ -18,7 +18,7 @@ export const siteConfig = {
   seo: {
     title: "Twimzi — Digital Operating System for Every Local Business",
     description:
-      "Discover businesses, products, services and offers near you with Twimzi.",
+      "Discover local businesses, products, services and offers near you with Twimzi.",
     keywords: [
       "Twimzi",
       "local businesses",

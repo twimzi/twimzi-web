@@ -33,6 +33,13 @@ type Business = {
   updated_at: string;
 };
 
+type BusinessesPageProps = {
+  searchParams: Promise<{
+    q?: string;
+    type?: string;
+  }>;
+};
+
 function getBusinessInitials(name: string) {
   const words = name.trim().split(/\s+/).filter(Boolean);
 
@@ -59,16 +66,35 @@ function isFeatured(business: Business) {
   return new Date(business.featured_until).getTime() > Date.now();
 }
 
-export default async function Businesses() {
+export default async function Businesses({
+  searchParams,
+}: BusinessesPageProps) {
+  const params = await searchParams;
+  const query = params.q?.trim() ?? "";
+  const type = params.type?.trim() ?? "";
+
   const supabase = await createSupabaseServerClient();
 
   const { data, error } = await supabase.rpc("get_public_businesses", {
-    p_search: null,
+    p_search: query || null,
     p_limit: 100,
     p_offset: 0,
   });
 
-  const businesses = (data ?? []) as Business[];
+  let businesses = (data ?? []) as Business[];
+
+  if (type) {
+    const normalizedType = type.toLowerCase();
+
+    businesses = businesses.filter((business) => {
+      const businessType = business.business_type?.toLowerCase() ?? "";
+
+      return (
+        businessType.includes(normalizedType) ||
+        normalizedType.includes(businessType)
+      );
+    });
+  }
 
   return (
     <>
@@ -79,6 +105,51 @@ export default async function Businesses() {
       />
 
       <Container>
+        <form action="/businesses" method="get" className="py-8">
+          <div className="flex flex-col gap-3 lg:flex-row">
+            <input
+              name="q"
+              defaultValue={query}
+              placeholder="Search businesses, products or services..."
+              className="min-h-12 flex-1 rounded-xl border border-[var(--color-border)] bg-white px-4 text-sm outline-none transition focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/10"
+              aria-label="Search businesses"
+            />
+
+            <select
+              name="type"
+              defaultValue={type}
+              className="min-h-12 rounded-xl border border-[var(--color-border)] bg-white px-4 text-sm outline-none focus:border-[var(--color-primary)]"
+              aria-label="Business type"
+            >
+              <option value="">All business types</option>
+              <option value="manufacturer">Manufacturers</option>
+              <option value="trader">Traders & Wholesalers</option>
+              <option value="professional">Professionals</option>
+              <option value="home service">Home Services</option>
+              <option value="shop">Local Shops</option>
+              <option value="restaurant">Restaurants</option>
+              <option value="dealer">Dealers</option>
+              <option value="service">Service Providers</option>
+            </select>
+
+            <button
+              type="submit"
+              className="min-h-12 rounded-xl bg-[var(--color-primary)] px-7 text-sm font-semibold text-white transition hover:opacity-90"
+            >
+              Search
+            </button>
+
+            {(query || type) && (
+              <Link
+                href="/businesses"
+                className="inline-flex min-h-12 items-center justify-center rounded-xl border border-[var(--color-border)] px-5 text-sm font-semibold"
+              >
+                Clear
+              </Link>
+            )}
+          </div>
+        </form>
+
         {error ? (
           <div className="py-20">
             <div className="mx-auto max-w-lg rounded-2xl border border-red-200 bg-red-50 p-8 text-center">
@@ -103,12 +174,12 @@ export default async function Businesses() {
             </div>
 
             <h2 className="mt-5 text-2xl font-bold">
-              No businesses available yet.
+              No businesses found.
             </h2>
 
             <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[var(--color-text-muted)]">
-              Approved businesses will appear here automatically when they are
-              published on Twimzi.
+              Try another search or business type, or add your business to
+              Twimzi.
             </p>
 
             <Link
@@ -120,13 +191,14 @@ export default async function Businesses() {
           </div>
         ) : (
           <>
-            <div className="flex items-center justify-between gap-4 border-b border-[var(--color-border)] py-5">
+            <div className="flex flex-col gap-2 border-b border-[var(--color-border)] py-5 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-[var(--color-text-muted)]">
                 {businesses.length}{" "}
                 {businesses.length === 1 ? "business" : "businesses"} found
+                {query ? ` for “${query}”` : ""}
               </p>
 
-              <span className="hidden text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)] sm:block">
+              <span className="text-xs font-medium uppercase tracking-wider text-[var(--color-text-muted)]">
                 Approved businesses
               </span>
             </div>
@@ -151,25 +223,11 @@ export default async function Businesses() {
                       </div>
                     )}
 
-                    <div className="h-28 bg-[var(--color-primary-light)]">
-                      {business.cover_media_id ? (
-                        <div className="h-full bg-gradient-to-br from-[var(--color-primary-light)] to-[var(--color-accent-light)]" />
-                      ) : (
-                        <div className="h-full bg-[var(--color-brand-gradient)] opacity-90" />
-                      )}
-                    </div>
+                    <div className="h-28 bg-gradient-to-br from-[var(--color-primary-light)] to-[var(--color-accent-light)]" />
 
                     <div className="relative px-6 pb-6">
-                      <div className="-mt-9 flex h-18 w-18 items-center justify-center overflow-hidden rounded-2xl border-4 border-white bg-white shadow-md">
-                        {business.logo_media_id ? (
-                          <div className="flex h-full w-full items-center justify-center bg-[var(--color-primary-light)] text-lg font-bold text-[var(--color-primary)]">
-                            {initials}
-                          </div>
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center bg-[var(--color-primary-light)] text-lg font-bold text-[var(--color-primary)]">
-                            {initials}
-                          </div>
-                        )}
+                      <div className="-mt-9 flex h-[72px] w-[72px] items-center justify-center overflow-hidden rounded-2xl border-4 border-white bg-[var(--color-primary-light)] text-lg font-bold text-[var(--color-primary)] shadow-md">
+                        {initials}
                       </div>
 
                       <p className="mt-5 text-xs font-semibold uppercase tracking-wider text-[var(--color-primary)]">
@@ -208,7 +266,8 @@ export default async function Businesses() {
                           business.average_rating > 0 && (
                             <span>
                               <strong className="text-[var(--color-text)]">
-                                â˜… {Number(business.average_rating).toFixed(1)}
+                                ★{" "}
+                                {Number(business.average_rating).toFixed(1)}
                               </strong>
                             </span>
                           )}
@@ -220,7 +279,7 @@ export default async function Businesses() {
                       >
                         View business
                         <span className="ml-2 transition-transform group-hover:translate-x-0.5">
-                          â†’
+                          →
                         </span>
                       </Link>
                     </div>
