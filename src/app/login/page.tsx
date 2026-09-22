@@ -2,14 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { FormEvent, Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 
-export default function Login() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createSupabaseBrowserClient();
@@ -245,5 +245,36 @@ export default function Login() {
         </div>
       </div>
     </Container>
+  );
+}
+
+function LoginFallback() {
+  return (
+    <Container>
+      <div className="flex min-h-[700px] items-center justify-center py-16">
+        <div className="w-full max-w-md rounded-3xl border border-[var(--color-border)] bg-white p-8 text-center shadow-[var(--shadow-md)] sm:p-10">
+          <Image
+            src="/twimzi-logo.png"
+            alt="Twimzi"
+            width={769}
+            height={650}
+            priority
+            className="mx-auto h-20 w-auto object-contain"
+          />
+
+          <p className="mt-6 text-sm text-[var(--color-text-muted)]">
+            Loading login...
+          </p>
+        </div>
+      </div>
+    </Container>
+  );
+}
+
+export default function Login() {
+  return (
+    <Suspense fallback={<LoginFallback />}>
+      <LoginForm />
+    </Suspense>
   );
 }
