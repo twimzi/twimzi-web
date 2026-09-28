@@ -10,8 +10,8 @@ const routes = [
   "/products",
   "/services",
   "/offers",
+  "/community",
   "/add-business",
-  "/login",
   "/privacy-policy",
   "/terms-and-conditions",
   "/acceptable-use",
@@ -29,27 +29,26 @@ const routes = [
   "/disclaimer",
 ];
 
+const highPriorityRoutes = new Set([
+  "/",
+  "/businesses",
+  "/products",
+  "/services",
+  "/offers",
+  "/community",
+]);
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
 
   return routes.map((route) => ({
     url: `${siteConfig.url}${route}`,
     lastModified: now,
-    changeFrequency:
-      route === "/" ||
-      route === "/businesses" ||
-      route === "/products" ||
-      route === "/services" ||
-      route === "/offers"
-        ? "daily"
-        : "monthly",
+    changeFrequency: highPriorityRoutes.has(route) ? "daily" : "monthly",
     priority:
       route === "/"
         ? 1
-        : route === "/businesses" ||
-            route === "/products" ||
-            route === "/services" ||
-            route === "/offers"
+        : highPriorityRoutes.has(route)
           ? 0.8
           : 0.5,
   }));

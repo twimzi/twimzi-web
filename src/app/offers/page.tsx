@@ -1,16 +1,30 @@
-"use client";
-
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import {
+  ArrowRight,
+  Clock3,
+  Gift,
+  Search,
+  Store,
+  Tag,
+} from "lucide-react";
+
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+export const metadata: Metadata = {
+  title: "Offers | Twimzi",
+  description:
+    "Discover active offers and promotions from local businesses on Twimzi.",
+};
 
 type Offer = {
   id: string;
   business_id: string;
-  business_name: string | null;
   title: string | null;
   slug: string | null;
   short_description: string | null;
+  description: string | null;
+  coupon_code: string | null;
   offer_type: string | null;
   discount_type: string | null;
   discount_value: number | null;
@@ -25,34 +39,44 @@ type Offer = {
   status: string | null;
   priority: number | null;
   is_featured: boolean | null;
-  created_at: string | null;
-  updated_at: string | null;
+  terms_conditions: string | null;
+  created_at: string;
 };
 
-function formatDate(value: string | null) {
-  if (!value) return "—";
+type Business = {
+  id: string;
+  business_name: string;
+  slug: string | null;
+};
 
-  return new Intl.DateTimeFormat("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(value));
+type SearchParams = {
+  q?: string;
+};
+
+function asString(value: unknown): string | null {
+  return typeof value === "string" && value.trim()
+    ? value.trim()
+    : null;
 }
 
-function formatDateTime(value: string | null) {
-  if (!value) return "—";
+function asNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
 
-  return new Intl.DateTimeFormat("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(new Date(value));
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value);
+
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  return null;
 }
 
 function formatMoney(value: number | null) {
-  if (value === null || value === undefined) return "—";
+  if (value === null) {
+    return null;
+  }
 
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
@@ -62,531 +86,461 @@ function formatMoney(value: number | null) {
 }
 
 function formatDiscount(offer: Offer) {
+  const value = asNumber(offer.discount_value);
+
+  if (value === null) {
+    return null;
+  }
+
+  const type = asString(offer.discount_type)?.toLowerCase() ?? "";
+
   if (
-    offer.discount_value === null ||
-    offer.discount_value === undefined
+    type.includes("percent") ||
+    type.includes("percentage") ||
+    type.includes("%")
   ) {
+    return `${value}% OFF`;
+  }
+
+  if (
+    type.includes("fixed") ||
+    type.includes("amount") ||
+    type.includes("flat")
+  ) {
+    return `${formatMoney(value)} OFF`;
+  }
+
+  return String(value);
+}
+
+function formatDate(value: string | null) {
+  if (!value) {
     return "—";
   }
 
-  if (offer.discount_type?.toLowerCase().includes("percent")) {
-    return `${offer.discount_value}%`;
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "—";
   }
 
-  return formatMoney(offer.discount_value);
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "Asia/Kolkata",
+  }).format(date);
 }
 
-function statusClasses(status: string | null) {
-  switch (status?.toLowerCase()) {
-    case "active":
-    case "published":
-      return "bg-emerald-50 text-emerald-700";
-
-    case "pending":
-    case "draft":
-      return "bg-amber-50 text-amber-700";
-
-    case "expired":
-    case "rejected":
-    case "cancelled":
-      return "bg-red-50 text-red-700";
-
-    default:
-      return "bg-slate-100 text-slate-600";
+function formatDateTime(value: string | null) {
+  if (!value) {
+    return "—";
   }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "—";
+  }
+
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "Asia/Kolkata",
+  }).format(date);
 }
 
-export default function AdminOffersPage() {
-  const supabase = createSupabaseBrowserClient();
-
-  const [offers, setOffers] = useState<Offer[]>([]);
-  const [search, setSearch] = useState("");
-  const [submittedSearch, setSubmittedSearch] = useState("");
-  const [status, setStatus] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
-
-  const loadOffers = useCallback(async () => {
-    setLoading(true);
-    setError("");
-
-    try {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-
-      if (userError) {
-        throw userError;
-      }
-
-      if (!user) {
-        throw new Error("You must be signed in.");
-      }
-
-      const { data: adminCheck, error: adminError } =
-        await supabase.rpc("is_super_admin");
-
-      if (adminError) {
-        throw adminError;
-      }
-
-      if (!adminCheck) {
-        setIsSuperAdmin(false);
-        throw new Error(
-          "You do not have permission to access this page.",
-        );
-      }
-
-      setIsSuperAdmin(true);
-
-      const { data, error: offersError } = await supabase.rpc(
-        "admin_get_offers",
-        {
-          p_search: submittedSearch.trim() || null,
-          p_status: status || null,
-          p_limit: 100,
-          p_offset: 0,
-        },
-      );
-
-      if (offersError) {
-        throw offersError;
-      }
-
-      setOffers((data ?? []) as Offer[]);
-    } catch (err) {
-      setOffers([]);
-
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Unable to load offers.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, [status, submittedSearch, supabase]);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      void loadOffers();
-    }, 0);
-
-    return () => window.clearTimeout(timer);
-  }, [loadOffers]);
-
-  function handleSearch(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setSubmittedSearch(search);
+function getBusinessHref(business: Business | undefined) {
+  if (!business) {
+    return "/businesses";
   }
 
-  function clearFilters() {
-    setSearch("");
-    setSubmittedSearch("");
-    setStatus("");
-  }
+  return `/businesses/${business.slug || business.id}`;
+}
 
-  if (!isSuperAdmin && !loading && error.includes("permission")) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <p className="text-sm font-medium text-slate-500">
-            Administration
-          </p>
+function normalizeOffer(value: Record<string, unknown>): Offer {
+  return {
+    id: asString(value.id) ?? "",
+    business_id: asString(value.business_id) ?? "",
+    title: asString(value.title),
+    slug: asString(value.slug),
+    short_description: asString(value.short_description),
+    description: asString(value.description),
+    coupon_code: asString(value.coupon_code),
+    offer_type: asString(value.offer_type),
+    discount_type: asString(value.discount_type),
+    discount_value: asNumber(value.discount_value),
+    minimum_order_amount: asNumber(
+      value.minimum_order_amount ?? value.min_purchase_amount,
+    ),
+    maximum_discount_amount: asNumber(
+      value.maximum_discount_amount ?? value.max_discount_amount,
+    ),
+    redemption_limit: asNumber(value.redemption_limit),
+    redemption_count: asNumber(value.redemption_count),
+    per_user_limit: asNumber(value.per_user_limit),
+    start_at: asString(value.start_at),
+    end_at: asString(value.end_at),
+    visibility: asString(value.visibility),
+    status: asString(value.status),
+    priority: asNumber(value.priority),
+    is_featured:
+      typeof value.is_featured === "boolean"
+        ? value.is_featured
+        : null,
+    terms_conditions: asString(value.terms_conditions),
+    created_at: asString(value.created_at) ?? "",
+  };
+}
 
-          <h1 className="mt-1 text-2xl font-semibold text-slate-900">
-            Offers
-          </h1>
-        </div>
-
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">
-          {error}
-        </div>
-      </div>
-    );
-  }
-
-  const featuredCount = offers.filter(
-    (offer) => offer.is_featured,
-  ).length;
-
-  const activeCount = offers.filter((offer) => {
-    const value = offer.status?.toLowerCase();
-
-    return value === "active" || value === "published";
-  }).length;
-
-  const redemptionCount = offers.reduce(
-    (total, offer) => total + (offer.redemption_count ?? 0),
-    0,
-  );
+function OfferCard({
+  offer,
+  business,
+}: {
+  offer: Offer;
+  business: Business | undefined;
+}) {
+  const discount = formatDiscount(offer);
+  const offerHref = offer.slug ? `/offers/${offer.slug}` : "/offers";
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <p className="text-sm font-medium text-slate-500">
-            Administration
-          </p>
+    <article className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md">
+      <Link
+        href={offerHref}
+        aria-label={`View ${offer.title || "Special Offer"}`}
+        className="absolute inset-0 z-0 rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2"
+      />
 
-          <h1 className="mt-1 text-2xl font-semibold text-slate-900">
-            Offers
-          </h1>
-
-          <p className="mt-1 text-sm text-slate-500">
-            Manage promotional offers published by Twimzi businesses.
-          </p>
-        </div>
-
-        <Link
-          href="/offers"
-          className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-        >
-          View Public Offers
-        </Link>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">Offers Loaded</p>
-
-          <p className="mt-2 text-2xl font-semibold text-slate-900">
-            {offers.length}
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">Active</p>
-
-          <p className="mt-2 text-2xl font-semibold text-slate-900">
-            {activeCount}
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">Featured</p>
-
-          <p className="mt-2 text-2xl font-semibold text-slate-900">
-            {featuredCount}
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">Redemptions</p>
-
-          <p className="mt-2 text-2xl font-semibold text-slate-900">
-            {redemptionCount}
-          </p>
-        </div>
-      </div>
-
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <form
-          onSubmit={handleSearch}
-          className="flex flex-col gap-3 xl:flex-row"
-        >
-          <div className="flex-1">
-            <label htmlFor="offer-search" className="sr-only">
-              Search offers
-            </label>
-
-            <input
-              id="offer-search"
-              type="search"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search by offer, slug, description or business..."
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
-            />
+      <div className="relative z-10 flex min-h-48 items-center justify-center overflow-hidden bg-slate-100 p-6">
+        <div className="text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-slate-500 shadow-sm">
+            <Gift className="h-7 w-7" />
           </div>
 
-          <select
-            value={status}
-            onChange={(event) => setStatus(event.target.value)}
-            aria-label="Filter by status"
-            className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none focus:border-slate-400 focus:bg-white"
-          >
-            <option value="">All statuses</option>
-            <option value="active">Active</option>
-            <option value="published">Published</option>
-            <option value="draft">Draft</option>
-            <option value="pending">Pending</option>
-            <option value="expired">Expired</option>
-            <option value="rejected">Rejected</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
-
-          <button
-            type="submit"
-            className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
-          >
-            Search
-          </button>
-
-          {(submittedSearch || status) && (
-            <button
-              type="button"
-              onClick={clearFilters}
-              className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-            >
-              Clear
-            </button>
+          {discount ? (
+            <p className="mt-4 text-2xl font-extrabold tracking-tight text-slate-950">
+              {discount}
+            </p>
+          ) : (
+            <p className="mt-4 text-lg font-extrabold text-slate-950">
+              Special Offer
+            </p>
           )}
-        </form>
+        </div>
+
+        <div className="absolute left-3 top-3 flex flex-wrap gap-2">
+          {offer.is_featured ? (
+            <span className="rounded-full border border-white/60 bg-white/90 px-2.5 py-1 text-xs font-bold text-slate-900 backdrop-blur">
+              Featured
+            </span>
+          ) : null}
+
+          {offer.offer_type ? (
+            <span className="rounded-full bg-slate-950 px-2.5 py-1 text-xs font-bold capitalize text-white">
+              {offer.offer_type}
+            </span>
+          ) : null}
+        </div>
       </div>
 
-      {error && !error.includes("permission") && (
-        <div className="flex flex-col gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 sm:flex-row sm:items-center sm:justify-between">
-          <span>{error}</span>
+      <div className="relative z-10 p-4 sm:p-5">
+        <h2 className="line-clamp-2 text-base font-bold leading-6 text-slate-950">
+          {offer.title || "Special Offer"}
+        </h2>
 
-          <button
-            type="button"
-            onClick={() => void loadOffers()}
-            className="rounded-lg border border-red-200 bg-white px-3 py-2 font-medium text-red-700 hover:bg-red-100"
-          >
-            Retry
-          </button>
-        </div>
-      )}
+        {offer.short_description || offer.description ? (
+          <p className="mt-3 line-clamp-3 min-h-15 text-sm leading-5 text-slate-600">
+            {offer.short_description || offer.description}
+          </p>
+        ) : null}
 
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex flex-col gap-2 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="font-semibold text-slate-900">
-              Offer Directory
-            </h2>
+        {offer.coupon_code ? (
+          <div className="mt-4 flex items-center gap-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-3 py-2.5">
+            <Tag className="h-4 w-4 shrink-0 text-slate-500" />
 
-            <p className="mt-1 text-xs text-slate-500">
-              Showing up to 100 offers.
+            <span className="text-xs font-medium text-slate-500">
+              Code
+            </span>
+
+            <code className="ml-auto text-sm font-extrabold tracking-wide text-slate-950">
+              {offer.coupon_code}
+            </code>
+          </div>
+        ) : null}
+
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          <div className="rounded-xl bg-slate-50 p-3">
+            <p className="text-xs text-slate-500">Starts</p>
+
+            <p className="mt-1 text-sm font-semibold text-slate-900">
+              {formatDate(offer.start_at)}
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={() => void loadOffers()}
-            disabled={loading}
-            className="self-start rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {loading ? "Refreshing..." : "Refresh"}
-          </button>
+          <div className="rounded-xl bg-slate-50 p-3">
+            <p className="text-xs text-slate-500">Ends</p>
+
+            <p className="mt-1 text-sm font-semibold text-slate-900">
+              {formatDate(offer.end_at)}
+            </p>
+          </div>
         </div>
 
-        {loading ? (
-          <div className="space-y-3 p-5">
-            {[1, 2, 3, 4, 5].map((item) => (
-              <div
-                key={item}
-                className="h-16 animate-pulse rounded-xl bg-slate-100"
-              />
-            ))}
-          </div>
-        ) : offers.length === 0 ? (
-          <div className="px-5 py-16 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-lg text-slate-500">
-              O
+        {offer.minimum_order_amount !== null ? (
+          <p className="mt-3 text-xs text-slate-500">
+            Minimum order: {formatMoney(offer.minimum_order_amount)}
+          </p>
+        ) : null}
+
+        <div className="mt-4 flex items-center gap-2 text-xs text-slate-500">
+          <Clock3 className="h-3.5 w-3.5" />
+          Valid until {formatDateTime(offer.end_at)}
+        </div>
+
+        <div className="mt-4 border-t border-slate-100 pt-4">
+          <Link
+            href={getBusinessHref(business)}
+            className="relative z-20 flex items-center justify-between gap-3 text-sm font-semibold text-slate-900 transition group-hover:text-slate-700"
+          >
+            <span className="flex min-w-0 items-center gap-2">
+              <Store className="h-4 w-4 shrink-0 text-slate-400" />
+
+              <span className="truncate">
+                {business?.business_name || "View Business"}
+              </span>
+            </span>
+
+            <ArrowRight className="h-4 w-4 shrink-0 transition group-hover:translate-x-0.5" />
+          </Link>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+export default async function OffersPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const params = await searchParams;
+  const search = params.q?.trim() ?? "";
+
+  const supabase = await createSupabaseServerClient();
+
+  /*
+   * Public offer discovery uses the existing offers table and its
+   * existing RLS policy:
+   *
+   *   deleted_at IS NULL
+   *   is_active = true
+   *   status = 'active'
+   *
+   * get_active_offers() requires a specific business_id, so it is
+   * intentionally not used for global offer discovery.
+   */
+  const [
+    { data: offersData, error: offersError },
+    { data: businessesData, error: businessesError },
+  ] = await Promise.all([
+    supabase
+      .from("offers")
+      .select("*")
+      .eq("is_active", true)
+      .eq("status", "active")
+      .is("deleted_at", null)
+      .order("is_featured", { ascending: false })
+      .order("priority", { ascending: false })
+      .order("start_at", { ascending: false }),
+
+    supabase.rpc("get_public_businesses", {
+      p_search: null,
+      p_limit: 100,
+      p_offset: 0,
+    }),
+  ]);
+
+  const rawOffers = (offersData ?? []) as Record<string, unknown>[];
+
+  let offers = rawOffers
+    .map(normalizeOffer)
+    .filter((offer) => offer.id && offer.business_id);
+
+  if (search) {
+    const query = search.toLowerCase();
+
+    offers = offers.filter((offer) =>
+      [
+        offer.title,
+        offer.short_description,
+        offer.description,
+        offer.coupon_code,
+        offer.offer_type,
+        offer.discount_type,
+      ]
+        .filter(Boolean)
+        .some((value) =>
+          String(value).toLowerCase().includes(query),
+        ),
+    );
+  }
+
+  offers.sort((a, b) => {
+    if (Boolean(a.is_featured) !== Boolean(b.is_featured)) {
+      return a.is_featured ? -1 : 1;
+    }
+
+    if ((b.priority ?? 0) !== (a.priority ?? 0)) {
+      return (b.priority ?? 0) - (a.priority ?? 0);
+    }
+
+    return (
+      new Date(b.start_at ?? b.created_at).getTime() -
+      new Date(a.start_at ?? a.created_at).getTime()
+    );
+  });
+
+  const businesses = (businessesData ?? []) as Business[];
+
+  const businessesById = new Map(
+    businesses.map((business) => [business.id, business]),
+  );
+
+  const loadError = offersError || businessesError;
+
+  return (
+    <main className="min-h-[calc(100vh-4rem)] bg-slate-50">
+      <section className="border-b border-slate-200 bg-white">
+        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+          <div className="max-w-3xl">
+            <div className="flex items-center gap-2 text-sm font-semibold text-slate-500">
+              <Gift className="h-4 w-4" />
+              Offer Discovery
             </div>
 
-            <h3 className="mt-4 font-semibold text-slate-900">
-              No offers found
-            </h3>
+            <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
+              Discover Offers on Twimzi
+            </h1>
 
-            <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">
-              {submittedSearch || status
-                ? "No offers match the selected filters."
-                : "There are currently no offers available to display."}
+            <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
+              Find active promotions, discounts, coupon codes, and special
+              offers from local businesses.
+            </p>
+          </div>
+
+          <form
+            method="get"
+            className="mt-8 flex w-full max-w-3xl flex-col gap-3 sm:flex-row"
+          >
+            <div className="relative flex-1">
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+
+              <input
+                type="search"
+                name="q"
+                defaultValue={search}
+                placeholder="Search offers, discounts, coupon codes..."
+                className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
+                aria-label="Search offers"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-slate-950 px-6 text-sm font-semibold text-white transition hover:bg-slate-800"
+            >
+              <Search className="h-4 w-4" />
+              Search
+            </button>
+
+            {search ? (
+              <Link
+                href="/offers"
+                className="inline-flex h-12 items-center justify-center rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
+              >
+                Clear
+              </Link>
+            ) : null}
+          </form>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        {loadError ? (
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">
+            <p className="font-bold">Unable to load offers.</p>
+
+            <p className="mt-1">
+              The offer service is temporarily unavailable. Please try again
+              later.
             </p>
           </div>
         ) : (
           <>
-            <div className="hidden overflow-x-auto lg:block">
-              <table className="min-w-full">
-                <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    <th className="px-5 py-3">Offer</th>
-                    <th className="px-5 py-3">Business</th>
-                    <th className="px-5 py-3">Discount</th>
-                    <th className="px-5 py-3">Status</th>
-                    <th className="px-5 py-3">Validity</th>
-                    <th className="px-5 py-3">Redemptions</th>
-                  </tr>
-                </thead>
+            <div className="flex flex-col gap-3 border-b border-slate-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-slate-500">
+                  {offers.length}{" "}
+                  {offers.length === 1 ? "offer" : "offers"} found
+                </p>
 
-                <tbody className="divide-y divide-slate-100">
-                  {offers.map((offer) => (
-                    <tr
-                      key={offer.id}
-                      className="transition hover:bg-slate-50"
-                    >
-                      <td className="px-5 py-4">
-                        <div>
-                          <p className="font-medium text-slate-900">
-                            {offer.title || "Untitled offer"}
-                          </p>
+                <h2 className="mt-1 text-xl font-bold text-slate-950">
+                  {search ? `Results for “${search}”` : "Active Offers"}
+                </h2>
+              </div>
 
-                          <p className="mt-1 text-xs text-slate-500">
-                            {offer.slug || offer.id}
-                          </p>
-
-                          {offer.short_description && (
-                            <p className="mt-1 max-w-sm truncate text-xs text-slate-400">
-                              {offer.short_description}
-                            </p>
-                          )}
-
-                          {offer.is_featured && (
-                            <span className="mt-2 inline-flex rounded-full bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700">
-                              Featured
-                            </span>
-                          )}
-                        </div>
-                      </td>
-
-                      <td className="px-5 py-4">
-                        <Link
-                          href={`/admin/businesses/${offer.business_id}`}
-                          className="font-medium text-slate-700 hover:text-slate-900 hover:underline"
-                        >
-                          {offer.business_name || "Unknown business"}
-                        </Link>
-                      </td>
-
-                      <td className="px-5 py-4">
-                        <p className="font-semibold text-slate-900">
-                          {formatDiscount(offer)}
-                        </p>
-
-                        {offer.minimum_order_amount !== null && (
-                          <p className="mt-1 text-xs text-slate-500">
-                            Min.{" "}
-                            {formatMoney(offer.minimum_order_amount)}
-                          </p>
-                        )}
-                      </td>
-
-                      <td className="px-5 py-4">
-                        <span
-                          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${statusClasses(
-                            offer.status,
-                          )}`}
-                        >
-                          {offer.status || "Unknown"}
-                        </span>
-                      </td>
-
-                      <td className="px-5 py-4 text-sm text-slate-600">
-                        <p>{formatDate(offer.start_at)}</p>
-
-                        <p className="mt-1 text-xs text-slate-400">
-                          to {formatDate(offer.end_at)}
-                        </p>
-                      </td>
-
-                      <td className="px-5 py-4 text-sm text-slate-700">
-                        <p>
-                          {offer.redemption_count ?? 0}
-                          {offer.redemption_limit !== null &&
-                            ` / ${offer.redemption_limit}`}
-                        </p>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <Link
+                href="/businesses"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-slate-900 hover:underline"
+              >
+                <Store className="h-4 w-4" />
+                Browse Businesses
+              </Link>
             </div>
 
-            <div className="divide-y divide-slate-100 lg:hidden">
-              {offers.map((offer) => (
-                <div key={offer.id} className="p-5">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <p className="font-semibold text-slate-900">
-                        {offer.title || "Untitled offer"}
-                      </p>
-
-                      <Link
-                        href={`/admin/businesses/${offer.business_id}`}
-                        className="mt-1 block truncate text-sm text-slate-500 hover:text-slate-900 hover:underline"
-                      >
-                        {offer.business_name || "Unknown business"}
-                      </Link>
-                    </div>
-
-                    <span
-                      className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${statusClasses(
-                        offer.status,
-                      )}`}
-                    >
-                      {offer.status || "Unknown"}
-                    </span>
-                  </div>
-
-                  {offer.short_description && (
-                    <p className="mt-3 text-sm text-slate-500">
-                      {offer.short_description}
-                    </p>
-                  )}
-
-                  <div className="mt-4 grid grid-cols-2 gap-3">
-                    <div className="rounded-xl bg-slate-50 p-3">
-                      <p className="text-xs text-slate-500">
-                        Discount
-                      </p>
-
-                      <p className="mt-1 font-semibold text-slate-900">
-                        {formatDiscount(offer)}
-                      </p>
-                    </div>
-
-                    <div className="rounded-xl bg-slate-50 p-3">
-                      <p className="text-xs text-slate-500">
-                        Redemptions
-                      </p>
-
-                      <p className="mt-1 font-semibold text-slate-900">
-                        {offer.redemption_count ?? 0}
-                        {offer.redemption_limit !== null &&
-                          ` / ${offer.redemption_limit}`}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    {offer.is_featured && (
-                      <span className="rounded-full bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700">
-                        Featured
-                      </span>
-                    )}
-
-                    {offer.offer_type && (
-                      <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">
-                        {offer.offer_type}
-                      </span>
-                    )}
-
-                    {offer.visibility && (
-                      <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">
-                        {offer.visibility}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="mt-4 text-xs text-slate-500">
-                    <p>
-                      Starts: {formatDateTime(offer.start_at)}
-                    </p>
-
-                    <p className="mt-1">
-                      Ends: {formatDateTime(offer.end_at)}
-                    </p>
-                  </div>
+            {offers.length === 0 ? (
+              <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-sm">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
+                  <Gift className="h-6 w-6" />
                 </div>
-              ))}
-            </div>
+
+                <h2 className="mt-4 text-lg font-bold text-slate-950">
+                  No active offers found
+                </h2>
+
+                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+                  {search
+                    ? "Try a different offer name, discount, or coupon code."
+                    : "There are no active public offers available yet."}
+                </p>
+
+                {search ? (
+                  <Link
+                    href="/offers"
+                    className="mt-5 inline-flex items-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800"
+                  >
+                    View all offers
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                ) : null}
+              </div>
+            ) : (
+              <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {offers.map((offer) => (
+                  <OfferCard
+                    key={offer.id}
+                    offer={offer}
+                    business={businessesById.get(offer.business_id)}
+                  />
+                ))}
+              </div>
+            )}
           </>
         )}
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

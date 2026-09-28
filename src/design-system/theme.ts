@@ -1,26 +1,20 @@
 export const twimziTheme = {
   colors: {
-    primary: "#1879FD",
-    primaryDark: "#020D3A",
-    primaryLight: "#E8F2FF",
-
-    secondary: "#F8FAFC",
-
-    accent: "#8E07FB",
-    accentSecondary: "#05CDFC",
-    accentLight: "#F3E8FF",
-
+    primary: "#0D9488",
+    primaryDark: "#0F766E",
+    primaryLight: "#CCFBF1",
+    secondary: "#F0FDFA",
+    accent: "#F97316",
+    accentSecondary: "#FB923C",
+    accentLight: "#FFEDD5",
     background: "#FFFFFF",
     surface: "#FFFFFF",
-
-    text: "#020D3A",
+    text: "#0F172A",
     textSecondary: "#475569",
     textMuted: "#64748B",
-
     border: "#E2E8F0",
-
     gradient:
-      "linear-gradient(135deg, #8E07FB 0%, #1879FD 55%, #05CDFC 100%)",
+      "linear-gradient(135deg, #0D9488 0%, #14B8A6 55%, #F97316 100%)",
   },
 
   typography: {
@@ -32,7 +26,6 @@ export const twimziTheme = {
     md: "0.75rem",
     lg: "1rem",
     xl: "1.25rem",
-    "2xl": "1.5rem",
     full: "9999px",
   },
 

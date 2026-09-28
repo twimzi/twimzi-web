@@ -1,17 +1,25 @@
-"use client";
-
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { ArrowRight, Clock3, Search, Store, Wrench } from "lucide-react";
+
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+export const metadata: Metadata = {
+  title: "Services | Twimzi",
+  description:
+    "Discover services from professionals, home service providers, shops, and local businesses on Twimzi.",
+};
 
 type Service = {
   id: string;
   business_id: string;
   business_name: string | null;
+  business_slug: string | null;
   service_code: string | null;
   service_name: string | null;
   slug: string | null;
   short_description: string | null;
+  description: string | null;
   duration_minutes: number | null;
   price: number | null;
   booking_required: boolean | null;
@@ -22,18 +30,14 @@ type Service = {
   updated_at: string | null;
 };
 
-function formatDate(value: string | null) {
-  if (!value) return "—";
-
-  return new Intl.DateTimeFormat("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(value));
-}
+type SearchParams = {
+  q?: string;
+};
 
 function formatPrice(value: number | null) {
-  if (value === null || value === undefined) return "—";
+  if (value === null || value === undefined) {
+    return "Contact for price";
+  }
 
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
@@ -42,486 +46,319 @@ function formatPrice(value: number | null) {
   }).format(value);
 }
 
-function formatDuration(minutes: number | null) {
-  if (!minutes) return "—";
-
-  if (minutes < 60) {
-    return `${minutes} min`;
+function formatDuration(value: number | null) {
+  if (!value || value <= 0) {
+    return null;
   }
 
-  const hours = Math.floor(minutes / 60);
-  const remaining = minutes % 60;
+  if (value < 60) {
+    return `${value} min`;
+  }
 
-  return remaining > 0
-    ? `${hours}h ${remaining}m`
-    : `${hours}h`;
+  const hours = Math.floor(value / 60);
+  const minutes = value % 60;
+
+  return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`;
 }
 
-export default function AdminServicesPage() {
-  const supabase = createSupabaseBrowserClient();
+function getInitial(name: string | null) {
+  return (name?.trim().charAt(0) || "S").toUpperCase();
+}
 
-  const [services, setServices] = useState<Service[]>([]);
-  const [search, setSearch] = useState("");
-  const [submittedSearch, setSubmittedSearch] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+function getBusinessHref(service: Service) {
+  return service.business_slug
+    ? `/businesses/${service.business_slug}`
+    : "/businesses";
+}
 
-  const loadServices = useCallback(async () => {
-    setLoading(true);
-    setError("");
+function ServiceCard({ service }: { service: Service }) {
+  const name = service.service_name?.trim() || "Unnamed Service";
 
-    try {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
+  const description =
+    service.short_description?.trim() ||
+    service.description?.trim() ||
+    "No service description available.";
 
-      if (userError) {
-        throw userError;
-      }
-
-      if (!user) {
-        throw new Error("You must be signed in.");
-      }
-
-      const { data: adminCheck, error: adminError } =
-        await supabase.rpc("is_super_admin");
-
-      if (adminError) {
-        throw adminError;
-      }
-
-      if (!adminCheck) {
-        setIsSuperAdmin(false);
-        throw new Error(
-          "You do not have permission to access this page.",
-        );
-      }
-
-      setIsSuperAdmin(true);
-
-      const { data, error: servicesError } = await supabase.rpc(
-        "admin_get_services",
-        {
-          p_search: submittedSearch.trim() || null,
-          p_business_id: null,
-          p_limit: 100,
-          p_offset: 0,
-        },
-      );
-
-      if (servicesError) {
-        throw servicesError;
-      }
-
-      setServices((data ?? []) as Service[]);
-    } catch (err) {
-      setServices([]);
-
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Unable to load services.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, [submittedSearch, supabase]);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      void loadServices();
-    }, 0);
-
-    return () => {
-      window.clearTimeout(timer);
-    };
-  }, [loadServices]);
-
-  function handleSearch(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setSubmittedSearch(search);
-  }
-
-  function clearSearch() {
-    setSearch("");
-    setSubmittedSearch("");
-  }
-
-  if (!isSuperAdmin && !loading && error.includes("permission")) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <p className="text-sm font-medium text-slate-500">
-            Administration
-          </p>
-
-          <h1 className="mt-1 text-2xl font-semibold text-slate-900">
-            Services
-          </h1>
-        </div>
-
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">
-          {error}
-        </div>
-      </div>
-    );
-  }
-
-  const featuredCount = services.filter(
-    (service) => service.is_featured,
-  ).length;
-
-  const bookingCount = services.filter(
-    (service) => service.booking_required,
-  ).length;
-
-  const homeServiceCount = services.filter(
-    (service) => service.home_service_available,
-  ).length;
+  const duration = formatDuration(service.duration_minutes);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <p className="text-sm font-medium text-slate-500">
-            Administration
-          </p>
-
-          <h1 className="mt-1 text-2xl font-semibold text-slate-900">
-            Services
-          </h1>
-
-          <p className="mt-1 text-sm text-slate-500">
-            Manage services published by businesses on Twimzi.
-          </p>
+    <article className="group overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[var(--color-primary)]/40 hover:shadow-[var(--shadow-md)]">
+      <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-[var(--color-secondary)]">
+        <div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-white text-4xl font-bold text-[var(--color-text-muted)] shadow-sm transition group-hover:scale-105">
+          {getInitial(service.service_name)}
         </div>
 
-        <Link
-          href="/services"
-          className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-        >
-          View Public Services
-        </Link>
-      </div>
+        <div className="absolute left-3 top-3 flex flex-wrap gap-2">
+          {service.is_featured ? (
+            <span className="rounded-full border border-white/60 bg-white/90 px-2.5 py-1 text-xs font-bold text-[var(--color-text)] backdrop-blur">
+              Featured
+            </span>
+          ) : null}
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">Services Loaded</p>
-
-          <p className="mt-2 text-2xl font-semibold text-slate-900">
-            {services.length}
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">Featured</p>
-
-          <p className="mt-2 text-2xl font-semibold text-slate-900">
-            {featuredCount}
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">Booking Required</p>
-
-          <p className="mt-2 text-2xl font-semibold text-slate-900">
-            {bookingCount}
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">Home Service</p>
-
-          <p className="mt-2 text-2xl font-semibold text-slate-900">
-            {homeServiceCount}
-          </p>
+          {service.home_service_available ? (
+            <span className="rounded-full bg-[var(--color-primary)] px-2.5 py-1 text-xs font-bold text-white">
+              Home Service
+            </span>
+          ) : null}
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <form
-          onSubmit={handleSearch}
-          className="flex flex-col gap-3 md:flex-row"
-        >
-          <div className="flex-1">
-            <label htmlFor="service-search" className="sr-only">
-              Search services
-            </label>
-
-            <input
-              id="service-search"
-              type="search"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search by service, code, slug, description or business..."
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
-          >
-            Search
-          </button>
-
-          {submittedSearch && (
-            <button
-              type="button"
-              onClick={clearSearch}
-              className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-            >
-              Clear
-            </button>
-          )}
-        </form>
-      </div>
-
-      {error && !error.includes("permission") && (
-        <div className="flex flex-col gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 sm:flex-row sm:items-center sm:justify-between">
-          <span>{error}</span>
-
-          <button
-            type="button"
-            onClick={() => void loadServices()}
-            className="rounded-lg border border-red-200 bg-white px-3 py-2 font-medium text-red-700 hover:bg-red-100"
-          >
-            Retry
-          </button>
-        </div>
-      )}
-
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex flex-col gap-2 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="font-semibold text-slate-900">
-              Service Directory
+      <div className="p-4 sm:p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="line-clamp-2 text-base font-bold leading-6 text-[var(--color-text)]">
+              {name}
             </h2>
 
-            <p className="mt-1 text-xs text-slate-500">
-              Showing up to 100 services.
-            </p>
+            {service.service_code ? (
+              <p className="mt-1 text-xs font-medium text-[var(--color-text-muted)]">
+                {service.service_code}
+              </p>
+            ) : null}
           </div>
 
-          <button
-            type="button"
-            onClick={() => void loadServices()}
-            disabled={loading}
-            className="self-start rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {loading ? "Refreshing..." : "Refresh"}
-          </button>
+          <Wrench className="mt-0.5 h-5 w-5 shrink-0 text-[var(--color-text-muted)]" />
         </div>
 
-        {loading ? (
-          <div className="space-y-3 p-5">
-            {[1, 2, 3, 4, 5].map((item) => (
-              <div
-                key={item}
-                className="h-16 animate-pulse rounded-xl bg-slate-100"
-              />
-            ))}
+        <p className="mt-3 line-clamp-2 min-h-10 text-sm leading-5 text-[var(--color-text-muted)]">
+          {description}
+        </p>
+
+        <div className="mt-4 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="text-base font-extrabold text-[var(--color-text)]">
+              {formatPrice(service.price)}
+            </p>
+
+            {duration ? (
+              <p className="mt-1 flex items-center gap-1 text-xs text-[var(--color-text-muted)]">
+                <Clock3 className="h-3.5 w-3.5" />
+                {duration}
+              </p>
+            ) : null}
           </div>
-        ) : services.length === 0 ? (
-          <div className="px-5 py-16 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-lg text-slate-500">
-              S
+
+          {service.booking_required ? (
+            <span className="rounded-full border border-[var(--color-border)] bg-[var(--color-secondary)] px-2.5 py-1 text-xs font-semibold text-[var(--color-text)]">
+              Booking available
+            </span>
+          ) : null}
+        </div>
+
+        {service.home_service_available &&
+        service.service_radius_km !== null ? (
+          <p className="mt-2 text-xs text-[var(--color-text-muted)]">
+            Home service within {service.service_radius_km} km
+          </p>
+        ) : null}
+
+        <div className="mt-4 border-t border-[var(--color-border)] pt-4">
+          <Link
+            href={getBusinessHref(service)}
+            className="flex items-center justify-between gap-3 text-sm font-semibold text-[var(--color-text)] transition group-hover:text-[var(--color-primary)]"
+          >
+            <span className="flex min-w-0 items-center gap-2">
+              <Store className="h-4 w-4 shrink-0 text-[var(--color-text-muted)]" />
+
+              <span className="truncate">
+                {service.business_name || "View Business"}
+              </span>
+            </span>
+
+            <ArrowRight className="h-4 w-4 shrink-0 transition group-hover:translate-x-0.5" />
+          </Link>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+export default async function ServicesPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const params = await searchParams;
+  const search = params.q?.trim() ?? "";
+
+  const supabase = await createSupabaseServerClient();
+
+  const { data, error } = await supabase.rpc("get_public_services", {
+    p_search: search || null,
+    p_limit: 60,
+    p_offset: 0,
+  });
+
+  const services = (data ?? []) as Service[];
+
+  const featuredServices = services.filter(
+    (service) => service.is_featured === true,
+  );
+
+  const regularServices = services.filter(
+    (service) => service.is_featured !== true,
+  );
+
+  return (
+    <main className="min-h-[calc(100vh-4rem)] bg-[var(--color-background)]">
+      <section className="border-b border-[var(--color-border)] bg-white">
+        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+          <div className="max-w-3xl">
+            <div className="flex items-center gap-2 text-sm font-semibold text-[var(--color-text-muted)]">
+              <Wrench className="h-4 w-4" />
+              Service Discovery
             </div>
 
-            <h3 className="mt-4 font-semibold text-slate-900">
-              No services found
-            </h3>
+            <h1 className="mt-3 text-3xl font-bold tracking-tight text-[var(--color-text)] sm:text-4xl">
+              Discover Services on Twimzi
+            </h1>
 
-            <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">
-              {submittedSearch
-                ? "No services match your search criteria."
-                : "There are currently no services available to display."}
+            <p className="mt-3 max-w-2xl text-base leading-7 text-[var(--color-text-muted)] sm:text-lg">
+              Find professionals, home service providers, specialists, and
+              local businesses offering services near you.
             </p>
+          </div>
+
+          <form
+            method="get"
+            className="mt-8 flex w-full max-w-3xl flex-col gap-3 sm:flex-row"
+          >
+            <div className="relative flex-1">
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--color-text-muted)]" />
+
+              <input
+                type="search"
+                name="q"
+                defaultValue={search}
+                placeholder="Search services, professionals, businesses..."
+                className="h-12 w-full rounded-xl border border-[var(--color-border)] bg-white pl-11 pr-4 text-sm text-[var(--color-text)] outline-none transition placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/10"
+                aria-label="Search services"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-6 text-sm font-semibold text-white transition hover:opacity-90"
+            >
+              <Search className="h-4 w-4" />
+              Search
+            </button>
+
+            {search ? (
+              <Link
+                href="/services"
+                className="inline-flex h-12 items-center justify-center rounded-xl border border-[var(--color-border)] bg-white px-5 text-sm font-semibold text-[var(--color-text)] transition hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
+              >
+                Clear
+              </Link>
+            ) : null}
+          </form>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        {error ? (
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">
+            <p className="font-bold">Unable to load services.</p>
+            <p className="mt-1">Please try again in a moment.</p>
           </div>
         ) : (
           <>
-            <div className="hidden overflow-x-auto lg:block">
-              <table className="min-w-full">
-                <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    <th className="px-5 py-3">Service</th>
-                    <th className="px-5 py-3">Business</th>
-                    <th className="px-5 py-3">Price</th>
-                    <th className="px-5 py-3">Duration</th>
-                    <th className="px-5 py-3">Options</th>
-                    <th className="px-5 py-3">Created</th>
-                  </tr>
-                </thead>
+            <div className="flex flex-col gap-3 border-b border-[var(--color-border)] pb-5 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-[var(--color-text-muted)]">
+                  {services.length}{" "}
+                  {services.length === 1 ? "service" : "services"} found
+                </p>
 
-                <tbody className="divide-y divide-slate-100">
-                  {services.map((service) => (
-                    <tr
-                      key={service.id}
-                      className="transition hover:bg-slate-50"
-                    >
-                      <td className="px-5 py-4">
-                        <div>
-                          <p className="font-medium text-slate-900">
-                            {service.service_name ||
-                              "Unnamed service"}
-                          </p>
+                <h2 className="mt-1 text-xl font-bold text-[var(--color-text)]">
+                  {search ? `Results for “${search}”` : "Latest Services"}
+                </h2>
+              </div>
 
-                          <p className="mt-1 text-xs text-slate-500">
-                            {service.service_code ||
-                              service.slug ||
-                              service.id}
-                          </p>
-
-                          {service.short_description && (
-                            <p className="mt-1 max-w-sm truncate text-xs text-slate-400">
-                              {service.short_description}
-                            </p>
-                          )}
-                        </div>
-                      </td>
-
-                      <td className="px-5 py-4">
-                        <Link
-                          href={`/admin/businesses/${service.business_id}`}
-                          className="font-medium text-slate-700 hover:text-slate-900 hover:underline"
-                        >
-                          {service.business_name ||
-                            "Unknown business"}
-                        </Link>
-                      </td>
-
-                      <td className="px-5 py-4 text-sm text-slate-700">
-                        {formatPrice(service.price)}
-                      </td>
-
-                      <td className="px-5 py-4 text-sm text-slate-700">
-                        {formatDuration(service.duration_minutes)}
-                      </td>
-
-                      <td className="px-5 py-4">
-                        <div className="flex flex-wrap gap-1.5">
-                          {service.is_featured && (
-                            <span className="rounded-full bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700">
-                              Featured
-                            </span>
-                          )}
-
-                          {service.booking_required && (
-                            <span className="rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700">
-                              Booking
-                            </span>
-                          )}
-
-                          {service.home_service_available && (
-                            <span className="rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700">
-                              Home
-                            </span>
-                          )}
-                        </div>
-                      </td>
-
-                      <td className="px-5 py-4 text-sm text-slate-500">
-                        {formatDate(service.created_at)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <Link
+                href="/businesses"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--color-text)] hover:text-[var(--color-primary)]"
+              >
+                <Store className="h-4 w-4" />
+                Browse Businesses
+              </Link>
             </div>
 
-            <div className="divide-y divide-slate-100 lg:hidden">
-              {services.map((service) => (
-                <div key={service.id} className="p-5">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <p className="font-semibold text-slate-900">
-                        {service.service_name ||
-                          "Unnamed service"}
-                      </p>
-
-                      <p className="mt-1 truncate text-xs text-slate-500">
-                        {service.service_code ||
-                          service.slug ||
-                          service.id}
-                      </p>
-                    </div>
-
-                    {service.is_featured && (
-                      <span className="shrink-0 rounded-full bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700">
-                        Featured
-                      </span>
-                    )}
-                  </div>
-
-                  <Link
-                    href={`/admin/businesses/${service.business_id}`}
-                    className="mt-3 block text-sm font-medium text-slate-700 hover:text-slate-900 hover:underline"
-                  >
-                    {service.business_name ||
-                      "Unknown business"}
-                  </Link>
-
-                  {service.short_description && (
-                    <p className="mt-2 text-sm text-slate-500">
-                      {service.short_description}
-                    </p>
-                  )}
-
-                  <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
-                    <div className="rounded-xl bg-slate-50 p-3">
-                      <p className="text-xs text-slate-500">
-                        Price
-                      </p>
-
-                      <p className="mt-1 font-medium text-slate-900">
-                        {formatPrice(service.price)}
-                      </p>
-                    </div>
-
-                    <div className="rounded-xl bg-slate-50 p-3">
-                      <p className="text-xs text-slate-500">
-                        Duration
-                      </p>
-
-                      <p className="mt-1 font-medium text-slate-900">
-                        {formatDuration(
-                          service.duration_minutes,
-                        )}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    {service.booking_required && (
-                      <span className="rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700">
-                        Booking Required
-                      </span>
-                    )}
-
-                    {service.home_service_available && (
-                      <span className="rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700">
-                        Home Service
-                      </span>
-                    )}
-
-                    {service.service_radius_km !== null && (
-                      <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">
-                        Radius: {service.service_radius_km} km
-                      </span>
-                    )}
-                  </div>
-
-                  <p className="mt-4 text-xs text-slate-400">
-                    Created {formatDate(service.created_at)}
-                  </p>
+            {services.length === 0 ? (
+              <div className="mt-8 rounded-2xl border border-[var(--color-border)] bg-white p-10 text-center shadow-sm">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--color-secondary)] text-[var(--color-text-muted)]">
+                  <Search className="h-6 w-6" />
                 </div>
-              ))}
-            </div>
+
+                <h2 className="mt-4 text-lg font-bold text-[var(--color-text)]">
+                  No services found
+                </h2>
+
+                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[var(--color-text-muted)]">
+                  {search
+                    ? "Try a different service name, professional, or keyword."
+                    : "There are no public services available yet."}
+                </p>
+
+                {search ? (
+                  <Link
+                    href="/services"
+                    className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[var(--color-primary)] px-5 py-3 text-sm font-semibold text-white hover:opacity-90"
+                  >
+                    View all services
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                ) : null}
+              </div>
+            ) : (
+              <div className="mt-8 space-y-10">
+                {featuredServices.length > 0 ? (
+                  <section>
+                    <div className="mb-4 flex items-center gap-2">
+                      <Wrench className="h-5 w-5 text-[var(--color-text-muted)]" />
+
+                      <h2 className="text-lg font-bold text-[var(--color-text)]">
+                        Featured Services
+                      </h2>
+                    </div>
+
+                    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                      {featuredServices.map((service) => (
+                        <ServiceCard
+                          key={service.id}
+                          service={service}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                ) : null}
+
+                {regularServices.length > 0 ? (
+                  <section>
+                    {featuredServices.length > 0 ? (
+                      <div className="mb-4">
+                        <h2 className="text-lg font-bold text-[var(--color-text)]">
+                          More Services
+                        </h2>
+                      </div>
+                    ) : null}
+
+                    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                      {regularServices.map((service) => (
+                        <ServiceCard
+                          key={service.id}
+                          service={service}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                ) : null}
+              </div>
+            )}
           </>
         )}
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

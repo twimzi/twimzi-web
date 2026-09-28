@@ -8,6 +8,24 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 
+function getAppOrigin(): string {
+  if (typeof window === "undefined") {
+    return "";
+  }
+
+  const hostname = window.location.hostname;
+
+  if (
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "0.0.0.0"
+  ) {
+    return "http://localhost:3000";
+  }
+
+  return window.location.origin;
+}
+
 export default function ForgotPassword() {
   const supabase = createSupabaseBrowserClient();
 
@@ -31,10 +49,12 @@ export default function ForgotPassword() {
       return;
     }
 
+    const appOrigin = getAppOrigin();
+
     const { error } = await supabase.auth.resetPasswordForEmail(
       trimmedEmail,
       {
-        redirectTo: `${window.location.origin}/auth/callback?next=/update-password`,
+        redirectTo: `${appOrigin}/auth/callback?next=/update-password`,
       },
     );
 

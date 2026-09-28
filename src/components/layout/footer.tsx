@@ -1,4 +1,8 @@
 import Link from "next/link";
+import {
+  ArrowUpRight,
+  Mail,
+} from "lucide-react";
 
 const discoverLinks = [
   { label: "Explore", href: "/explore" },
@@ -6,6 +10,7 @@ const discoverLinks = [
   { label: "Products", href: "/products" },
   { label: "Services", href: "/services" },
   { label: "Offers", href: "/offers" },
+  { label: "Community", href: "/community" },
 ];
 
 const businessLinks = [
@@ -43,40 +48,43 @@ const legalLinks = [
 
 export function Footer() {
   return (
-    <footer className="border-t border-slate-200 bg-white">
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+    <footer className="border-t border-[var(--color-border)] bg-[var(--color-secondary)]">
+      <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+        <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-[1.25fr_.85fr_.85fr_1.15fr] lg:gap-10">
+          {/* Brand */}
           <div>
             <Link
               href="/"
-              className="text-xl font-bold tracking-tight text-slate-900"
+              className="inline-flex items-center rounded-lg text-2xl font-bold tracking-tight text-[var(--color-text)] transition hover:text-[var(--color-primary)]"
             >
               Twimzi
             </Link>
 
-            <p className="mt-4 max-w-xs text-sm leading-6 text-slate-600">
+            <p className="mt-4 max-w-xs text-sm leading-7 text-[var(--color-text-secondary)]">
               Digital Operating System for Every Local Business.
             </p>
 
             <a
               href="mailto:support@twimzi.com"
-              className="mt-4 inline-block text-sm font-medium text-slate-700 hover:text-slate-900"
+              className="mt-5 inline-flex items-center gap-2 rounded-lg px-2 py-1 -ml-2 text-sm font-semibold text-[var(--color-primary)] transition hover:bg-white hover:text-[var(--color-primary-dark)]"
             >
+              <Mail className="h-4 w-4" />
               support@twimzi.com
             </a>
           </div>
 
+          {/* Discover */}
           <div>
-            <h2 className="text-sm font-semibold text-slate-900">
+            <h2 className="text-sm font-bold text-[var(--color-text)]">
               Discover
             </h2>
 
-            <ul className="mt-4 space-y-3">
+            <ul className="mt-5 space-y-3">
               {discoverLinks.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-sm text-slate-600 transition hover:text-slate-900"
+                    className="inline-flex text-sm text-[var(--color-text-secondary)] transition hover:translate-x-0.5 hover:text-[var(--color-primary-dark)]"
                   >
                     {link.label}
                   </Link>
@@ -85,17 +93,18 @@ export function Footer() {
             </ul>
           </div>
 
+          {/* Business / Company */}
           <div>
-            <h2 className="text-sm font-semibold text-slate-900">
+            <h2 className="text-sm font-bold text-[var(--color-text)]">
               For Business
             </h2>
 
-            <ul className="mt-4 space-y-3">
+            <ul className="mt-5 space-y-3">
               {businessLinks.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-sm text-slate-600 transition hover:text-slate-900"
+                    className="inline-flex text-sm text-[var(--color-text-secondary)] transition hover:translate-x-0.5 hover:text-[var(--color-primary-dark)]"
                   >
                     {link.label}
                   </Link>
@@ -103,16 +112,16 @@ export function Footer() {
               ))}
             </ul>
 
-            <h2 className="mt-8 text-sm font-semibold text-slate-900">
+            <h2 className="mt-9 text-sm font-bold text-[var(--color-text)]">
               Company
             </h2>
 
-            <ul className="mt-4 space-y-3">
+            <ul className="mt-5 space-y-3">
               {companyLinks.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-sm text-slate-600 transition hover:text-slate-900"
+                    className="inline-flex text-sm text-[var(--color-text-secondary)] transition hover:translate-x-0.5 hover:text-[var(--color-primary-dark)]"
                   >
                     {link.label}
                   </Link>
@@ -121,17 +130,18 @@ export function Footer() {
             </ul>
           </div>
 
+          {/* Legal */}
           <div>
-            <h2 className="text-sm font-semibold text-slate-900">
+            <h2 className="text-sm font-bold text-[var(--color-text)]">
               Legal & Policies
             </h2>
 
-            <ul className="mt-4 space-y-3">
+            <ul className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1">
               {legalLinks.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-sm text-slate-600 transition hover:text-slate-900"
+                    className="inline-flex items-center text-sm text-[var(--color-text-secondary)] transition hover:text-[var(--color-primary-dark)]"
                   >
                     {link.label}
                   </Link>
@@ -141,10 +151,19 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 border-t border-slate-200 pt-6">
-          <p className="text-sm text-slate-500">
+        {/* Bottom */}
+        <div className="mt-14 flex flex-col gap-4 border-t border-[var(--color-border)] pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-[var(--color-text-muted)]">
             © {new Date().getFullYear()} Twimzi. All rights reserved.
           </p>
+
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--color-text-secondary)] transition hover:text-[var(--color-primary)]"
+          >
+            Back to top
+            <ArrowUpRight className="h-4 w-4" />
+          </Link>
         </div>
       </div>
     </footer>

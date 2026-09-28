@@ -1,9 +1,13 @@
 import Image from "next/image";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+
 import BusinessFollowButton from "@/components/business/business-follow-button";
 import BusinessPostCard from "@/components/business/business-post-card";
+import { MessageBusinessButton } from "@/components/messaging/message-business-button";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { siteConfig } from "@/config/site";
 
 type Business = {
   id: string;
@@ -110,16 +114,33 @@ type BusinessPost = {
   save_count: number;
 };
 
+type PostComment = {
+  id: string;
+  post_id: string;
+  parent_comment_id: string | null;
+  comment: string;
+  is_edited: boolean;
+  is_pinned: boolean;
+  like_count: number;
+  reply_count: number;
+  created_at: string;
+};
+
 type Offer = Record<string, unknown>;
 
 type PageProps = {
   params: Promise<{
     slug: string;
   }>;
+  searchParams: Promise<{
+    post?: string;
+  }>;
 };
 
 function asString(value: unknown): string | null {
-  return typeof value === "string" && value.trim().length > 0 ? value : null;
+  return typeof value === "string" && value.trim().length > 0
+    ? value.trim()
+    : null;
 }
 
 function asNumber(value: unknown): number | null {
@@ -127,7 +148,7 @@ function asNumber(value: unknown): number | null {
     return value;
   }
 
-  if (typeof value === "string" && value.trim() !== "") {
+  if (typeof value === "string" && value.trim()) {
     const parsed = Number(value);
 
     if (Number.isFinite(parsed)) {
@@ -137,7 +158,6 @@ function asNumber(value: unknown): number | null {
 
   return null;
 }
-
 
 function formatPrice(value: number | null): string | null {
   if (value === null) {
@@ -234,12 +254,6 @@ function getStoragePublicUrl(
 async function getBusiness(slug: string): Promise<Business | null> {
   const supabase = await createSupabaseServerClient();
 
-  /*
-   * The public RPC intentionally searches public business fields only.
-   * For UUID-based URLs we therefore retrieve the public result set and
-   * match the returned public ID locally. This keeps the existing secure
-   * public RPC unchanged.
-   */
   const { data, error } = await supabase.rpc("get_public_businesses", {
     p_search: null,
     p_limit: 100,
@@ -250,19 +264,17 @@ async function getBusiness(slug: string): Promise<Business | null> {
     return null;
   }
 
-  const businesses = data as Business[];
-
   const normalizedSlug = slug.trim().toLowerCase();
 
   return (
-    businesses.find((business) => {
-      const businessId = business.id.toLowerCase();
+    (data as Business[]).find((business) => {
+      const id = business.id.toLowerCase();
       const businessSlug = business.slug?.trim().toLowerCase() ?? "";
       const publicHandle =
         business.public_handle?.trim().toLowerCase() ?? "";
 
       return (
-        businessId === normalizedSlug ||
+        id === normalizedSlug ||
         businessSlug === normalizedSlug ||
         publicHandle === normalizedSlug
       );
@@ -298,11 +310,7 @@ async function getProducts(businessId: string): Promise<Product[]> {
     },
   );
 
-  if (error || !data) {
-    return [];
-  }
-
-  return data as Product[];
+  return error || !data ? [] : (data as Product[]);
 }
 
 async function getServices(businessId: string): Promise<Service[]> {
@@ -317,11 +325,7 @@ async function getServices(businessId: string): Promise<Service[]> {
     },
   );
 
-  if (error || !data) {
-    return [];
-  }
-
-  return data as Service[];
+  return error || !data ? [] : (data as Service[]);
 }
 
 async function getOffers(businessId: string): Promise<Offer[]> {
@@ -331,11 +335,7 @@ async function getOffers(businessId: string): Promise<Offer[]> {
     p_business_id: businessId,
   });
 
-  if (error || !data) {
-    return [];
-  }
-
-  return data as Offer[];
+  return error || !data ? [] : (data as Offer[]);
 }
 
 async function getPosts(businessId: string): Promise<BusinessPost[]> {
@@ -350,11 +350,22 @@ async function getPosts(businessId: string): Promise<BusinessPost[]> {
     },
   );
 
-  if (error || !data) {
-    return [];
-  }
+  return error || !data ? [] : (data as BusinessPost[]);
+}
 
-  return data as BusinessPost[];
+async function getPostComments(postId: string): Promise<PostComment[]> {
+  const supabase = await createSupabaseServerClient();
+
+  const { data, error } = await supabase.rpc(
+    "get_public_business_post_comments",
+    {
+      p_post_id: postId,
+      p_limit: 100,
+      p_offset: 0,
+    },
+  );
+
+  return error || !data ? [] : (data as PostComment[]);
 }
 
 export async function generateMetadata({
@@ -373,12 +384,19 @@ export async function generateMetadata({
     business.description?.trim() ||
     `${business.business_name} on Twimzi — discover products, services, offers and business information.`;
 
+  const businessPath = `/businesses/${business.slug || business.id}`;
+  const canonicalUrl = new URL(businessPath, siteConfig.url).toString();
+
   return {
     title: `${business.business_name} | Twimzi`,
     description,
+    alternates: {
+      canonical: canonicalUrl,
+    },
     openGraph: {
       title: `${business.business_name} | Twimzi`,
       description,
+      url: canonicalUrl,
       type: "website",
     },
   };
@@ -386,8 +404,10 @@ export async function generateMetadata({
 
 export default async function BusinessDetailPage({
   params,
+  searchParams,
 }: PageProps) {
   const { slug } = await params;
+  const { post: selectedPostId } = await searchParams;
 
   const business = await getBusiness(slug);
 
@@ -403,8 +423,16 @@ export default async function BusinessDetailPage({
     getPosts(business.id),
   ]);
 
-  const website = asString(business.website);
+  const selectedPost =
+    selectedPostId && posts.length > 0
+      ? posts.find((post) => post.id === selectedPostId) ?? null
+      : null;
 
+  const comments = selectedPost
+    ? await getPostComments(selectedPost.id)
+    : [];
+
+  const website = asString(business.website);
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
   const logoUrl = supabaseUrl
@@ -425,8 +453,54 @@ export default async function BusinessDetailPage({
       )
     : null;
 
+  const businessHref = `/businesses/${business.slug || business.id}`;
+  const canonicalUrl = new URL(businessHref, siteConfig.url).toString();
+
+  const structuredData: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "@id": canonicalUrl,
+    name: business.business_name,
+    url: canonicalUrl,
+    description:
+      business.description?.trim() ||
+      `${business.business_name} on Twimzi — discover products, services, offers and business information.`,
+  };
+
+  if (logoUrl) {
+    structuredData.image = logoUrl;
+    structuredData.logo = logoUrl;
+  }
+
+  if (website) {
+    structuredData.sameAs = [website];
+  }
+
+  if (business.established_year) {
+    structuredData.foundingDate = String(business.established_year);
+  }
+
+  if (
+    business.average_rating !== null &&
+    Number.isFinite(Number(business.average_rating)) &&
+    business.total_reviews > 0
+  ) {
+    structuredData.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue: Number(business.average_rating).toFixed(1),
+      reviewCount: business.total_reviews,
+    };
+  }
+
   return (
-    <main className="min-h-screen bg-slate-50">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData).replace(/</g, "\\u003c"),
+        }}
+      />
+      <main className="min-h-screen bg-slate-50">
       {/* HERO */}
       <section className="relative overflow-hidden">
         <div className="relative h-56 overflow-hidden sm:h-72 lg:h-80">
@@ -464,20 +538,17 @@ export default async function BusinessDetailPage({
                       width={144}
                       height={144}
                       priority
-                      sizes="144px"
                       className="h-full w-full object-cover"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-slate-50">
-                      <Image
-                        src="/twimzi-mark.png"
-                        alt="Twimzi"
-                        width={96}
-                        height={96}
-                        priority
-                        className="h-20 w-20 object-contain sm:h-24 sm:w-24"
-                      />
-                    </div>
+                    <Image
+                      src="/twimzi-mark.png"
+                      alt="Twimzi"
+                      width={96}
+                      height={96}
+                      priority
+                      className="h-20 w-20 object-contain sm:h-24 sm:w-24"
+                    />
                   )}
                 </div>
 
@@ -515,6 +586,8 @@ export default async function BusinessDetailPage({
               <div className="flex flex-wrap gap-3">
                 <BusinessFollowButton businessId={business.id} />
 
+                <MessageBusinessButton businessId={business.id} />
+
                 {website && (
                   <a
                     href={
@@ -540,23 +613,124 @@ export default async function BusinessDetailPage({
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
           <div className="space-y-6">
+            {/* SELECTED POST */}
+            {selectedPost && (
+              <section
+                id="post"
+                className="scroll-mt-24 rounded-3xl border border-blue-100 bg-white p-6 shadow-sm sm:p-7"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-5">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wider text-[#1879FD]">
+                      Community Post
+                    </p>
+
+                    <h2 className="mt-1 text-2xl font-bold text-[#020D3A]">
+                      {selectedPost.title || "Business Update"}
+                    </h2>
+                  </div>
+
+                  <Link
+                    href={`${businessHref}#community`}
+                    className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                  >
+                    All Posts
+                  </Link>
+                </div>
+
+                <div className="mt-6">
+                  <BusinessPostCard post={selectedPost} />
+                </div>
+
+                {/* COMMENTS */}
+                <section
+                  id="comments"
+                  className="mt-6 scroll-mt-24 rounded-2xl border border-slate-200 bg-slate-50 p-5"
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <h3 className="text-lg font-bold text-[#020D3A]">
+                        Comments
+                      </h3>
+
+                      <p className="mt-1 text-sm text-slate-500">
+                        {comments.length}{" "}
+                        {comments.length === 1 ? "comment" : "comments"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {comments.length > 0 ? (
+                    <div className="mt-5 divide-y divide-slate-200">
+                      {comments.map((comment) => (
+                        <article
+                          key={comment.id}
+                          className="py-4 first:pt-0 last:pb-0"
+                        >
+                          <div className="flex gap-3">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50 text-sm font-bold text-[#1879FD]">
+                              T
+                            </div>
+
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="text-sm font-semibold text-[#020D3A]">
+                                  Twimzi User
+                                </span>
+
+                                {formatDate(comment.created_at) && (
+                                  <span className="text-xs text-slate-400">
+                                    {formatDate(comment.created_at)}
+                                  </span>
+                                )}
+                              </div>
+
+                              <p className="mt-1 whitespace-pre-line text-sm leading-6 text-slate-600">
+                                {comment.comment}
+                              </p>
+                            </div>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="mt-5 rounded-2xl bg-white px-5 py-8 text-center">
+                      <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-lg">
+                        💬
+                      </div>
+
+                      <p className="mt-3 text-sm font-semibold text-[#020D3A]">
+                        No comments yet
+                      </p>
+
+                      <p className="mt-1 text-xs text-slate-500">
+                        There are no comments on this post yet.
+                      </p>
+                    </div>
+                  )}
+                </section>
+              </section>
+            )}
+
             {/* ABOUT */}
-            <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="text-xl font-bold text-[#020D3A]">
-                About Business
-              </h2>
+            {!selectedPost && (
+              <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h2 className="text-xl font-bold text-[#020D3A]">
+                  About Business
+                </h2>
 
-              <p className="mt-4 whitespace-pre-line text-sm leading-7 text-slate-600">
-                {business.description ||
-                  "This business has not added a description yet."}
-              </p>
-            </section>
+                <p className="mt-4 whitespace-pre-line text-sm leading-7 text-slate-600">
+                  {business.description ||
+                    "This business has not added a description yet."}
+                </p>
+              </section>
+            )}
 
-            {/* POSTS / COMMUNITY */}
-            {posts.length > 0 && (
+            {/* COMMUNITY */}
+            {!selectedPost && posts.length > 0 && (
               <section
                 id="community"
-                className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
+                className="scroll-mt-24 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
               >
                 <div className="flex items-center justify-between gap-4">
                   <div>
@@ -621,10 +795,8 @@ export default async function BusinessDetailPage({
                               className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
                             />
                           ) : (
-                            <div className="flex h-full w-full items-center justify-center">
-                              <div className="text-4xl font-bold text-slate-300">
-                                T
-                              </div>
+                            <div className="text-4xl font-bold text-slate-300">
+                              T
                             </div>
                           )}
 
@@ -661,11 +833,12 @@ export default async function BusinessDetailPage({
                               </span>
                             )}
 
-                            {mrp && product.mrp !== product.selling_price && (
-                              <span className="text-xs text-slate-400 line-through">
-                                {mrp}
-                              </span>
-                            )}
+                            {mrp &&
+                              product.mrp !== product.selling_price && (
+                                <span className="text-xs text-slate-400 line-through">
+                                  {mrp}
+                                </span>
+                              )}
                           </div>
                         </div>
                       </article>
@@ -790,7 +963,7 @@ export default async function BusinessDetailPage({
                       asString(offer.offer_title) ||
                       "Special Offer";
 
-                    const shortDescription =
+                    const description =
                       asString(offer.short_description) ||
                       asString(offer.description);
 
@@ -815,9 +988,9 @@ export default async function BusinessDetailPage({
                           {title}
                         </h3>
 
-                        {shortDescription && (
+                        {description && (
                           <p className="mt-2 text-sm leading-6 text-slate-500">
-                            {shortDescription}
+                            {description}
                           </p>
                         )}
 
@@ -833,8 +1006,9 @@ export default async function BusinessDetailPage({
               </section>
             )}
 
-            {/* EMPTY STATE */}
-            {products.length === 0 &&
+            {/* EMPTY */}
+            {!selectedPost &&
+              products.length === 0 &&
               services.length === 0 &&
               offers.length === 0 &&
               posts.length === 0 && (
@@ -942,7 +1116,7 @@ export default async function BusinessDetailPage({
                     Business ID
                   </p>
 
-                  <p className="mt-1 text-sm font-semibold text-slate-700">
+                  <p className="mt-1 break-all text-sm font-semibold text-slate-700">
                     {business.business_code}
                   </p>
                 </div>
@@ -951,6 +1125,7 @@ export default async function BusinessDetailPage({
           </aside>
         </div>
       </section>
-    </main>
+      </main>
+    </>
   );
 }

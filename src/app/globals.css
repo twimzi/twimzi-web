@@ -1,42 +1,136 @@
 @import "tailwindcss";
 
 :root {
-  --color-primary: #1879fd;
-  --color-primary-dark: #020d3a;
-  --color-primary-light: #e8f2ff;
+  /* ============================================================
+     TWIMZI BRAND COLORS
+     Premium teal + warm orange based on the existing brand system
+     ============================================================ */
 
-  --color-secondary: #f8fafc;
+  --color-primary: #0f8f83;
+  --color-primary-dark: #086b63;
+  --color-primary-darker: #064f4a;
+  --color-primary-light: #e4f7f4;
+  --color-primary-soft: #f1fbf9;
 
-  --color-accent: #8e07fb;
-  --color-accent-secondary: #05cdfc;
-  --color-accent-light: #f3e8ff;
+  --color-secondary: #f4faf9;
+  --color-secondary-dark: #e6f2f0;
 
-  --color-background: #ffffff;
+  --color-accent: #f28a2e;
+  --color-accent-dark: #d96f16;
+  --color-accent-secondary: #f6a04f;
+  --color-accent-light: #fff1e4;
+  --color-accent-soft: #fff8f1;
+
+  /* ============================================================
+     BACKGROUNDS
+     ============================================================ */
+
+  --color-background: #f8faf9;
   --color-surface: #ffffff;
+  --color-surface-soft: #f5f9f8;
+  --color-surface-muted: #eef5f3;
 
-  --color-text: #020d3a;
-  --color-text-secondary: #475569;
-  --color-text-muted: #64748b;
+  /* ============================================================
+     TEXT
+     ============================================================ */
 
-  --color-border: #e2e8f0;
+  --color-text: #102a2a;
+  --color-text-secondary: #425858;
+  --color-text-muted: #718181;
+  --color-text-light: #94a3a3;
+  --color-text-on-primary: #ffffff;
+  --color-text-on-accent: #ffffff;
+
+  /* ============================================================
+     BORDERS
+     ============================================================ */
+
+  --color-border: #dce8e6;
+  --color-border-light: #e8f0ef;
+  --color-border-strong: #c5d8d5;
+
+  /* ============================================================
+     STATUS COLORS
+     ============================================================ */
+
+  --color-success: #16845b;
+  --color-success-light: #e8f7f0;
+
+  --color-warning: #c97912;
+  --color-warning-light: #fff6df;
+
+  --color-error: #c94b4b;
+  --color-error-light: #fff0f0;
+
+  --color-info: #2879a7;
+  --color-info-light: #edf7fc;
+
+  /* ============================================================
+     BRAND GRADIENTS
+     ============================================================ */
 
   --color-brand-gradient: linear-gradient(
     135deg,
-    #8e07fb 0%,
-    #1879fd 55%,
-    #05cdfc 100%
+    #086b63 0%,
+    #0f8f83 52%,
+    #f28a2e 100%
   );
+
+  --color-primary-gradient: linear-gradient(
+    135deg,
+    #086b63 0%,
+    #0f8f83 100%
+  );
+
+  --color-accent-gradient: linear-gradient(
+    135deg,
+    #d96f16 0%,
+    #f28a2e 100%
+  );
+
+  /* ============================================================
+     RADIUS
+     ============================================================ */
 
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
   --radius-xl: 1.25rem;
   --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
   --radius-full: 9999px;
 
-  --shadow-sm: 0 1px 2px rgba(2, 13, 58, 0.05);
-  --shadow-md: 0 4px 12px rgba(2, 13, 58, 0.08);
-  --shadow-lg: 0 10px 30px rgba(2, 13, 58, 0.1);
+  /* ============================================================
+     SHADOWS
+     ============================================================ */
+
+  --shadow-xs: 0 1px 2px rgba(16, 42, 42, 0.04);
+
+  --shadow-sm:
+    0 1px 3px rgba(16, 42, 42, 0.05),
+    0 1px 2px rgba(16, 42, 42, 0.03);
+
+  --shadow-md:
+    0 5px 15px rgba(16, 42, 42, 0.07),
+    0 2px 5px rgba(16, 42, 42, 0.04);
+
+  --shadow-lg:
+    0 12px 32px rgba(16, 42, 42, 0.09),
+    0 4px 10px rgba(16, 42, 42, 0.04);
+
+  --shadow-xl:
+    0 20px 45px rgba(16, 42, 42, 0.12),
+    0 6px 14px rgba(16, 42, 42, 0.05);
+
+  --shadow-primary:
+    0 10px 25px rgba(15, 143, 131, 0.18);
+
+  --shadow-accent:
+    0 10px 25px rgba(242, 138, 46, 0.18);
+
+  /* ============================================================
+     LAYOUT
+     ============================================================ */
 
   --container-max-width: 1280px;
   --container-padding: 1.25rem;
@@ -57,6 +151,7 @@ body {
   font-family: var(--font-poppins), Arial, sans-serif;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 button,
@@ -68,6 +163,10 @@ select {
 
 button {
   cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
 }
 
 a {
@@ -92,12 +191,118 @@ p {
   color: #ffffff;
 }
 
+:focus-visible {
+  outline: 3px solid rgba(15, 143, 131, 0.25);
+  outline-offset: 2px;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-text-light);
+}
+
 .twimzi-container {
   width: 100%;
   max-width: var(--container-max-width);
   margin: auto;
   padding-inline: var(--container-padding);
 }
+
+/* ============================================================
+   PREMIUM SCROLLBAR
+   ============================================================ */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface-muted);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+}
+
+/* ============================================================
+   CATEGORY / HORIZONTAL SCROLL AREAS
+   Prevent visual overlap and improve mobile scrolling.
+   ============================================================ */
+
+.twimzi-horizontal-scroll {
+  overflow-x: auto;
+  overflow-y: visible;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.twimzi-horizontal-scroll > * {
+  min-width: max-content;
+}
+
+/* ============================================================
+   PREMIUM CARD UTILITY
+   ============================================================ */
+
+.twimzi-card {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-sm);
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease;
+}
+
+.twimzi-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ============================================================
+   BRAND BACKGROUNDS
+   ============================================================ */
+
+.twimzi-primary-surface {
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(242, 138, 46, 0.08),
+      transparent 35%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(15, 143, 131, 0.08),
+      rgba(15, 143, 131, 0.02)
+    );
+}
+
+.twimzi-brand-surface {
+  background:
+    radial-gradient(
+      circle at 85% 15%,
+      rgba(242, 138, 46, 0.16),
+      transparent 28%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(8, 107, 99, 0.12),
+      rgba(15, 143, 131, 0.04)
+    );
+}
+
+/* ============================================================
+   RESPONSIVE CONTAINER
+   ============================================================ */
 
 @media (min-width: 640px) {
   :root {
@@ -108,5 +313,23 @@ p {
 @media (min-width: 1024px) {
   :root {
     --container-padding: 2rem;
+  }
+}
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }

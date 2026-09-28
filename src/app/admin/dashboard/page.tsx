@@ -15,51 +15,23 @@ type DashboardStats = {
 };
 
 const cards = [
-  {
-    key: "total_users",
-    label: "Users",
-    href: "/admin/users",
-  },
-  {
-    key: "total_businesses",
-    label: "Businesses",
-    href: "/admin/businesses",
-  },
+  { key: "total_users", label: "Users", href: "/admin/users" },
+  { key: "total_businesses", label: "Businesses", href: "/admin/businesses" },
   {
     key: "pending_businesses",
     label: "Pending Businesses",
-    href: "/admin/businesses",
+    href: "/admin/businesses?status=pending",
   },
   {
     key: "approved_businesses",
     label: "Approved Businesses",
-    href: "/admin/businesses",
+    href: "/admin/businesses?status=approved",
   },
-  {
-    key: "total_products",
-    label: "Products",
-    href: "/admin/products",
-  },
-  {
-    key: "total_services",
-    label: "Services",
-    href: "/admin/services",
-  },
-  {
-    key: "total_offers",
-    label: "Offers",
-    href: "/admin/offers",
-  },
-  {
-    key: "total_posts",
-    label: "Posts",
-    href: "/admin/posts",
-  },
-  {
-    key: "total_reports",
-    label: "Reports",
-    href: "/admin/reports",
-  },
+  { key: "total_products", label: "Products", href: "/admin/products" },
+  { key: "total_services", label: "Services", href: "/admin/services" },
+  { key: "total_offers", label: "Offers", href: "/admin/offers" },
+  { key: "total_posts", label: "Posts", href: "/admin/posts" },
+  { key: "total_reports", label: "Reports", href: "/admin/reports" },
 ] as const;
 
 export default async function AdminDashboard() {
@@ -70,7 +42,7 @@ export default async function AdminDashboard() {
   const stats = (data?.[0] ?? null) as DashboardStats | null;
 
   return (
-    <div>
+    <div className="pb-12">
       <div>
         <p className="text-sm font-semibold text-[var(--color-primary)]">
           Dashboard
@@ -94,6 +66,10 @@ export default async function AdminDashboard() {
           <p className="mt-1 text-sm leading-6 text-red-700">
             The dashboard could not load the current platform statistics.
           </p>
+
+          {error?.message ? (
+            <p className="mt-2 text-xs text-red-600">{error.message}</p>
+          ) : null}
         </div>
       ) : (
         <>
@@ -121,7 +97,7 @@ export default async function AdminDashboard() {
 
           <div className="mt-8 grid gap-4 lg:grid-cols-2">
             <Link
-              href="/admin/businesses"
+              href="/admin/businesses?status=pending"
               className="rounded-2xl border border-amber-200 bg-amber-50 p-6 transition hover:shadow-md"
             >
               <p className="text-sm font-semibold text-amber-800">
@@ -163,29 +139,29 @@ export default async function AdminDashboard() {
         </h2>
 
         <p className="mt-2 text-sm leading-6 text-slate-500">
-          Administrative actions will remain protected by the existing
-          Supabase authentication, super-admin authorization, RLS policies,
-          server-side checks, and audit controls.
+          Administrative actions remain protected by Supabase authentication,
+          super-admin authorization, RLS policies, server-side checks and
+          audit controls.
         </p>
 
         <div className="mt-5 flex flex-wrap gap-3">
           <Link
             href="/admin/businesses"
-            className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
+            className="inline-flex min-h-11 items-center rounded-xl bg-[var(--color-primary)] px-4 py-2.5 text-sm font-semibold !text-white shadow-sm transition hover:bg-[var(--color-primary-dark)]"
           >
             Manage Businesses
           </Link>
 
           <Link
             href="/admin/reports"
-            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            className="inline-flex min-h-11 items-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold !text-slate-700 transition hover:bg-slate-50"
           >
             Review Reports
           </Link>
 
           <Link
             href="/admin/audit-logs"
-            className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            className="inline-flex min-h-11 items-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold !text-slate-700 transition hover:bg-slate-50"
           >
             Audit Logs
           </Link>

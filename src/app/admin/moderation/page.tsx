@@ -1,6 +1,13 @@
-"use client";
+﻿"use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type ModerationItem = {
@@ -14,8 +21,19 @@ type ModerationItem = {
   updated_at: string | null;
 };
 
+const MODERATION_STATUSES = [
+  "pending",
+  "in_review",
+  "approved",
+  "rejected",
+] as const;
+
 function formatDateTime(value: string | null) {
   if (!value) return "—";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "—";
 
   return new Intl.DateTimeFormat("en-IN", {
     day: "2-digit",
@@ -23,7 +41,7 @@ function formatDateTime(value: string | null) {
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-  }).format(new Date(value));
+  }).format(date);
 }
 
 function formatStatus(status: string | null) {
@@ -70,6 +88,8 @@ export default function AdminModerationPage() {
   const [moduleName, setModuleName] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [actionError, setActionError] = useState("");
+  const [savingId, setSavingId] = useState<string | null>(null);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
   const loadModeration = useCallback(async () => {
@@ -157,6 +177,67 @@ export default function AdminModerationPage() {
     setModuleName("");
   }
 
+  async function updateModerationState(
+    item: ModerationItem,
+    nextStatus: string,
+    nextRemarks: string,
+  ) {
+    setSavingId(item.id);
+    setActionError("");
+
+    try {
+      if (
+        !MODERATION_STATUSES.includes(
+          nextStatus as (typeof MODERATION_STATUSES)[number],
+        )
+      ) {
+        throw new Error("Invalid moderation status.");
+      }
+
+      const remarks = nextRemarks.trim();
+
+      if (remarks.length > 10000) {
+        throw new Error(
+          "Moderation remarks cannot exceed 10,000 characters.",
+        );
+      }
+
+      const { error: updateError } = await supabase.rpc(
+        "admin_set_moderation_state",
+        {
+          p_queue_id: item.id,
+          p_status: nextStatus,
+          p_remarks: remarks || null,
+        },
+      );
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      setItems((currentItems) =>
+        currentItems.map((currentItem) =>
+          currentItem.id === item.id
+            ? {
+                ...currentItem,
+                status: nextStatus,
+                remarks: remarks || null,
+                updated_at: new Date().toISOString(),
+              }
+            : currentItem,
+        ),
+      );
+    } catch (err) {
+      setActionError(
+        err instanceof Error
+          ? err.message
+          : "Unable to update moderation state.",
+      );
+    } finally {
+      setSavingId(null);
+    }
+  }
+
   const statistics = useMemo(() => {
     return {
       pending: items.filter((item) => item.status === "pending").length,
@@ -209,47 +290,31 @@ export default function AdminModerationPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">
-            Queue Items
-          </p>
+        <StatCard label="Queue Items" value={items.length} />
 
-          <p className="mt-2 text-2xl font-semibold text-slate-900">
-            {items.length}
-          </p>
-        </div>
+        <StatCard
+          label="Pending"
+          value={statistics.pending}
+          valueClassName="text-amber-700"
+        />
 
-        <div className="rounded-2xl border border-amber-100 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">Pending</p>
+        <StatCard
+          label="In Review"
+          value={statistics.inReview}
+          valueClassName="text-blue-700"
+        />
 
-          <p className="mt-2 text-2xl font-semibold text-amber-700">
-            {statistics.pending}
-          </p>
-        </div>
+        <StatCard
+          label="Approved"
+          value={statistics.approved}
+          valueClassName="text-emerald-700"
+        />
 
-        <div className="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">In Review</p>
-
-          <p className="mt-2 text-2xl font-semibold text-blue-700">
-            {statistics.inReview}
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">Approved</p>
-
-          <p className="mt-2 text-2xl font-semibold text-emerald-700">
-            {statistics.approved}
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-red-100 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">Rejected</p>
-
-          <p className="mt-2 text-2xl font-semibold text-red-700">
-            {statistics.rejected}
-          </p>
-        </div>
+        <StatCard
+          label="Rejected"
+          value={statistics.rejected}
+          valueClassName="text-red-700"
+        />
       </div>
 
       <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -258,7 +323,10 @@ export default function AdminModerationPage() {
           className="flex flex-col gap-3 xl:flex-row"
         >
           <div className="flex-1">
-            <label htmlFor="moderation-search" className="sr-only">
+            <label
+              htmlFor="moderation-search"
+              className="sr-only"
+            >
               Search moderation queue
             </label>
 
@@ -335,6 +403,20 @@ export default function AdminModerationPage() {
         </div>
       )}
 
+      {actionError && (
+        <div className="flex items-center justify-between gap-4 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <span>{actionError}</span>
+
+          <button
+            type="button"
+            onClick={() => setActionError("")}
+            className="font-semibold hover:underline"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="flex flex-col gap-2 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -385,7 +467,7 @@ export default function AdminModerationPage() {
         ) : (
           <>
             <div className="hidden overflow-x-auto lg:block">
-              <table className="min-w-full">
+              <table className="min-w-[1350px] w-full">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                     <th className="px-5 py-3">Module</th>
@@ -394,6 +476,7 @@ export default function AdminModerationPage() {
                     <th className="px-5 py-3">Assigned To</th>
                     <th className="px-5 py-3">Remarks</th>
                     <th className="px-5 py-3">Created</th>
+                    <th className="px-5 py-3">Actions</th>
                   </tr>
                 </thead>
 
@@ -439,6 +522,14 @@ export default function AdminModerationPage() {
 
                       <td className="px-5 py-4 text-sm text-slate-500">
                         {formatDateTime(item.created_at)}
+                      </td>
+
+                      <td className="px-5 py-4">
+                        <ModerationControls
+                          item={item}
+                          saving={savingId === item.id}
+                          onSave={updateModerationState}
+                        />
                       </td>
                     </tr>
                   ))}
@@ -501,12 +592,105 @@ export default function AdminModerationPage() {
                       {formatDateTime(item.updated_at)}
                     </p>
                   </div>
+
+                  <div className="mt-5 border-t border-slate-100 pt-4">
+                    <ModerationControls
+                      item={item}
+                      saving={savingId === item.id}
+                      onSave={updateModerationState}
+                    />
+                  </div>
                 </div>
               ))}
             </div>
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+function ModerationControls({
+  item,
+  saving,
+  onSave,
+}: {
+  item: ModerationItem;
+  saving: boolean;
+  onSave: (
+    item: ModerationItem,
+    status: string,
+    remarks: string,
+  ) => Promise<void>;
+}) {
+  const [nextStatus, setNextStatus] = useState(
+    item.status && MODERATION_STATUSES.includes(
+      item.status as (typeof MODERATION_STATUSES)[number],
+    )
+      ? item.status
+      : "pending",
+  );
+
+  const [remarks, setRemarks] = useState(item.remarks ?? "");
+
+
+  return (
+    <div className="min-w-[260px] space-y-2">
+      <select
+        value={nextStatus}
+        onChange={(event) => setNextStatus(event.target.value)}
+        disabled={saving}
+        aria-label="Moderation status"
+        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 outline-none focus:border-slate-400 disabled:opacity-50"
+      >
+        <option value="pending">Pending</option>
+        <option value="in_review">In Review</option>
+        <option value="approved">Approved</option>
+        <option value="rejected">Rejected</option>
+      </select>
+
+      <textarea
+        value={remarks}
+        onChange={(event) => setRemarks(event.target.value)}
+        maxLength={10000}
+        rows={2}
+        disabled={saving}
+        placeholder="Moderation remarks..."
+        className="w-full resize-none rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 outline-none placeholder:text-slate-400 focus:border-slate-400 disabled:opacity-50"
+      />
+
+      <button
+        type="button"
+        disabled={saving}
+        onClick={() =>
+          void onSave(item, nextStatus, remarks)
+        }
+        className="w-full rounded-lg bg-slate-900 px-3 py-2 text-xs font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {saving ? "Saving..." : "Apply"}
+      </button>
+    </div>
+  );
+}
+
+function StatCard({
+  label,
+  value,
+  valueClassName = "text-slate-900",
+}: {
+  label: string;
+  value: number;
+  valueClassName?: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <p className="text-sm text-slate-500">{label}</p>
+
+      <p
+        className={`mt-2 text-2xl font-semibold ${valueClassName}`}
+      >
+        {value}
+      </p>
     </div>
   );
 }

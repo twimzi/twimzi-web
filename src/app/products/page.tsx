@@ -1,22 +1,33 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { ArrowRight, Package, Search, Store, Tag } from "lucide-react";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+export const metadata: Metadata = {
+  title: "Products | Twimzi",
+  description:
+    "Discover products from manufacturers, traders, wholesalers, dealers, and local businesses on Twimzi.",
+};
 
 type Product = {
   id: string;
   business_id: string;
   business_name: string | null;
+  business_slug: string | null;
   product_code: string | null;
-  sku: string | null;
   product_name: string | null;
   slug: string | null;
+  short_description: string | null;
+  description: string | null;
   brand: string | null;
   model: string | null;
   selling_price: number | null;
   mrp: number | null;
   stock_quantity: number | null;
-  is_featured: boolean;
-  is_active: boolean;
+  is_featured: boolean | null;
+  thumbnail_url: string | null;
+  image_count: number | null;
   created_at: string | null;
   updated_at: string | null;
 };
@@ -25,30 +36,169 @@ type SearchParams = {
   q?: string;
 };
 
-function formatDate(value: string | null) {
-  if (!value) return "—";
-
-  return new Intl.DateTimeFormat("en-IN", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
-}
-
-function formatNumber(value: number | null) {
-  if (value === null || value === undefined) return "—";
-
+function formatNumber(value: number) {
   return new Intl.NumberFormat("en-IN", {
     maximumFractionDigits: 2,
   }).format(value);
 }
 
 function formatPrice(value: number | null) {
-  if (value === null || value === undefined) return "—";
+  if (value === null || value === undefined) {
+    return "Contact for price";
+  }
 
   return `₹${formatNumber(value)}`;
 }
 
-export default async function AdminProducts({
+function getProductInitial(productName: string | null) {
+  return (productName?.trim().charAt(0) || "P").toUpperCase();
+}
+
+function getBusinessHref(product: Product) {
+  if (!product.business_slug) {
+    return "/businesses";
+  }
+
+  return `/businesses/${product.business_slug}`;
+}
+
+function ProductCard({ product }: { product: Product }) {
+  const name = product.product_name?.trim() || "Unnamed Product";
+
+  const description =
+    product.short_description?.trim() ||
+    product.description?.trim() ||
+    "No product description available.";
+
+  const hasDiscount =
+    product.selling_price !== null &&
+    product.mrp !== null &&
+    product.mrp > product.selling_price;
+
+  const discountPercent = hasDiscount
+    ? Math.round(
+        ((product.mrp! - product.selling_price!) / product.mrp!) * 100,
+      )
+    : 0;
+
+  return (
+    <article className="group overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[var(--color-primary)]/40 hover:shadow-[var(--shadow-md)]">
+      <Link
+        href={getBusinessHref(product)}
+        className="block"
+        aria-label={`View ${product.business_name || "business"} profile`}
+      >
+        <div className="relative aspect-[4/3] overflow-hidden bg-[var(--color-secondary)]">
+          {product.thumbnail_url ? (
+            <div
+              className="absolute inset-0 bg-cover bg-center transition duration-300 group-hover:scale-105"
+              style={{
+                backgroundImage: `url("${product.thumbnail_url.replace(/"/g, '\\"')}")`,
+              }}
+              role="img"
+              aria-label={name}
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center bg-[var(--color-secondary)]">
+              <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white text-3xl font-bold text-[var(--color-text-muted)] shadow-sm">
+                {getProductInitial(product.product_name)}
+              </div>
+            </div>
+          )}
+
+          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/40 to-transparent" />
+
+          <div className="absolute left-3 top-3 flex flex-wrap gap-2">
+            {product.is_featured ? (
+              <span className="rounded-full border border-white/50 bg-white/90 px-2.5 py-1 text-xs font-bold text-[var(--color-text)] backdrop-blur">
+                Featured
+              </span>
+            ) : null}
+
+            {discountPercent > 0 ? (
+              <span className="rounded-full bg-[var(--color-primary)] px-2.5 py-1 text-xs font-bold text-white">
+                {discountPercent}% off
+              </span>
+            ) : null}
+          </div>
+
+          {product.image_count && product.image_count > 1 ? (
+            <span className="absolute bottom-3 right-3 rounded-full bg-black/60 px-2.5 py-1 text-xs font-semibold text-white">
+              {product.image_count} photos
+            </span>
+          ) : null}
+        </div>
+      </Link>
+
+      <div className="p-4 sm:p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="line-clamp-2 text-base font-bold leading-6 text-[var(--color-text)]">
+              {name}
+            </h2>
+
+            {product.brand || product.model ? (
+              <p className="mt-1 line-clamp-1 text-xs font-medium text-[var(--color-text-muted)]">
+                {[product.brand, product.model].filter(Boolean).join(" · ")}
+              </p>
+            ) : null}
+          </div>
+
+          <Package className="mt-0.5 h-5 w-5 shrink-0 text-[var(--color-text-muted)]" />
+        </div>
+
+        <p className="mt-3 line-clamp-2 min-h-10 text-sm leading-5 text-[var(--color-text-muted)]">
+          {description}
+        </p>
+
+        <div className="mt-4 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="text-base font-extrabold text-[var(--color-text)]">
+              {formatPrice(product.selling_price)}
+            </p>
+
+            {hasDiscount ? (
+              <p className="mt-0.5 text-xs text-[var(--color-text-muted)] line-through">
+                {formatPrice(product.mrp)}
+              </p>
+            ) : null}
+          </div>
+
+          {product.stock_quantity !== null ? (
+            <span
+              className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${
+                product.stock_quantity > 0
+                  ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                  : "border-red-200 bg-red-50 text-red-700"
+              }`}
+            >
+              {product.stock_quantity > 0 ? "In stock" : "Out of stock"}
+            </span>
+          ) : null}
+        </div>
+
+        <div className="mt-4 border-t border-[var(--color-border)] pt-4">
+          <Link
+            href={getBusinessHref(product)}
+            className="flex items-center justify-between gap-3 text-sm font-semibold text-[var(--color-text)] transition group-hover:text-[var(--color-primary)]"
+          >
+            <span className="flex min-w-0 items-center gap-2">
+              <Store className="h-4 w-4 shrink-0 text-[var(--color-text-muted)]" />
+
+              <span className="truncate">
+                {product.business_name || "View Business"}
+              </span>
+            </span>
+
+            <ArrowRight className="h-4 w-4 shrink-0 transition group-hover:translate-x-0.5" />
+          </Link>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+export default async function ProductsPage({
   searchParams,
 }: {
   searchParams: Promise<SearchParams>;
@@ -58,303 +208,176 @@ export default async function AdminProducts({
 
   const supabase = await createSupabaseServerClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return (
-      <div>
-        <p className="text-sm font-semibold text-[var(--color-primary)]">
-          Product Management
-        </p>
-
-        <h1 className="mt-1 text-3xl font-extrabold">Products</h1>
-
-        <div className="mt-8 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800">
-          Please sign in to access product administration.
-        </div>
-      </div>
-    );
-  }
-
-  const { data: isSuperAdmin, error: authError } =
-    await supabase.rpc("is_super_admin");
-
-  if (authError || isSuperAdmin !== true) {
-    return (
-      <div>
-        <p className="text-sm font-semibold text-[var(--color-primary)]">
-          Product Management
-        </p>
-
-        <h1 className="mt-1 text-3xl font-extrabold">Products</h1>
-
-        <div className="mt-8 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
-          You do not have permission to access product administration.
-        </div>
-      </div>
-    );
-  }
-
-  const { data, error } = await supabase.rpc("admin_get_products", {
+  const { data, error } = await supabase.rpc("get_public_products", {
     p_search: search || null,
-    p_business_id: null,
-    p_limit: 100,
+    p_limit: 60,
     p_offset: 0,
   });
 
   const products = (data ?? []) as Product[];
 
-  const activeCount = products.filter(
-    (product) => product.is_active,
-  ).length;
+  const featuredProducts = products.filter(
+    (product) => product.is_featured === true,
+  );
 
-  const featuredCount = products.filter(
-    (product) => product.is_featured,
-  ).length;
-
-  const outOfStockCount = products.filter(
-    (product) =>
-      product.stock_quantity !== null &&
-      product.stock_quantity <= 0,
-  ).length;
+  const regularProducts = products.filter(
+    (product) => product.is_featured !== true,
+  );
 
   return (
-    <div className="pb-12">
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <Link
-            href="/admin/businesses"
-            className="text-sm font-semibold text-[var(--color-primary)]"
-          >
-            ← Business Management
-          </Link>
+    <main className="min-h-[calc(100vh-4rem)] bg-[var(--color-background)]">
+      <section className="border-b border-[var(--color-border)] bg-white">
+        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+          <div className="max-w-3xl">
+            <div className="flex items-center gap-2 text-sm font-semibold text-[var(--color-text-muted)]">
+              <Package className="h-4 w-4" />
+              Product Discovery
+            </div>
 
-          <p className="mt-5 text-sm font-semibold text-[var(--color-primary)]">
-            Product Management
-          </p>
+            <h1 className="mt-3 text-3xl font-bold tracking-tight text-[var(--color-text)] sm:text-4xl">
+              Discover Products on Twimzi
+            </h1>
 
-          <h1 className="mt-1 text-3xl font-extrabold tracking-tight">
-            Products
-          </h1>
-
-          <p className="mt-2 text-sm text-[var(--color-text-muted)]">
-            Manage products across the Twimzi business marketplace.
-          </p>
-        </div>
-
-        <form method="get" className="flex w-full gap-2 lg:w-auto">
-          <input
-            type="search"
-            name="q"
-            defaultValue={search}
-            placeholder="Search product, SKU, brand, business..."
-            className="w-full min-w-0 rounded-xl border border-[var(--color-border)] bg-white px-4 py-2.5 text-sm outline-none focus:border-[var(--color-primary)] sm:w-[360px]"
-          />
-
-          <button
-            type="submit"
-            className="rounded-xl bg-[var(--color-primary)] px-5 py-2.5 text-sm font-bold text-white hover:opacity-90"
-          >
-            Search
-          </button>
-
-          {search ? (
-            <Link
-              href="/admin/products"
-              className="flex items-center rounded-xl border border-[var(--color-border)] bg-white px-4 py-2.5 text-sm font-bold hover:bg-slate-50"
-            >
-              Clear
-            </Link>
-          ) : null}
-        </form>
-      </div>
-
-      {error ? (
-        <div className="mt-8 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
-          <p className="font-bold">Unable to load products.</p>
-
-          <p className="mt-1 text-xs opacity-80">{error.message}</p>
-        </div>
-      ) : (
-        <>
-          <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <StatCard
-              label="Products Loaded"
-              value={products.length}
-            />
-
-            <StatCard label="Active" value={activeCount} />
-
-            <StatCard label="Featured" value={featuredCount} />
-
-            <StatCard
-              label="Out of Stock"
-              value={outOfStockCount}
-            />
+            <p className="mt-3 max-w-2xl text-base leading-7 text-[var(--color-text-muted)] sm:text-lg">
+              Find products from manufacturers, traders, wholesalers, dealers,
+              and local businesses.
+            </p>
           </div>
 
-          <div className="mt-8 overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white">
-            <div className="flex items-center justify-between border-b border-[var(--color-border)] px-5 py-4">
-              <div>
-                <h2 className="font-extrabold">Product Catalogue</h2>
+          <form
+            method="get"
+            className="mt-8 flex w-full max-w-3xl flex-col gap-3 sm:flex-row"
+          >
+            <div className="relative flex-1">
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--color-text-muted)]" />
 
-                <p className="mt-1 text-xs text-[var(--color-text-muted)]">
-                  Showing up to 100 products
-                  {search ? ` matching "${search}"` : ""}.
+              <input
+                type="search"
+                name="q"
+                defaultValue={search}
+                placeholder="Search products, brands, models..."
+                className="h-12 w-full rounded-xl border border-[var(--color-border)] bg-white pl-11 pr-4 text-sm text-[var(--color-text)] outline-none transition placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/10"
+                aria-label="Search products"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-6 text-sm font-semibold text-white transition hover:opacity-90"
+            >
+              <Search className="h-4 w-4" />
+              Search
+            </button>
+
+            {search ? (
+              <Link
+                href="/products"
+                className="inline-flex h-12 items-center justify-center rounded-xl border border-[var(--color-border)] bg-white px-5 text-sm font-semibold text-[var(--color-text)] transition hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
+              >
+                Clear
+              </Link>
+            ) : null}
+          </form>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        {error ? (
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">
+            <p className="font-bold">Unable to load products.</p>
+            <p className="mt-1">Please try again in a moment.</p>
+          </div>
+        ) : (
+          <>
+            <div className="flex flex-col gap-3 border-b border-[var(--color-border)] pb-5 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-[var(--color-text-muted)]">
+                  {products.length}{" "}
+                  {products.length === 1 ? "product" : "products"} found
                 </p>
+
+                <h2 className="mt-1 text-xl font-bold text-[var(--color-text)]">
+                  {search ? `Results for “${search}”` : "Latest Products"}
+                </h2>
               </div>
 
-              <span className="rounded-full bg-[var(--color-surface)] px-3 py-1 text-xs font-bold">
-                {products.length}
-              </span>
+              <Link
+                href="/businesses"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--color-text)] hover:text-[var(--color-primary)]"
+              >
+                <Store className="h-4 w-4" />
+                Browse Businesses
+              </Link>
             </div>
 
             {products.length === 0 ? (
-              <div className="p-10 text-center">
-                <p className="font-bold">No products found</p>
+              <div className="mt-8 rounded-2xl border border-[var(--color-border)] bg-white p-10 text-center shadow-sm">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--color-secondary)] text-[var(--color-text-muted)]">
+                  <Search className="h-6 w-6" />
+                </div>
 
-                <p className="mt-1 text-sm text-[var(--color-text-muted)]">
+                <h2 className="mt-4 text-lg font-bold text-[var(--color-text)]">
+                  No products found
+                </h2>
+
+                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[var(--color-text-muted)]">
                   {search
-                    ? "Try another search."
-                    : "No products are currently available."}
+                    ? "Try a different product name, brand, model, or keyword."
+                    : "There are no public products available yet."}
                 </p>
+
+                {search ? (
+                  <Link
+                    href="/products"
+                    className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[var(--color-primary)] px-5 py-3 text-sm font-semibold text-white hover:opacity-90"
+                  >
+                    View all products
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                ) : null}
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-[1250px] w-full text-left text-sm">
-                  <thead className="border-b bg-[var(--color-surface)]">
-                    <tr>
-                      {[
-                        "Product",
-                        "Business",
-                        "Code / SKU",
-                        "Brand / Model",
-                        "Selling Price",
-                        "MRP",
-                        "Stock",
-                        "Status",
-                        "Created",
-                      ].map((heading) => (
-                        <th
-                          key={heading}
-                          className="px-5 py-4 font-bold"
-                        >
-                          {heading}
-                        </th>
+              <div className="mt-8 space-y-10">
+                {featuredProducts.length > 0 ? (
+                  <section>
+                    <div className="mb-4 flex items-center gap-2">
+                      <Tag className="h-5 w-5 text-[var(--color-text-muted)]" />
+
+                      <h2 className="text-lg font-bold text-[var(--color-text)]">
+                        Featured Products
+                      </h2>
+                    </div>
+
+                    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                      {featuredProducts.map((product) => (
+                        <ProductCard key={product.id} product={product} />
                       ))}
-                    </tr>
-                  </thead>
+                    </div>
+                  </section>
+                ) : null}
 
-                  <tbody>
-                    {products.map((product) => (
-                      <tr
-                        key={product.id}
-                        className="border-b last:border-0 hover:bg-slate-50/70"
-                      >
-                        <td className="px-5 py-4">
-                          <p className="font-bold">
-                            {product.product_name || "Unnamed product"}
-                          </p>
+                {regularProducts.length > 0 ? (
+                  <section>
+                    {featuredProducts.length > 0 ? (
+                      <div className="mb-4">
+                        <h2 className="text-lg font-bold text-[var(--color-text)]">
+                          More Products
+                        </h2>
+                      </div>
+                    ) : null}
 
-                          {product.slug ? (
-                            <p className="mt-1 max-w-[220px] truncate text-xs text-[var(--color-text-muted)]">
-                              /{product.slug}
-                            </p>
-                          ) : null}
-                        </td>
-
-                        <td className="px-5 py-4">
-                          <p className="max-w-[200px] truncate font-semibold">
-                            {product.business_name || "—"}
-                          </p>
-
-                          <p className="mt-1 text-xs text-[var(--color-text-muted)]">
-                            {product.business_id}
-                          </p>
-                        </td>
-
-                        <td className="px-5 py-4">
-                          <p>{product.product_code || "—"}</p>
-
-                          <p className="mt-1 text-xs text-[var(--color-text-muted)]">
-                            SKU: {product.sku || "—"}
-                          </p>
-                        </td>
-
-                        <td className="px-5 py-4">
-                          <p>{product.brand || "—"}</p>
-
-                          {product.model ? (
-                            <p className="mt-1 text-xs text-[var(--color-text-muted)]">
-                              {product.model}
-                            </p>
-                          ) : null}
-                        </td>
-
-                        <td className="px-5 py-4 font-semibold">
-                          {formatPrice(product.selling_price)}
-                        </td>
-
-                        <td className="px-5 py-4">
-                          {formatPrice(product.mrp)}
-                        </td>
-
-                        <td className="px-5 py-4">
-                          {formatNumber(product.stock_quantity)}
-                        </td>
-
-                        <td className="px-5 py-4">
-                          <div className="flex flex-col items-start gap-2">
-                            <span
-                              className={`rounded-full border px-2.5 py-1 text-xs font-bold ${
-                                product.is_active
-                                  ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                                  : "border-slate-200 bg-slate-50 text-slate-600"
-                              }`}
-                            >
-                              {product.is_active ? "Active" : "Inactive"}
-                            </span>
-
-                            {product.is_featured ? (
-                              <span className="rounded-full border border-purple-200 bg-purple-50 px-2.5 py-1 text-xs font-bold text-purple-700">
-                                Featured
-                              </span>
-                            ) : null}
-                          </div>
-                        </td>
-
-                        <td className="px-5 py-4 text-xs text-slate-500">
-                          {formatDate(product.created_at)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                      {regularProducts.map((product) => (
+                        <ProductCard key={product.id} product={product} />
+                      ))}
+                    </div>
+                  </section>
+                ) : null}
               </div>
             )}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-function StatCard({
-  label,
-  value,
-}: {
-  label: string;
-  value: number;
-}) {
-  return (
-    <div className="rounded-2xl border border-[var(--color-border)] bg-white p-5">
-      <p className="text-xs font-semibold text-[var(--color-text-muted)]">
-        {label}
-      </p>
-
-      <p className="mt-1 text-2xl font-extrabold">{value}</p>
-    </div>
+          </>
+        )}
+      </section>
+    </main>
   );
 }

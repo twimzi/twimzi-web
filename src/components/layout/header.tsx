@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 const mainNavigation = [
+  { label: "Home", href: "/" },
   { label: "Explore", href: "/explore" },
   { label: "Businesses", href: "/businesses" },
   { label: "Products", href: "/products" },
@@ -94,9 +96,14 @@ export function Header() {
           aria-label="Twimzi home"
           onClick={closeMobileMenu}
         >
-          <span className="text-xl font-bold tracking-tight text-slate-900">
-            Twimzi
-          </span>
+          <Image
+  src="/twimzi-logo.png"
+  alt="Twimzi"
+  width={120}
+  height={40}
+  priority
+  className="h-10 w-auto object-contain"
+/>
         </Link>
 
         <nav

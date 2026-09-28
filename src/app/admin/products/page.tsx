@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { ProductActions } from "@/components/admin/product-actions";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type Product = {
@@ -26,7 +27,7 @@ type SearchParams = {
 };
 
 function formatDate(value: string | null) {
-  if (!value) return "â€”";
+  if (!value) return "—";
 
   return new Intl.DateTimeFormat("en-IN", {
     dateStyle: "medium",
@@ -35,7 +36,7 @@ function formatDate(value: string | null) {
 }
 
 function formatNumber(value: number | null) {
-  if (value === null || value === undefined) return "â€”";
+  if (value === null || value === undefined) return "—";
 
   return new Intl.NumberFormat("en-IN", {
     maximumFractionDigits: 2,
@@ -43,9 +44,9 @@ function formatNumber(value: number | null) {
 }
 
 function formatPrice(value: number | null) {
-  if (value === null || value === undefined) return "â€”";
+  if (value === null || value === undefined) return "—";
 
-  return `â‚¹${formatNumber(value)}`;
+  return `₹${formatNumber(value)}`;
 }
 
 export default async function AdminProducts({
@@ -69,9 +70,7 @@ export default async function AdminProducts({
           Product Management
         </p>
 
-        <h1 className="mt-1 text-3xl font-extrabold">
-          Products
-        </h1>
+        <h1 className="mt-1 text-3xl font-extrabold">Products</h1>
 
         <div className="mt-8 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800">
           Please sign in to access product administration.
@@ -90,9 +89,7 @@ export default async function AdminProducts({
           Product Management
         </p>
 
-        <h1 className="mt-1 text-3xl font-extrabold">
-          Products
-        </h1>
+        <h1 className="mt-1 text-3xl font-extrabold">Products</h1>
 
         <div className="mt-8 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
           You do not have permission to access product administration.
@@ -132,7 +129,7 @@ export default async function AdminProducts({
             href="/admin/businesses"
             className="text-sm font-semibold text-[var(--color-primary)]"
           >
-            â† Business Management
+            ← Business Management
           </Link>
 
           <p className="mt-5 text-sm font-semibold text-[var(--color-primary)]">
@@ -180,9 +177,7 @@ export default async function AdminProducts({
 
       {error ? (
         <div className="mt-8 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
-          <p className="font-bold">
-            Unable to load products.
-          </p>
+          <p className="font-bold">Unable to load products.</p>
 
           <p className="mt-1 text-xs opacity-80">
             {error.message}
@@ -232,9 +227,7 @@ export default async function AdminProducts({
 
             {products.length === 0 ? (
               <div className="p-10 text-center">
-                <p className="font-bold">
-                  No products found
-                </p>
+                <p className="font-bold">No products found</p>
 
                 <p className="mt-1 text-sm text-[var(--color-text-muted)]">
                   {search
@@ -244,7 +237,7 @@ export default async function AdminProducts({
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="min-w-[1250px] w-full text-left text-sm">
+                <table className="min-w-[1400px] w-full text-left text-sm">
                   <thead className="border-b bg-[var(--color-surface)]">
                     <tr>
                       {[
@@ -257,6 +250,7 @@ export default async function AdminProducts({
                         "Stock",
                         "Status",
                         "Created",
+                        "Actions",
                       ].map((heading) => (
                         <th
                           key={heading}
@@ -289,7 +283,7 @@ export default async function AdminProducts({
 
                         <td className="px-5 py-4">
                           <p className="max-w-[200px] truncate font-semibold">
-                            {product.business_name || "â€”"}
+                            {product.business_name || "—"}
                           </p>
 
                           <p className="mt-1 text-xs text-[var(--color-text-muted)]">
@@ -299,18 +293,16 @@ export default async function AdminProducts({
 
                         <td className="px-5 py-4">
                           <p>
-                            {product.product_code || "â€”"}
+                            {product.product_code || "—"}
                           </p>
 
                           <p className="mt-1 text-xs text-[var(--color-text-muted)]">
-                            SKU: {product.sku || "â€”"}
+                            SKU: {product.sku || "—"}
                           </p>
                         </td>
 
                         <td className="px-5 py-4">
-                          <p>
-                            {product.brand || "â€”"}
-                          </p>
+                          <p>{product.brand || "—"}</p>
 
                           {product.model ? (
                             <p className="mt-1 text-xs text-[var(--color-text-muted)]">
@@ -355,6 +347,10 @@ export default async function AdminProducts({
 
                         <td className="px-5 py-4 text-xs text-slate-500">
                           {formatDate(product.created_at)}
+                        </td>
+
+                        <td className="px-5 py-4">
+                          <ProductActions product={product} />
                         </td>
                       </tr>
                     ))}

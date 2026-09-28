@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { ServiceActions } from "@/components/admin/service-actions";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type Service = {
@@ -16,6 +17,7 @@ type Service = {
   home_service_available: boolean | null;
   service_radius_km: number | null;
   is_featured: boolean;
+  is_active: boolean;
   created_at: string | null;
   updated_at: string | null;
 };
@@ -25,7 +27,7 @@ type SearchParams = {
 };
 
 function formatDate(value: string | null) {
-  if (!value) return "â€”";
+  if (!value) return "—";
 
   return new Intl.DateTimeFormat("en-IN", {
     dateStyle: "medium",
@@ -34,7 +36,7 @@ function formatDate(value: string | null) {
 }
 
 function formatNumber(value: number | null) {
-  if (value === null || value === undefined) return "â€”";
+  if (value === null || value === undefined) return "—";
 
   return new Intl.NumberFormat("en-IN", {
     maximumFractionDigits: 2,
@@ -42,9 +44,9 @@ function formatNumber(value: number | null) {
 }
 
 function formatPrice(value: number | null) {
-  if (value === null || value === undefined) return "â€”";
+  if (value === null || value === undefined) return "—";
 
-  return `â‚¹${formatNumber(value)}`;
+  return `₹${formatNumber(value)}`;
 }
 
 export default async function AdminServices({
@@ -109,6 +111,10 @@ export default async function AdminServices({
 
   const services = (data ?? []) as Service[];
 
+  const activeCount = services.filter(
+    (service) => service.is_active,
+  ).length;
+
   const featuredCount = services.filter(
     (service) => service.is_featured,
   ).length;
@@ -129,7 +135,7 @@ export default async function AdminServices({
             href="/admin/businesses"
             className="text-sm font-semibold text-[var(--color-primary)]"
           >
-            â† Business Management
+            ← Business Management
           </Link>
 
           <p className="mt-5 text-sm font-semibold text-[var(--color-primary)]">
@@ -177,9 +183,7 @@ export default async function AdminServices({
 
       {error ? (
         <div className="mt-8 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
-          <p className="font-bold">
-            Unable to load services.
-          </p>
+          <p className="font-bold">Unable to load services.</p>
 
           <p className="mt-1 text-xs opacity-80">
             {error.message}
@@ -194,6 +198,11 @@ export default async function AdminServices({
             />
 
             <StatCard
+              label="Active"
+              value={activeCount}
+            />
+
+            <StatCard
               label="Featured"
               value={featuredCount}
             />
@@ -202,11 +211,28 @@ export default async function AdminServices({
               label="Booking Required"
               value={bookingCount}
             />
+          </div>
 
-            <StatCard
-              label="Home Service"
-              value={homeServiceCount}
-            />
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="rounded-2xl border border-[var(--color-border)] bg-white p-5">
+              <p className="text-xs font-semibold text-[var(--color-text-muted)]">
+                Home Service
+              </p>
+
+              <p className="mt-1 text-2xl font-extrabold">
+                {homeServiceCount}
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-[var(--color-border)] bg-white p-5">
+              <p className="text-xs font-semibold text-[var(--color-text-muted)]">
+                Catalogue Size
+              </p>
+
+              <p className="mt-1 text-2xl font-extrabold">
+                {services.length}
+              </p>
+            </div>
           </div>
 
           <div className="mt-8 overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white">
@@ -241,7 +267,7 @@ export default async function AdminServices({
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="min-w-[1250px] w-full text-left text-sm">
+                <table className="min-w-[1400px] w-full text-left text-sm">
                   <thead className="border-b bg-[var(--color-surface)]">
                     <tr>
                       {[
@@ -255,6 +281,7 @@ export default async function AdminServices({
                         "Radius",
                         "Status",
                         "Created",
+                        "Actions",
                       ].map((heading) => (
                         <th
                           key={heading}
@@ -293,7 +320,7 @@ export default async function AdminServices({
 
                         <td className="px-5 py-4">
                           <p className="max-w-[210px] truncate font-semibold">
-                            {service.business_name || "â€”"}
+                            {service.business_name || "—"}
                           </p>
 
                           <p className="mt-1 text-xs text-[var(--color-text-muted)]">
@@ -302,7 +329,7 @@ export default async function AdminServices({
                         </td>
 
                         <td className="px-5 py-4">
-                          {service.service_code || "â€”"}
+                          {service.service_code || "—"}
                         </td>
 
                         <td className="px-5 py-4 font-semibold">
@@ -310,11 +337,11 @@ export default async function AdminServices({
                         </td>
 
                         <td className="px-5 py-4">
-                          {service.duration_minutes
+                          {service.duration_minutes !== null
                             ? `${formatNumber(
                                 service.duration_minutes,
                               )} min`
-                            : "â€”"}
+                            : "—"}
                         </td>
 
                         <td className="px-5 py-4">
@@ -342,17 +369,25 @@ export default async function AdminServices({
                         </td>
 
                         <td className="px-5 py-4">
-                          {service.service_radius_km != null
+                          {service.service_radius_km !== null
                             ? `${formatNumber(
                                 service.service_radius_km,
                               )} km`
-                            : "â€”"}
+                            : "—"}
                         </td>
 
                         <td className="px-5 py-4">
                           <div className="flex flex-col items-start gap-2">
-                            <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700">
-                              Active
+                            <span
+                              className={`rounded-full border px-2.5 py-1 text-xs font-bold ${
+                                service.is_active
+                                  ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                                  : "border-slate-200 bg-slate-50 text-slate-600"
+                              }`}
+                            >
+                              {service.is_active
+                                ? "Active"
+                                : "Inactive"}
                             </span>
 
                             {service.is_featured ? (
@@ -365,6 +400,10 @@ export default async function AdminServices({
 
                         <td className="px-5 py-4 text-xs text-slate-500">
                           {formatDate(service.created_at)}
+                        </td>
+
+                        <td className="px-5 py-4">
+                          <ServiceActions service={service} />
                         </td>
                       </tr>
                     ))}

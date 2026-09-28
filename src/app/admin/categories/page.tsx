@@ -1,6 +1,14 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
+import { CategoryActions } from "@/components/admin/category-actions";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type Category = {
@@ -79,14 +87,12 @@ export default function AdminCategoriesPage() {
         );
       }
 
-      const { data, error: categoryError } = await supabase.rpc(
-        "admin_get_categories",
-        {
+      const { data, error: categoryError } =
+        await supabase.rpc("admin_get_categories", {
           p_search: submittedSearch.trim() || null,
           p_limit: 100,
           p_offset: 0,
-        },
-      );
+        });
 
       if (categoryError) {
         throw categoryError;
@@ -152,58 +158,35 @@ export default function AdminCategoriesPage() {
         </h1>
 
         <p className="mt-1 text-sm text-slate-500">
-          Review the category structure used across Twimzi.
+          Manage the category structure used across Twimzi.
         </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">Total</p>
-
-          <p className="mt-2 text-2xl font-semibold text-slate-900">
-            {statistics.total}
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">Active</p>
-
-          <p className="mt-2 text-2xl font-semibold text-emerald-700">
-            {statistics.active}
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">Inactive</p>
-
-          <p className="mt-2 text-2xl font-semibold text-slate-700">
-            {statistics.inactive}
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-amber-100 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">Featured</p>
-
-          <p className="mt-2 text-2xl font-semibold text-amber-700">
-            {statistics.featured}
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">Searchable</p>
-
-          <p className="mt-2 text-2xl font-semibold text-blue-700">
-            {statistics.searchable}
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-slate-500">Root / Child</p>
-
-          <p className="mt-2 text-2xl font-semibold text-slate-900">
-            {statistics.root} / {statistics.child}
-          </p>
-        </div>
+        <StatCard label="Total" value={statistics.total} />
+        <StatCard
+          label="Active"
+          value={statistics.active}
+          valueClass="text-emerald-700"
+        />
+        <StatCard
+          label="Inactive"
+          value={statistics.inactive}
+        />
+        <StatCard
+          label="Featured"
+          value={statistics.featured}
+          valueClass="text-amber-700"
+        />
+        <StatCard
+          label="Searchable"
+          value={statistics.searchable}
+          valueClass="text-blue-700"
+        />
+        <StatCard
+          label="Root / Child"
+          value={`${statistics.root} / ${statistics.child}`}
+        />
       </div>
 
       <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -233,7 +216,7 @@ export default function AdminCategoriesPage() {
             Search
           </button>
 
-          {submittedSearch && (
+          {submittedSearch ? (
             <button
               type="button"
               onClick={clearSearch}
@@ -241,11 +224,11 @@ export default function AdminCategoriesPage() {
             >
               Clear
             </button>
-          )}
+          ) : null}
         </form>
       </div>
 
-      {error && (
+      {error ? (
         <div className="flex flex-col gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 sm:flex-row sm:items-center sm:justify-between">
           <span>{error}</span>
 
@@ -257,7 +240,7 @@ export default function AdminCategoriesPage() {
             Retry
           </button>
         </div>
-      )}
+      ) : null}
 
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="flex flex-col gap-2 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
@@ -267,7 +250,8 @@ export default function AdminCategoriesPage() {
             </h2>
 
             <p className="mt-1 text-xs text-slate-500">
-              Root categories appear before their child categories.
+              Manage existing categories. No duplicate category
+              structures are created.
             </p>
           </div>
 
@@ -309,7 +293,7 @@ export default function AdminCategoriesPage() {
         ) : (
           <>
             <div className="hidden overflow-x-auto lg:block">
-              <table className="min-w-full">
+              <table className="min-w-[1250px] w-full">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                     <th className="px-5 py-3">Category</th>
@@ -319,6 +303,7 @@ export default function AdminCategoriesPage() {
                     <th className="px-5 py-3">Features</th>
                     <th className="px-5 py-3">Status</th>
                     <th className="px-5 py-3">Updated</th>
+                    <th className="px-5 py-3">Actions</th>
                   </tr>
                 </thead>
 
@@ -372,17 +357,17 @@ export default function AdminCategoriesPage() {
 
                       <td className="px-5 py-4">
                         <div className="flex flex-wrap gap-1.5">
-                          {category.is_featured && (
+                          {category.is_featured ? (
                             <span className="rounded-full bg-amber-50 px-2 py-1 text-[11px] font-medium text-amber-700">
                               Featured
                             </span>
-                          )}
+                          ) : null}
 
-                          {category.is_searchable && (
+                          {category.is_searchable ? (
                             <span className="rounded-full bg-blue-50 px-2 py-1 text-[11px] font-medium text-blue-700">
                               Searchable
                             </span>
-                          )}
+                          ) : null}
                         </div>
                       </td>
 
@@ -400,6 +385,14 @@ export default function AdminCategoriesPage() {
 
                       <td className="whitespace-nowrap px-5 py-4 text-sm text-slate-500">
                         {formatDate(category.updated_at)}
+                      </td>
+
+                      <td className="px-5 py-4">
+                        <CategoryActions
+                          category={category}
+                          categories={categories}
+                          onChanged={() => void loadCategories()}
+                        />
                       </td>
                     </tr>
                   ))}
@@ -473,24 +466,32 @@ export default function AdminCategoriesPage() {
                   </div>
 
                   <div className="mt-4 flex flex-wrap gap-2">
-                    {category.is_featured && (
+                    {category.is_featured ? (
                       <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">
                         Featured
                       </span>
-                    )}
+                    ) : null}
 
-                    {category.is_searchable && (
+                    {category.is_searchable ? (
                       <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">
                         Searchable
                       </span>
-                    )}
+                    ) : null}
                   </div>
 
-                  {category.description && (
+                  {category.description ? (
                     <p className="mt-4 text-sm leading-6 text-slate-600">
                       {category.description}
                     </p>
-                  )}
+                  ) : null}
+
+                  <div className="mt-5 border-t border-slate-100 pt-4">
+                    <CategoryActions
+                      category={category}
+                      categories={categories}
+                      onChanged={() => void loadCategories()}
+                    />
+                  </div>
                 </div>
               ))}
             </div>
@@ -502,6 +503,26 @@ export default function AdminCategoriesPage() {
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+function StatCard({
+  label,
+  value,
+  valueClass = "text-slate-900",
+}: {
+  label: string;
+  value: number | string;
+  valueClass?: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <p className="text-sm text-slate-500">{label}</p>
+
+      <p className={`mt-2 text-2xl font-semibold ${valueClass}`}>
+        {value}
+      </p>
     </div>
   );
 }

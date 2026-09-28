@@ -4,30 +4,52 @@ import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { siteConfig } from "@/config/site";
 
-const discoveryItems = [
+export type HeroInterestingItem = {
+  icon: string;
+  type: string;
+  title: string;
+  description: string;
+  href: string;
+};
+
+type HeroSectionProps = {
+  interestingItems?: HeroInterestingItem[];
+};
+
+const fallbackItems: HeroInterestingItem[] = [
   {
-    icon: "M",
-    title: "Manufacturers",
-    description: "Find local suppliers and makers",
+    icon: "🏪",
+    type: "New on Twimzi",
+    title: "Discover local businesses",
+    description: "Find businesses, products and services nearby.",
+    href: "/businesses",
   },
   {
-    icon: "T",
-    title: "Traders & Wholesalers",
-    description: "Source products from local sellers",
+    icon: "⭐",
+    type: "Featured",
+    title: "Featured businesses",
+    description: "Explore businesses highlighted on Twimzi.",
+    href: "/businesses",
   },
   {
-    icon: "S",
-    title: "Services",
-    description: "Connect with local professionals",
+    icon: "🔥",
+    type: "Latest Offer",
+    title: "Local offers",
+    description: "Discover offers from businesses around you.",
+    href: "/offers",
   },
   {
-    icon: "O",
-    title: "Offers",
-    description: "Discover what's happening nearby",
+    icon: "📢",
+    type: "Latest Update",
+    title: "Business updates",
+    description: "See the latest updates from local businesses.",
+    href: "/community",
   },
 ];
 
-export function HeroSection() {
+export function HeroSection({
+  interestingItems = fallbackItems,
+}: HeroSectionProps) {
   return (
     <section className="relative overflow-hidden bg-[var(--color-secondary)]">
       <div
@@ -117,10 +139,12 @@ export function HeroSection() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-[var(--color-text-muted)]">
-                    Discover nearby
+                    Fresh discoveries
                   </p>
 
-                  <h2 className="mt-1 text-xl font-bold">Popular today</h2>
+                  <h2 className="mt-1 text-xl font-bold">
+                    What&apos;s happening on Twimzi
+                  </h2>
                 </div>
 
                 <span className="rounded-full bg-[var(--color-primary-light)] px-3 py-1 text-xs font-semibold text-[var(--color-primary-dark)]">
@@ -129,23 +153,34 @@ export function HeroSection() {
               </div>
 
               <div className="mt-5 space-y-3">
-                {discoveryItems.map((item) => (
-                  <div
-                    key={item.title}
-                    className="flex items-center gap-4 rounded-2xl border border-[var(--color-border)] p-4"
+                {interestingItems.slice(0, 4).map((item) => (
+                  <Link
+                    key={`${item.type}-${item.title}`}
+                    href={item.href}
+                    className="group flex items-center gap-4 rounded-2xl border border-[var(--color-border)] p-4 transition hover:-translate-y-0.5 hover:border-[var(--color-primary)]/30 hover:shadow-[var(--shadow-sm)]"
                   >
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[var(--color-secondary)] text-sm font-bold text-[var(--color-primary)]">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[var(--color-secondary)] text-xl">
                       {item.icon}
                     </div>
 
-                    <div>
-                      <p className="text-sm font-semibold">{item.title}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-primary)]">
+                        {item.type}
+                      </p>
 
-                      <p className="mt-1 text-xs text-[var(--color-text-muted)]">
+                      <p className="mt-1 truncate text-sm font-semibold">
+                        {item.title}
+                      </p>
+
+                      <p className="mt-1 line-clamp-1 text-xs text-[var(--color-text-muted)]">
                         {item.description}
                       </p>
                     </div>
-                  </div>
+
+                    <span className="text-sm font-semibold text-[var(--color-primary)] transition-transform group-hover:translate-x-1">
+                      →
+                    </span>
+                  </Link>
                 ))}
               </div>
             </div>

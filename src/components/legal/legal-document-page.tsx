@@ -21,15 +21,17 @@ type LegalDocumentPageProps = {
 };
 
 function formatDate(value: string | null) {
-  if (!value) {
-    return null;
-  }
+  if (!value) return null;
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return null;
 
   return new Intl.DateTimeFormat("en-IN", {
     day: "numeric",
     month: "long",
     year: "numeric",
-  }).format(new Date(value));
+  }).format(date);
 }
 
 function renderContent(content: string) {
@@ -48,7 +50,7 @@ function renderContent(content: string) {
       return (
         <h2
           key={index}
-          className="mt-8 mb-3 text-xl font-semibold tracking-tight text-slate-900 first:mt-0"
+          className="mt-8 mb-3 text-xl font-semibold tracking-tight text-[var(--color-text)] first:mt-0"
         >
           {heading}
         </h2>
@@ -61,7 +63,7 @@ function renderContent(content: string) {
       return (
         <h3
           key={index}
-          className="mt-6 mb-2 text-lg font-semibold text-slate-900"
+          className="mt-6 mb-2 text-lg font-semibold text-[var(--color-text)]"
         >
           {heading}
         </h3>
@@ -72,7 +74,7 @@ function renderContent(content: string) {
       return (
         <li
           key={index}
-          className="ml-5 list-disc pl-1 leading-7 text-slate-700"
+          className="ml-5 list-disc pl-1 leading-7 text-[var(--color-text-muted)]"
         >
           {trimmed.replace(/^[-*]\s+/, "")}
         </li>
@@ -83,7 +85,7 @@ function renderContent(content: string) {
       return (
         <li
           key={index}
-          className="ml-5 list-decimal pl-1 leading-7 text-slate-700"
+          className="ml-5 list-decimal pl-1 leading-7 text-[var(--color-text-muted)]"
         >
           {trimmed.replace(/^\d+\.\s+/, "")}
         </li>
@@ -91,7 +93,10 @@ function renderContent(content: string) {
     }
 
     return (
-      <p key={index} className="leading-7 text-slate-700">
+      <p
+        key={index}
+        className="leading-7 text-[var(--color-text-muted)]"
+      >
         {trimmed}
       </p>
     );
@@ -113,25 +118,25 @@ export default async function LegalDocumentPage({
 
   if (error || !document) {
     return (
-      <main className="min-h-[70vh] bg-slate-50 px-4 py-16">
+      <main className="min-h-[70vh] bg-[var(--color-background)] px-4 py-16">
         <div className="mx-auto max-w-3xl">
-          <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-            <p className="mb-3 text-sm font-medium text-slate-500">
+          <div className="rounded-2xl border border-[var(--color-border)] bg-white p-8 shadow-sm">
+            <p className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
               Twimzi Legal
             </p>
 
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+            <h1 className="text-2xl font-bold tracking-tight text-[var(--color-text)]">
               {title ?? "Legal Document"}
             </h1>
 
-            <p className="mt-4 leading-7 text-slate-600">
+            <p className="mt-4 leading-7 text-[var(--color-text-muted)]">
               This document is currently unavailable for public access. Please
               check back later.
             </p>
 
             <Link
               href="/"
-              className="mt-6 inline-flex rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+              className="mt-6 inline-flex rounded-xl bg-[var(--color-primary)] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-90"
             >
               Back to Twimzi
             </Link>
@@ -144,32 +149,32 @@ export default async function LegalDocumentPage({
   const effectiveDate = formatDate(document.effective_from);
 
   return (
-    <main className="min-h-screen bg-slate-50">
-      <section className="border-b border-slate-200 bg-white">
+    <main className="min-h-screen bg-[var(--color-background)] text-[var(--color-text)]">
+      <section className="border-b border-[var(--color-border)] bg-white">
         <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
           <Link
             href="/"
-            className="text-sm font-medium text-slate-500 transition hover:text-slate-900"
+            className="text-sm font-medium text-[var(--color-text-muted)] transition hover:text-[var(--color-primary)]"
           >
             ← Back to Twimzi
           </Link>
 
           <div className="mt-8">
-            <p className="text-sm font-semibold uppercase tracking-wider text-slate-500">
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--color-primary)]">
               Twimzi Legal
             </p>
 
-            <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+            <h1 className="mt-3 text-3xl font-bold tracking-tight text-[var(--color-text)] sm:text-4xl">
               {document.title}
             </h1>
 
             {document.summary && (
-              <p className="mt-4 max-w-3xl text-base leading-7 text-slate-600">
+              <p className="mt-4 max-w-3xl text-base leading-7 text-[var(--color-text-muted)]">
                 {document.summary}
               </p>
             )}
 
-            <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-500">
+            <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-[var(--color-text-muted)]">
               <span>Version {document.version}</span>
 
               {effectiveDate && <span>Effective {effectiveDate}</span>}
@@ -181,7 +186,7 @@ export default async function LegalDocumentPage({
       </section>
 
       <section className="px-4 py-10 sm:px-6 lg:px-8">
-        <article className="mx-auto max-w-4xl rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-10">
+        <article className="mx-auto max-w-4xl rounded-2xl border border-[var(--color-border)] bg-white p-6 shadow-sm sm:p-10">
           <div className="space-y-1">{renderContent(document.content)}</div>
         </article>
       </section>

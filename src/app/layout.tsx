@@ -36,10 +36,6 @@ export const metadata: Metadata = {
   creator: siteConfig.name,
   publisher: siteConfig.name,
 
-  alternates: {
-    canonical: siteConfig.url,
-  },
-
   robots: {
     index: true,
     follow: true,
@@ -99,7 +95,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={poppins.variable}>
+      <body className={poppins.variable} suppressHydrationWarning>
         <Header />
         <main>{children}</main>
         <Footer />

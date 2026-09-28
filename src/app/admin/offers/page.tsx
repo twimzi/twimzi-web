@@ -1,5 +1,6 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -32,6 +33,48 @@ type Business = {
   id: string;
   business_name: string;
 };
+
+async function updateOfferState(formData: FormData) {
+  "use server";
+
+  const offerId = String(formData.get("offer_id") ?? "").trim();
+  const status = String(formData.get("status") ?? "").trim();
+  const isActive = formData.get("is_active") === "true";
+  const isFeatured = formData.get("is_featured") === "true";
+
+  if (!offerId) {
+    throw new Error("Offer ID is required.");
+  }
+
+  const supabase = await createSupabaseServerClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const { data: isAdmin } = await supabase.rpc("is_super_admin");
+
+  if (!isAdmin) {
+    redirect("/");
+  }
+
+  const { error } = await supabase.rpc("admin_set_offer_state", {
+    p_offer_id: offerId,
+    p_status: status,
+    p_is_active: isActive,
+    p_is_featured: isFeatured,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/admin/offers");
+}
 
 type PageProps = {
   searchParams: Promise<{
@@ -204,37 +247,16 @@ export default async function AdminOffers({
       </div>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <StatCard
-          label="Offers Loaded"
-          value={offers.length}
-        />
-
-        <StatCard
-          label="Active"
-          value={activeCount}
-        />
-
-        <StatCard
-          label="Draft"
-          value={draftCount}
-        />
-
-        <StatCard
-          label="Featured"
-          value={featuredCount}
-        />
-
-        <StatCard
-          label="Redemptions"
-          value={redemptionCount}
-        />
+        <StatCard label="Offers Loaded" value={offers.length} />
+        <StatCard label="Active" value={activeCount} />
+        <StatCard label="Draft" value={draftCount} />
+        <StatCard label="Featured" value={featuredCount} />
+        <StatCard label="Redemptions" value={redemptionCount} />
       </div>
 
       {error ? (
         <div className="mt-8 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
-          <p className="font-bold">
-            Unable to load offers.
-          </p>
+          <p className="font-bold">Unable to load offers.</p>
 
           <p className="mt-1">
             The current Offers table access does not allow administration from
@@ -249,48 +271,20 @@ export default async function AdminOffers({
         <>
           <div className="mt-8 overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white">
             <div className="overflow-x-auto">
-              <table className="min-w-[1500px] w-full text-left text-sm">
+              <table className="min-w-[1750px] w-full text-left text-sm">
                 <thead className="border-b bg-[var(--color-surface)]">
                   <tr>
-                    <th className="px-5 py-4 font-bold">
-                      Offer
-                    </th>
-
-                    <th className="px-5 py-4 font-bold">
-                      Business
-                    </th>
-
-                    <th className="px-5 py-4 font-bold">
-                      Type
-                    </th>
-
-                    <th className="px-5 py-4 font-bold">
-                      Discount
-                    </th>
-
-                    <th className="px-5 py-4 font-bold">
-                      Validity
-                    </th>
-
-                    <th className="px-5 py-4 font-bold">
-                      Redemptions
-                    </th>
-
-                    <th className="px-5 py-4 font-bold">
-                      Priority
-                    </th>
-
-                    <th className="px-5 py-4 font-bold">
-                      Featured
-                    </th>
-
-                    <th className="px-5 py-4 font-bold">
-                      Status
-                    </th>
-
-                    <th className="px-5 py-4 font-bold">
-                      Created
-                    </th>
+                    <th className="px-5 py-4 font-bold">Offer</th>
+                    <th className="px-5 py-4 font-bold">Business</th>
+                    <th className="px-5 py-4 font-bold">Type</th>
+                    <th className="px-5 py-4 font-bold">Discount</th>
+                    <th className="px-5 py-4 font-bold">Validity</th>
+                    <th className="px-5 py-4 font-bold">Redemptions</th>
+                    <th className="px-5 py-4 font-bold">Priority</th>
+                    <th className="px-5 py-4 font-bold">Featured</th>
+                    <th className="px-5 py-4 font-bold">Status</th>
+                    <th className="px-5 py-4 font-bold">Created</th>
+                    <th className="px-5 py-4 font-bold">Actions</th>
                   </tr>
                 </thead>
 
@@ -298,7 +292,7 @@ export default async function AdminOffers({
                   {offers.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={10}
+                        colSpan={11}
                         className="px-5 py-14 text-center text-sm text-[var(--color-text-muted)]"
                       >
                         {search || status
@@ -403,8 +397,7 @@ export default async function AdminOffers({
                           </p>
 
                           <p className="mt-1 text-[10px] text-slate-400">
-                            Per user:{" "}
-                            {offer.per_user_limit ?? 1}
+                            Per user: {offer.per_user_limit ?? 1}
                           </p>
                         </td>
 
@@ -415,9 +408,7 @@ export default async function AdminOffers({
                         </td>
 
                         <td className="px-5 py-4">
-                          <BooleanBadge
-                            value={offer.is_featured}
-                          />
+                          <BooleanBadge value={offer.is_featured} />
                         </td>
 
                         <td className="px-5 py-4">
@@ -430,6 +421,59 @@ export default async function AdminOffers({
                         <td className="px-5 py-4 text-xs text-[var(--color-text-muted)]">
                           {formatDate(offer.created_at)}
                         </td>
+
+                        <td className="px-5 py-4">
+                          <form
+                            action={updateOfferState}
+                            className="flex min-w-[230px] flex-col gap-2"
+                          >
+                            <input
+                              type="hidden"
+                              name="offer_id"
+                              value={offer.id}
+                            />
+
+                            <select
+                              name="status"
+                              defaultValue={offer.status}
+                              className="rounded-lg border border-[var(--color-border)] bg-white px-3 py-2 text-xs font-semibold outline-none focus:border-[var(--color-primary)]"
+                            >
+                              <option value="active">Active</option>
+                              <option value="draft">Draft</option>
+                              <option value="paused">Paused</option>
+                              <option value="expired">Expired</option>
+                            </select>
+
+                            <div className="flex flex-wrap gap-3 text-xs">
+                              <label className="flex items-center gap-1.5">
+                                <input
+                                  type="checkbox"
+                                  name="is_active"
+                                  value="true"
+                                  defaultChecked={offer.is_active}
+                                />
+                                Active
+                              </label>
+
+                              <label className="flex items-center gap-1.5">
+                                <input
+                                  type="checkbox"
+                                  name="is_featured"
+                                  value="true"
+                                  defaultChecked={offer.is_featured}
+                                />
+                                Featured
+                              </label>
+                            </div>
+
+                            <button
+                              type="submit"
+                              className="rounded-lg bg-[var(--color-primary)] px-3 py-2 text-xs font-bold text-white transition hover:opacity-90"
+                            >
+                              Save State
+                            </button>
+                          </form>
+                        </td>
                       </tr>
                     ))
                   )}
@@ -439,33 +483,15 @@ export default async function AdminOffers({
 
             {offers.length > 0 ? (
               <div className="flex flex-wrap gap-4 border-t bg-[var(--color-surface)] px-5 py-4 text-xs text-[var(--color-text-muted)]">
-                <span>
-                  Showing up to 100 offers
-                </span>
-
+                <span>Showing up to 100 offers</span>
                 <span>â€¢</span>
-
-                <span>
-                  {activeCount} active
-                </span>
-
+                <span>{activeCount} active</span>
                 <span>â€¢</span>
-
-                <span>
-                  {draftCount} draft
-                </span>
-
+                <span>{draftCount} draft</span>
                 <span>â€¢</span>
-
-                <span>
-                  {pausedCount} paused
-                </span>
-
+                <span>{pausedCount} paused</span>
                 <span>â€¢</span>
-
-                <span>
-                  {featuredCount} featured
-                </span>
+                <span>{featuredCount} featured</span>
               </div>
             ) : null}
           </div>
@@ -529,14 +555,10 @@ function StatusBadge({
   }
 
   const styles: Record<string, string> = {
-    active:
-      "bg-emerald-50 text-emerald-700",
-    draft:
-      "bg-slate-100 text-slate-600",
-    paused:
-      "bg-amber-50 text-amber-700",
-    expired:
-      "bg-red-50 text-red-700",
+    active: "bg-emerald-50 text-emerald-700",
+    draft: "bg-slate-100 text-slate-600",
+    paused: "bg-amber-50 text-amber-700",
+    expired: "bg-red-50 text-red-700",
   };
 
   return (
@@ -596,3 +618,4 @@ function formatDate(value: string | null) {
     year: "numeric",
   }).format(date);
 }
+

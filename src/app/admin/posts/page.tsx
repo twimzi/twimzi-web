@@ -1,7 +1,8 @@
-"use client";
+﻿"use client";
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type Post = {
@@ -31,15 +32,23 @@ type Post = {
 function formatDate(value: string | null) {
   if (!value) return "—";
 
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "—";
+
   return new Intl.DateTimeFormat("en-IN", {
     day: "2-digit",
     month: "short",
     year: "numeric",
-  }).format(new Date(value));
+  }).format(date);
 }
 
 function formatDateTime(value: string | null) {
   if (!value) return "—";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "—";
 
   return new Intl.DateTimeFormat("en-IN", {
     day: "2-digit",
@@ -47,7 +56,7 @@ function formatDateTime(value: string | null) {
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-  }).format(new Date(value));
+  }).format(date);
 }
 
 function statusClasses(active: boolean | null) {
@@ -64,6 +73,8 @@ export default function AdminPostsPage() {
   const [submittedSearch, setSubmittedSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [actionError, setActionError] = useState("");
+  const [savingId, setSavingId] = useState<string | null>(null);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
   const loadPosts = useCallback(async () => {
@@ -140,6 +151,53 @@ export default function AdminPostsPage() {
   function clearSearch() {
     setSearch("");
     setSubmittedSearch("");
+  }
+
+  async function updatePostState(
+    post: Post,
+    isActive: boolean,
+    isFeatured: boolean,
+    isPinned: boolean,
+  ) {
+    setSavingId(post.id);
+    setActionError("");
+
+    try {
+      const { error: updateError } = await supabase.rpc(
+        "admin_set_post_state",
+        {
+          p_post_id: post.id,
+          p_is_active: isActive,
+          p_is_featured: isFeatured,
+          p_is_pinned: isPinned,
+        },
+      );
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      setPosts((currentPosts) =>
+        currentPosts.map((currentPost) =>
+          currentPost.id === post.id
+            ? {
+                ...currentPost,
+                is_active: isActive,
+                is_featured: isFeatured,
+                is_pinned: isPinned,
+              }
+            : currentPost,
+        ),
+      );
+    } catch (err) {
+      setActionError(
+        err instanceof Error
+          ? err.message
+          : "Unable to update post state.",
+      );
+    } finally {
+      setSavingId(null);
+    }
   }
 
   if (!isSuperAdmin && !loading && error.includes("permission")) {
@@ -289,6 +347,20 @@ export default function AdminPostsPage() {
         </div>
       )}
 
+      {actionError && (
+        <div className="flex items-center justify-between gap-4 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <span>{actionError}</span>
+
+          <button
+            type="button"
+            onClick={() => setActionError("")}
+            className="font-semibold hover:underline"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="flex flex-col gap-2 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -339,7 +411,7 @@ export default function AdminPostsPage() {
         ) : (
           <>
             <div className="hidden overflow-x-auto lg:block">
-              <table className="min-w-full">
+              <table className="min-w-[1250px] w-full">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                     <th className="px-5 py-3">Post</th>
@@ -348,6 +420,7 @@ export default function AdminPostsPage() {
                     <th className="px-5 py-3">Engagement</th>
                     <th className="px-5 py-3">Published</th>
                     <th className="px-5 py-3">Created</th>
+                    <th className="px-5 py-3">Actions</th>
                   </tr>
                 </thead>
 
@@ -400,8 +473,7 @@ export default function AdminPostsPage() {
                           href={`/admin/businesses/${post.business_id}`}
                           className="font-medium text-slate-700 hover:text-slate-900 hover:underline"
                         >
-                          {post.business_name ||
-                            "Unknown business"}
+                          {post.business_name || "Unknown business"}
                         </Link>
                       </td>
 
@@ -411,29 +483,18 @@ export default function AdminPostsPage() {
                             post.is_active,
                           )}`}
                         >
-                          {post.is_active
-                            ? "Active"
-                            : "Inactive"}
+                          {post.is_active ? "Active" : "Inactive"}
                         </span>
                       </td>
 
                       <td className="px-5 py-4">
                         <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-500">
-                          <span>
-                            Likes: {post.like_count ?? 0}
-                          </span>
-
+                          <span>Likes: {post.like_count ?? 0}</span>
                           <span>
                             Comments: {post.comment_count ?? 0}
                           </span>
-
-                          <span>
-                            Shares: {post.share_count ?? 0}
-                          </span>
-
-                          <span>
-                            Saves: {post.save_count ?? 0}
-                          </span>
+                          <span>Shares: {post.share_count ?? 0}</span>
+                          <span>Saves: {post.save_count ?? 0}</span>
                         </div>
                       </td>
 
@@ -443,6 +504,14 @@ export default function AdminPostsPage() {
 
                       <td className="px-5 py-4 text-sm text-slate-500">
                         {formatDate(post.created_at)}
+                      </td>
+
+                      <td className="px-5 py-4">
+                        <PostStateControls
+                          post={post}
+                          saving={savingId === post.id}
+                          onSave={updatePostState}
+                        />
                       </td>
                     </tr>
                   ))}
@@ -463,8 +532,7 @@ export default function AdminPostsPage() {
                         href={`/admin/businesses/${post.business_id}`}
                         className="mt-1 block truncate text-sm text-slate-500 hover:text-slate-900 hover:underline"
                       >
-                        {post.business_name ||
-                          "Unknown business"}
+                        {post.business_name || "Unknown business"}
                       </Link>
                     </div>
 
@@ -473,9 +541,7 @@ export default function AdminPostsPage() {
                         post.is_active,
                       )}`}
                     >
-                      {post.is_active
-                        ? "Active"
-                        : "Inactive"}
+                      {post.is_active ? "Active" : "Inactive"}
                     </span>
                   </div>
 
@@ -507,40 +573,28 @@ export default function AdminPostsPage() {
 
                   <div className="mt-4 grid grid-cols-2 gap-3">
                     <div className="rounded-xl bg-slate-50 p-3">
-                      <p className="text-xs text-slate-500">
-                        Likes
-                      </p>
-
+                      <p className="text-xs text-slate-500">Likes</p>
                       <p className="mt-1 font-semibold text-slate-900">
                         {post.like_count ?? 0}
                       </p>
                     </div>
 
                     <div className="rounded-xl bg-slate-50 p-3">
-                      <p className="text-xs text-slate-500">
-                        Comments
-                      </p>
-
+                      <p className="text-xs text-slate-500">Comments</p>
                       <p className="mt-1 font-semibold text-slate-900">
                         {post.comment_count ?? 0}
                       </p>
                     </div>
 
                     <div className="rounded-xl bg-slate-50 p-3">
-                      <p className="text-xs text-slate-500">
-                        Shares
-                      </p>
-
+                      <p className="text-xs text-slate-500">Shares</p>
                       <p className="mt-1 font-semibold text-slate-900">
                         {post.share_count ?? 0}
                       </p>
                     </div>
 
                     <div className="rounded-xl bg-slate-50 p-3">
-                      <p className="text-xs text-slate-500">
-                        Saves
-                      </p>
-
+                      <p className="text-xs text-slate-500">Saves</p>
                       <p className="mt-1 font-semibold text-slate-900">
                         {post.save_count ?? 0}
                       </p>
@@ -549,13 +603,20 @@ export default function AdminPostsPage() {
 
                   <div className="mt-4 text-xs text-slate-500">
                     <p>
-                      Published:{" "}
-                      {formatDateTime(post.published_at)}
+                      Published: {formatDateTime(post.published_at)}
                     </p>
 
                     <p className="mt-1">
                       Created: {formatDate(post.created_at)}
                     </p>
+                  </div>
+
+                  <div className="mt-5 border-t border-slate-100 pt-4">
+                    <PostStateControls
+                      post={post}
+                      saving={savingId === post.id}
+                      onSave={updatePostState}
+                    />
                   </div>
                 </div>
               ))}
@@ -563,6 +624,79 @@ export default function AdminPostsPage() {
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+function PostStateControls({
+  post,
+  saving,
+  onSave,
+}: {
+  post: Post;
+  saving: boolean;
+  onSave: (
+    post: Post,
+    isActive: boolean,
+    isFeatured: boolean,
+    isPinned: boolean,
+  ) => Promise<void>;
+}) {
+  const [isActive, setIsActive] = useState(Boolean(post.is_active));
+  const [isFeatured, setIsFeatured] = useState(
+    Boolean(post.is_featured),
+  );
+  const [isPinned, setIsPinned] = useState(Boolean(post.is_pinned));
+
+  return (
+    <div className="min-w-[230px] space-y-3">
+      <div className="flex flex-wrap gap-3 text-xs">
+        <label className="flex cursor-pointer items-center gap-1.5">
+          <input
+            type="checkbox"
+            checked={isActive}
+            onChange={(event) => setIsActive(event.target.checked)}
+            disabled={saving}
+          />
+          Active
+        </label>
+
+        <label className="flex cursor-pointer items-center gap-1.5">
+          <input
+            type="checkbox"
+            checked={isFeatured}
+            onChange={(event) => setIsFeatured(event.target.checked)}
+            disabled={saving}
+          />
+          Featured
+        </label>
+
+        <label className="flex cursor-pointer items-center gap-1.5">
+          <input
+            type="checkbox"
+            checked={isPinned}
+            onChange={(event) => setIsPinned(event.target.checked)}
+            disabled={saving}
+          />
+          Pinned
+        </label>
+      </div>
+
+      <button
+        type="button"
+        disabled={saving}
+        onClick={() =>
+          void onSave(
+            post,
+            isActive,
+            isFeatured,
+            isPinned,
+          )
+        }
+        className="w-full rounded-lg bg-slate-900 px-3 py-2 text-xs font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {saving ? "Saving..." : "Save State"}
+      </button>
     </div>
   );
 }
