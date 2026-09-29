@@ -20,7 +20,6 @@ import {
 
 import { Container } from "@/components/ui/container";
 import { SectionHeading } from "@/components/ui/section-heading";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type Category = {
   id: string;
@@ -180,13 +179,13 @@ const iconThemes = [
   "bg-orange-50 text-orange-600",
 ];
 
-export async function CategorySection() {
-  const supabase = await createSupabaseServerClient();
-
-  const { data, error } = await supabase.rpc("get_public_categories");
-
-  const categories = (data ?? []) as Category[];
-
+export function CategorySection({
+  categories,
+  error = false,
+}: {
+  categories: Category[];
+  error?: boolean;
+}) {
   const sortedCategories = [...categories]
     .filter((category) => !category.parent_id)
     .sort(

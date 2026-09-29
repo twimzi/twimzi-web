@@ -15,10 +15,25 @@ type Business = {
   slug: string | null;
   description: string | null;
   business_type: string | null;
+  average_rating: number | null;
+  total_followers: number | null;
+  total_views: number | null;
   is_featured: boolean | null;
   featured_until: string | null;
-  total_followers: number | null;
   created_at: string;
+};
+
+type Category = {
+  id: string;
+  parent_id: string | null;
+  category_code: string;
+  category_name: string;
+  slug: string | null;
+  description: string | null;
+  icon_name: string | null;
+  image_media_id: string | null;
+  sort_order: number | null;
+  is_featured: boolean;
 };
 
 type Offer = {
@@ -43,13 +58,32 @@ type Post = {
 export default async function Home() {
   const supabase = await createSupabaseServerClient();
 
-  const { data } = await supabase.rpc("get_public_businesses", {
-    p_search: null,
-    p_limit: 100,
-    p_offset: 0,
-  });
+  const [
+    { data: businessData },
+    { data: categoriesData, error: categoriesError },
+    { data: offersData },
+  ] = await Promise.all([
+    supabase.rpc("get_public_businesses", {
+      p_search: null,
+      p_limit: 50,
+      p_offset: 0,
+    }),
+    supabase.rpc("get_public_categories"),
+    supabase
+      .from("offers")
+      .select(
+        "id,business_id,title,short_description,slug,created_at",
+      )
+      .eq("is_active", true)
+      .eq("status", "active")
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false })
+      .limit(6),
+  ]);
 
-  const businesses = (data ?? []) as Business[];
+  const businesses = (businessData ?? []) as Business[];
+  const categories = (categoriesData ?? []) as Category[];
+  const offers = (offersData ?? []) as Offer[];
 
   const featured = businesses
     .filter((business) => business.is_featured === true)
@@ -67,26 +101,13 @@ export default async function Home() {
     businesses.map((business) => [business.id, business]),
   );
 
-  const { data: offersData } = await supabase
-    .from("offers")
-    .select(
-      "id,business_id,title,short_description,slug,created_at",
-    )
-    .eq("is_active", true)
-    .eq("status", "active")
-    .is("deleted_at", null)
-    .order("created_at", { ascending: false })
-    .limit(6);
-
-  const offers = (offersData ?? []) as Offer[];
-
   const postResults = await Promise.all(
-    latest.slice(0, 6).map(async (business) => {
+    latest.slice(0, 3).map(async (business) => {
       const { data: posts } = await supabase.rpc(
         "get_public_business_posts",
         {
           p_business_id: business.id,
-          p_limit: 2,
+          p_limit: 1,
           p_offset: 0,
         },
       );
@@ -113,7 +134,8 @@ export default async function Home() {
       type: "New on Twimzi",
       title: newestBusiness.business_name,
       description:
-        newestBusiness.description || "Just joined the Twimzi business network.",
+        newestBusiness.description ||
+        "Just joined the Twimzi business network.",
       href: newestBusiness.slug
         ? `/businesses/${newestBusiness.slug}`
         : `/businesses/${newestBusiness.id}`,
@@ -220,10 +242,21 @@ export default async function Home() {
   return (
     <>
       <HeroSection interestingItems={interestingItems} />
-      <CategorySection />
-      <BusinessSections featured={featured} latest={latest} />
-      <DiscoverySection />
+
+      <CategorySection
+        categories={categories}
+        error={Boolean(categoriesError)}
+      />
+
+      <BusinessSections
+        featured={featured}
+        latest={latest}
+      />
+
+      <DiscoverySection businesses={businesses} />
+
       <AndroidAppSection />
+
       <BusinessCta />
     </>
   );

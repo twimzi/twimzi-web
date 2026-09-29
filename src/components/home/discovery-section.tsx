@@ -11,7 +11,6 @@ import {
 
 import { Container } from "@/components/ui/container";
 import { SectionHeading } from "@/components/ui/section-heading";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type Business = {
   id: string;
@@ -192,17 +191,11 @@ function DiscoveryGroupHeader({
   );
 }
 
-export async function DiscoverySection() {
-  const supabase = await createSupabaseServerClient();
-
-  const { data, error } = await supabase.rpc("get_public_businesses", {
-    p_search: null,
-    p_limit: 50,
-    p_offset: 0,
-  });
-
-  const businesses = error ? [] : ((data ?? []) as Business[]);
-
+export function DiscoverySection({
+  businesses,
+}: {
+  businesses: Business[];
+}) {
   const featuredBusinesses = businesses
     .filter(isFeatured)
     .sort(
@@ -257,7 +250,9 @@ export async function DiscoverySection() {
         {recentBusinesses.length > 0 ? (
           <div
             className={
-              featuredBusinesses.length > 0 ? "mt-14 sm:mt-16" : "mt-10 sm:mt-12"
+              featuredBusinesses.length > 0
+                ? "mt-14 sm:mt-16"
+                : "mt-10 sm:mt-12"
             }
           >
             <DiscoveryGroupHeader
