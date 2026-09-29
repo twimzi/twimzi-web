@@ -1,9 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import Image from "next/image";
 
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -16,6 +16,12 @@ const mainNavigation = [
   { label: "Offers", href: "/offers" },
 ] as const;
 
+const actionLinkClass =
+  "rounded-lg px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 hover:text-slate-900";
+
+const primaryLinkClass =
+  "rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--color-primary-dark)]";
+
 export function Header() {
   const pathname = usePathname();
   const router = useRouter();
@@ -23,6 +29,8 @@ export function Header() {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isBusinessOwner, setIsBusinessOwner] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [isSessionLoading, setIsSessionLoading] = useState(true);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -30,30 +38,52 @@ export function Header() {
   useEffect(() => {
     let mounted = true;
 
-    const loadSession = async () => {
+    const loadAccess = async () => {
       const {
-        data: { session },
-      } = await supabase.auth.getSession();
+        data: { user },
+      } = await supabase.auth.getUser();
 
       if (!mounted) {
         return;
       }
 
-      setIsAuthenticated(Boolean(session));
+      if (!user) {
+        setIsAuthenticated(false);
+        setIsBusinessOwner(false);
+        setIsSuperAdmin(false);
+        setIsSessionLoading(false);
+        return;
+      }
+
+      setIsAuthenticated(true);
+
+      const [{ data: business }, { data: superAdmin }] = await Promise.all([
+        supabase
+          .from("businesses")
+          .select("id")
+          .eq("owner_profile_id", user.id)
+          .eq("is_active", true)
+          .is("deleted_at", null)
+          .limit(1)
+          .maybeSingle(),
+        supabase.rpc("is_super_admin"),
+      ]);
+
+      if (!mounted) {
+        return;
+      }
+
+      setIsBusinessOwner(Boolean(business));
+      setIsSuperAdmin(superAdmin === true);
       setIsSessionLoading(false);
     };
 
-    void loadSession();
+    void loadAccess();
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!mounted) {
-        return;
-      }
-
-      setIsAuthenticated(Boolean(session));
-      setIsSessionLoading(false);
+    } = supabase.auth.onAuthStateChange(() => {
+      void loadAccess();
     });
 
     return () => {
@@ -77,6 +107,8 @@ export function Header() {
     }
 
     setIsAuthenticated(false);
+    setIsBusinessOwner(false);
+    setIsSuperAdmin(false);
     setIsMobileMenuOpen(false);
 
     router.push("/");
@@ -86,6 +118,14 @@ export function Header() {
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
   };
+
+  const accountActionLabel = isBusinessOwner
+    ? "Manage Your Business"
+    : "Add Business";
+
+  const accountActionHref = isBusinessOwner
+    ? "/businesses/dashboard"
+    : "/add-business";
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
@@ -97,13 +137,13 @@ export function Header() {
           onClick={closeMobileMenu}
         >
           <Image
-  src="/twimzi-logo.png"
-  alt="Twimzi"
-  width={120}
-  height={40}
-  priority
-  className="h-10 w-auto object-contain"
-/>
+            src="/twimzi-logo.png"
+            alt="Twimzi"
+            width={120}
+            height={40}
+            priority
+            className="h-10 w-auto object-contain"
+          />
         </Link>
 
         <nav
@@ -111,7 +151,11 @@ export function Header() {
           aria-label="Main navigation"
         >
           {mainNavigation.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive =
+              item.href === "/"
+                ? pathname === "/"
+                : pathname === item.href ||
+                  pathname.startsWith(`${item.href}/`);
 
             return (
               <Link
@@ -127,16 +171,32 @@ export function Header() {
               </Link>
             );
           })}
+
+          {!isSessionLoading && isAuthenticated && (
+            <Link
+              href="/messages"
+              className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
+                pathname === "/messages" || pathname.startsWith("/messages/")
+                  ? "bg-slate-100 text-slate-900"
+                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+              }`}
+            >
+              Messages
+            </Link>
+          )}
         </nav>
 
         <div className="hidden items-center gap-2 md:flex">
           {!isSessionLoading && isAuthenticated ? (
             <>
-              <Link
-                href="/admin"
-                className="rounded-lg px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900"
-              >
-                Admin
+              {isSuperAdmin && (
+                <Link href="/admin" className={actionLinkClass}>
+                  Admin
+                </Link>
+              )}
+
+              <Link href={accountActionHref} className={actionLinkClass}>
+                {accountActionLabel}
               </Link>
 
               <button
@@ -148,23 +208,17 @@ export function Header() {
                 {isSigningOut ? "Signing out..." : "Logout"}
               </button>
             </>
-          ) : (
+          ) : !isSessionLoading ? (
             <>
-              <Link
-                href="/login"
-                className="rounded-lg px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-              >
+              <Link href="/login" className={actionLinkClass}>
                 Login
               </Link>
 
-              <Link
-                href="/add-business"
-                className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
-              >
+              <Link href="/add-business" className={primaryLinkClass}>
                 Add Business
               </Link>
             </>
-          )}
+          ) : null}
         </div>
 
         <button
@@ -185,7 +239,11 @@ export function Header() {
             aria-label="Mobile navigation"
           >
             {mainNavigation.map((item) => {
-              const isActive = pathname === item.href;
+              const isActive =
+                item.href === "/"
+                  ? pathname === "/"
+                  : pathname === item.href ||
+                    pathname.startsWith(`${item.href}/`);
 
               return (
                 <Link
@@ -207,11 +265,29 @@ export function Header() {
               {!isSessionLoading && isAuthenticated ? (
                 <>
                   <Link
-                    href="/admin"
+                    href="/messages"
                     onClick={closeMobileMenu}
                     className="block rounded-lg px-3 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                   >
-                    Admin
+                    Messages
+                  </Link>
+
+                  {isSuperAdmin && (
+                    <Link
+                      href="/admin"
+                      onClick={closeMobileMenu}
+                      className="block rounded-lg px-3 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                    >
+                      Admin
+                    </Link>
+                  )}
+
+                  <Link
+                    href={accountActionHref}
+                    onClick={closeMobileMenu}
+                    className="mt-1 block rounded-lg px-3 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                  >
+                    {accountActionLabel}
                   </Link>
 
                   <button
@@ -223,7 +299,7 @@ export function Header() {
                     {isSigningOut ? "Signing out..." : "Logout"}
                   </button>
                 </>
-              ) : (
+              ) : !isSessionLoading ? (
                 <>
                   <Link
                     href="/login"
@@ -236,12 +312,12 @@ export function Header() {
                   <Link
                     href="/add-business"
                     onClick={closeMobileMenu}
-                    className="mt-2 block rounded-lg bg-slate-900 px-3 py-3 text-center text-sm font-semibold text-white transition hover:bg-slate-800"
+                    className="mt-2 block rounded-lg bg-[var(--color-primary)] px-3 py-3 text-center text-sm font-semibold text-white transition hover:bg-[var(--color-primary-dark)]"
                   >
                     Add Business
                   </Link>
                 </>
-              )}
+              ) : null}
             </div>
           </nav>
         </div>
