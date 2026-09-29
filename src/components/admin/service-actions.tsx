@@ -17,8 +17,8 @@ type Service = {
   booking_required: boolean | null;
   home_service_available: boolean | null;
   service_radius_km: number | null;
-  is_featured: boolean;
-  is_active: boolean;
+  is_featured: boolean | null;
+  is_active: boolean | null;
 };
 
 export function ServiceActions({ service }: { service: Service }) {
@@ -34,20 +34,20 @@ export function ServiceActions({ service }: { service: Service }) {
     service.short_description ?? "",
   );
   const [duration, setDuration] = useState(
-    service.duration_minutes?.toString() ?? "",
+    service.duration_minutes == null ? "" : String(service.duration_minutes),
   );
-  const [price, setPrice] = useState(service.price?.toString() ?? "");
-  const [booking, setBooking] = useState(
-    service.booking_required ?? false,
+  const [price, setPrice] = useState(
+    service.price == null ? "" : String(service.price),
   );
+  const [booking, setBooking] = useState(Boolean(service.booking_required));
   const [homeService, setHomeService] = useState(
-    service.home_service_available ?? false,
+    Boolean(service.home_service_available),
   );
   const [radius, setRadius] = useState(
-    service.service_radius_km?.toString() ?? "",
+    service.service_radius_km == null ? "" : String(service.service_radius_km),
   );
-  const [featured, setFeatured] = useState(service.is_featured);
-  const [active, setActive] = useState(service.is_active);
+  const [featured, setFeatured] = useState(Boolean(service.is_featured));
+  const [active, setActive] = useState(Boolean(service.is_active));
 
   async function save() {
     setSaving(true);
@@ -214,9 +214,7 @@ export function ServiceActions({ service }: { service: Service }) {
                 <input
                   type="checkbox"
                   checked={homeService}
-                  onChange={(event) =>
-                    setHomeService(event.target.checked)
-                  }
+                  onChange={(event) => setHomeService(event.target.checked)}
                 />
                 Home Service
               </label>
