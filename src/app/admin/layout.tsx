@@ -74,9 +74,9 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-surface)]">
+    <div className="min-h-screen bg-[var(--color-background)]">
       <div className="flex min-h-screen">
-        <aside className="hidden w-72 shrink-0 border-r border-[var(--color-border)] bg-white lg:block">
+        <aside className="hidden w-72 shrink-0 border-r border-[var(--color-border)] bg-white shadow-[var(--shadow-sm)] lg:block">
           <div className="sticky top-0 h-screen overflow-y-auto p-5">
             <Link
               href="/admin/dashboard"
@@ -109,7 +109,7 @@ export default async function AdminLayout({
                       <Link
                         key={href}
                         href={href}
-                        className="block rounded-xl px-3 py-2.5 text-sm font-medium transition-colors hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary)]"
+                        className="block rounded-xl px-3 py-2.5 text-sm font-medium text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary-dark)]"
                       >
                         {label}
                       </Link>
@@ -122,7 +122,7 @@ export default async function AdminLayout({
         </aside>
 
         <main className="min-w-0 flex-1">
-          <div className="border-b border-[var(--color-border)] bg-white px-5 py-4 lg:px-8">
+          <div className="border-b border-[var(--color-border)] bg-white px-5 py-4 shadow-[var(--shadow-xs)] lg:px-8">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-primary)]">
@@ -136,7 +136,7 @@ export default async function AdminLayout({
 
               <Link
                 href="/"
-                className="rounded-xl border border-[var(--color-border)] px-4 py-2 text-sm font-semibold transition-colors hover:bg-[var(--color-primary-light)]"
+                className="rounded-xl border border-[var(--color-border)] px-4 py-2 text-sm font-semibold text-[var(--color-text-secondary)] transition-colors hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary-dark)]"
               >
                 View Website
               </Link>

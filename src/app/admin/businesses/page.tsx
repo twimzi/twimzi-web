@@ -41,7 +41,7 @@ function statusClass(status: string | null) {
     case "suspended":
       return "border-slate-300 bg-slate-100 text-slate-700";
     default:
-      return "border-slate-200 bg-slate-50 text-slate-600";
+      return "border-[var(--color-border)] bg-[var(--color-surface-soft)] text-[var(--color-text-secondary)]";
   }
 }
 
@@ -103,7 +103,7 @@ export default async function AdminBusinesses({
 
         <Link
           href="/admin"
-          className="inline-flex w-fit items-center rounded-xl border border-[var(--color-border)] bg-white px-4 py-2.5 text-sm font-bold hover:bg-slate-50"
+          className="inline-flex w-fit items-center rounded-xl border border-[var(--color-border)] bg-white px-4 py-2.5 text-sm font-bold text-[var(--color-text-secondary)] transition-colors hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary-dark)]"
         >
           ← Dashboard
         </Link>
@@ -111,7 +111,7 @@ export default async function AdminBusinesses({
 
       <form
         method="get"
-        className="mt-8 rounded-2xl border border-[var(--color-border)] bg-white p-5"
+        className="mt-8 rounded-2xl border border-[var(--color-border)] bg-white p-5 shadow-[var(--shadow-sm)]"
       >
         <div className="grid gap-4 md:grid-cols-[1fr_220px_auto] md:items-end">
           <div>
@@ -157,14 +157,14 @@ export default async function AdminBusinesses({
           <div className="flex gap-2">
             <button
               type="submit"
-              className="rounded-xl bg-[var(--color-primary)] px-5 py-3 text-sm font-bold text-white hover:opacity-90"
+              className="rounded-xl bg-[var(--color-primary)] px-5 py-3 text-sm font-bold text-white shadow-[var(--shadow-primary)] transition hover:bg-[var(--color-primary-dark)]"
             >
               Search
             </button>
 
             <Link
               href="/admin/businesses"
-              className="rounded-xl border border-[var(--color-border)] px-5 py-3 text-sm font-bold hover:bg-slate-50"
+              className="rounded-xl border border-[var(--color-border)] px-5 py-3 text-sm font-bold text-[var(--color-text-secondary)] transition-colors hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary-dark)]"
             >
               Reset
             </Link>
@@ -183,7 +183,7 @@ export default async function AdminBusinesses({
         <>
           <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold text-slate-800">
+              <p className="text-sm font-semibold text-[var(--color-text)]">
                 {businesses.length} business
                 {businesses.length === 1 ? "" : "es"} found
               </p>
@@ -207,11 +207,11 @@ export default async function AdminBusinesses({
             </Link>
           </div>
 
-          <div className="mt-5 overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white">
+          <div className="mt-5 overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white shadow-[var(--shadow-sm)]">
             {businesses.length ? (
               <div className="overflow-x-auto">
                 <table className="min-w-full text-left text-sm">
-                  <thead className="border-b bg-[var(--color-surface)]">
+                  <thead className="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
                     <tr>
                       {[
                         "Business",
@@ -237,12 +237,12 @@ export default async function AdminBusinesses({
                     {businesses.map((business) => (
                       <tr
                         key={business.id}
-                        className="border-b last:border-0 hover:bg-slate-50/70"
+                        className="border-b border-[var(--color-border-light)] last:border-0 hover:bg-[var(--color-primary-light)]/40"
                       >
                         <td className="px-5 py-4">
                           <Link
                             href={`/admin/businesses/${business.id}`}
-                            className="font-bold text-[var(--color-primary)] hover:underline"
+                            className="font-bold text-[var(--color-primary)] hover:text-[var(--color-primary-dark)] hover:underline"
                           >
                             {business.business_name}
                           </Link>
@@ -263,7 +263,7 @@ export default async function AdminBusinesses({
                         </td>
 
                         <td className="px-5 py-4">
-                          <span className="text-xs font-semibold capitalize text-slate-700">
+                          <span className="text-xs font-semibold capitalize text-[var(--color-text-secondary)]">
                             {business.verification_status ?? "unverified"}
                           </span>
                         </td>
@@ -274,7 +274,7 @@ export default async function AdminBusinesses({
                               Yes
                             </span>
                           ) : (
-                            <span className="font-semibold text-slate-500">
+                            <span className="font-semibold text-[var(--color-text-muted)]">
                               No
                             </span>
                           )}
@@ -286,7 +286,7 @@ export default async function AdminBusinesses({
                               Yes
                             </span>
                           ) : (
-                            <span className="text-slate-500">No</span>
+                            <span className="text-[var(--color-text-muted)]">No</span>
                           )}
                         </td>
 
@@ -294,14 +294,14 @@ export default async function AdminBusinesses({
                           {business.priority_score ?? 0}
                         </td>
 
-                        <td className="whitespace-nowrap px-5 py-4 text-xs text-slate-500">
+                        <td className="whitespace-nowrap px-5 py-4 text-xs text-[var(--color-text-muted)]">
                           {formatDate(business.created_at)}
                         </td>
 
                         <td className="px-5 py-4">
                           <Link
                             href={`/admin/businesses/${business.id}`}
-                            className="inline-flex rounded-xl border border-[var(--color-border)] px-3 py-2 text-xs font-bold hover:bg-slate-100"
+                            className="inline-flex rounded-xl border border-[var(--color-border)] px-3 py-2 text-xs font-bold text-[var(--color-text-secondary)] transition-colors hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary-dark)]"
                           >
                             Manage
                           </Link>
@@ -313,7 +313,7 @@ export default async function AdminBusinesses({
               </div>
             ) : (
               <div className="p-10 text-center">
-                <p className="font-bold text-slate-800">
+                <p className="font-bold text-[var(--color-text)]">
                   No businesses found.
                 </p>
 

@@ -44,8 +44,16 @@ export async function proxy(request: NextRequest) {
   return response;
 }
 
+/*
+ * Supabase auth is only required for protected areas.
+ * Keeping public pages out of this proxy avoids an auth network request
+ * on every public page load and prevents Supabase latency from blocking
+ * the entire website.
+ */
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/businesses/dashboard/:path*",
+    "/admin/:path*",
+    "/messages/:path*",
   ],
 };

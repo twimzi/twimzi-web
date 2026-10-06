@@ -333,3 +333,72 @@ textarea::placeholder {
     animation-iteration-count: 1 !important;
   }
 }
+
+/* ============================================================
+   TWIMZI BRAND CONSISTENCY
+   Normalize legacy action colors to the Twimzi teal/orange system.
+   Semantic status colors remain unchanged.
+   ============================================================ */
+
+button.bg-slate-900,
+a.bg-slate-900,
+button.bg-slate-800,
+a.bg-slate-800 {
+  background: var(--color-primary) !important;
+  color: #ffffff !important;
+}
+
+button.bg-slate-900:hover,
+a.bg-slate-900:hover,
+button.bg-slate-800:hover,
+a.bg-slate-800:hover {
+  background: var(--color-primary-dark) !important;
+}
+
+button.bg-blue-600,
+a.bg-blue-600,
+button.bg-blue-700,
+a.bg-blue-700,
+button.bg-indigo-600,
+a.bg-indigo-600,
+button.bg-purple-600,
+a.bg-purple-600 {
+  background: var(--color-primary) !important;
+  color: #ffffff !important;
+}
+
+button.bg-blue-600:hover,
+a.bg-blue-600:hover,
+button.bg-blue-700:hover,
+a.bg-blue-700:hover,
+button.bg-indigo-600:hover,
+a.bg-indigo-600:hover,
+button.bg-purple-600:hover,
+a.bg-purple-600:hover {
+  background: var(--color-primary-dark) !important;
+}
+
+button.text-blue-600,
+a.text-blue-600,
+button.text-blue-700,
+a.text-blue-700,
+button.text-indigo-600,
+a.text-indigo-600,
+button.text-purple-600,
+a.text-purple-600,
+button.text-purple-700,
+a.text-purple-700 {
+  color: var(--color-primary) !important;
+}
+
+button.border-blue-600,
+a.border-blue-600,
+button.border-blue-700,
+a.border-blue-700,
+button.border-indigo-600,
+a.border-indigo-600,
+button.border-purple-600,
+a.border-purple-600 {
+  border-color: var(--color-primary) !important;
+}
+

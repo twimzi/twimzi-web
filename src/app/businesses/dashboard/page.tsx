@@ -123,7 +123,7 @@ function statusClasses(value: string | null) {
     return "border-red-200 bg-red-50 text-red-700";
   }
 
-  return "border-slate-200 bg-slate-50 text-slate-700";
+  return "border-[var(--color-border)] bg-[var(--color-background)] text-[var(--color-primary-dark)]";
 }
 
 function StatCard({
@@ -138,21 +138,21 @@ function StatCard({
   description: string;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-2xl border border-[var(--color-border)] bg-white p-5 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-medium text-slate-500">{label}</p>
-          <p className="mt-2 text-2xl font-bold tracking-tight text-slate-950">
+          <p className="text-sm font-medium text-[var(--color-text-secondary)]">{label}</p>
+          <p className="mt-2 text-2xl font-bold tracking-tight text-[var(--color-text)]">
             {value}
           </p>
         </div>
 
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]">
           <Icon className="h-5 w-5" />
         </div>
       </div>
 
-      <p className="mt-3 text-xs text-slate-500">{description}</p>
+      <p className="mt-3 text-xs text-[var(--color-text-secondary)]">{description}</p>
     </div>
   );
 }
@@ -169,20 +169,20 @@ function ActivityCard({
   items: Array<{ label: string; value: string }>;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="rounded-2xl border border-[var(--color-border)] bg-white p-5 shadow-sm">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]">
             <Icon className="h-5 w-5" />
           </div>
 
           <div>
-            <h3 className="font-semibold text-slate-950">{title}</h3>
-            <p className="text-xs text-slate-500">Total activity</p>
+            <h3 className="font-semibold text-[var(--color-text)]">{title}</h3>
+            <p className="text-xs text-[var(--color-text-secondary)]">Total activity</p>
           </div>
         </div>
 
-        <span className="text-lg font-bold text-slate-950">{value}</span>
+        <span className="text-lg font-bold text-[var(--color-text)]">{value}</span>
       </div>
 
       <div className="mt-5 space-y-3">
@@ -191,8 +191,8 @@ function ActivityCard({
             key={item.label}
             className="flex items-center justify-between gap-4 text-sm"
           >
-            <span className="text-slate-500">{item.label}</span>
-            <span className="font-semibold text-slate-900">{item.value}</span>
+            <span className="text-[var(--color-text-secondary)]">{item.label}</span>
+            <span className="font-semibold text-[var(--color-text)]">{item.value}</span>
           </div>
         ))}
       </div>
@@ -294,16 +294,16 @@ export default function BusinessDashboardPage() {
 
   if (loading) {
     return (
-      <main className="min-h-[calc(100vh-4rem)] bg-slate-50 px-4 py-6 sm:px-6 lg:px-8">
+      <main className="min-h-[calc(100vh-4rem)] bg-[var(--color-background)] px-4 py-6 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <div className="animate-pulse space-y-6">
-            <div className="h-32 rounded-2xl bg-slate-200" />
+            <div className="h-32 rounded-2xl bg-[var(--color-border-light)]" />
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {Array.from({ length: 4 }).map((_, index) => (
                 <div
                   key={index}
-                  className="h-32 rounded-2xl bg-slate-200"
+                  className="h-32 rounded-2xl bg-[var(--color-border-light)]"
                 />
               ))}
             </div>
@@ -312,7 +312,7 @@ export default function BusinessDashboardPage() {
               {Array.from({ length: 3 }).map((_, index) => (
                 <div
                   key={index}
-                  className="h-52 rounded-2xl bg-slate-200"
+                  className="h-52 rounded-2xl bg-[var(--color-border-light)]"
                 />
               ))}
             </div>
@@ -324,18 +324,18 @@ export default function BusinessDashboardPage() {
 
   if (error || !business || !dashboard) {
     return (
-      <main className="min-h-[calc(100vh-4rem)] bg-slate-50 px-4 py-10 sm:px-6 lg:px-8">
+      <main className="min-h-[calc(100vh-4rem)] bg-[var(--color-background)] px-4 py-10 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl">
-          <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
-              <Store className="h-6 w-6 text-slate-600" />
+          <div className="rounded-2xl border border-[var(--color-border)] bg-white p-8 text-center shadow-sm">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-primary-light)]">
+              <Store className="h-6 w-6 text-[var(--color-text-secondary)]" />
             </div>
 
-            <h1 className="mt-4 text-xl font-bold text-slate-950">
+            <h1 className="mt-4 text-xl font-bold text-[var(--color-text)]">
               Business dashboard unavailable
             </h1>
 
-            <p className="mt-2 text-sm leading-6 text-slate-500">
+            <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">
               {error ??
                 "We could not find an active business profile for your account."}
             </p>
@@ -343,7 +343,7 @@ export default function BusinessDashboardPage() {
             <div className="mt-6 flex flex-wrap justify-center gap-3">
               <Link
                 href="/add-business"
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[var(--color-primary-dark)]"
               >
                 <Plus className="h-4 w-4" />
                 Add Business
@@ -351,7 +351,7 @@ export default function BusinessDashboardPage() {
 
               <Link
                 href="/businesses"
-                className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
+                className="inline-flex items-center justify-center rounded-xl border border-[var(--color-border)] bg-white px-5 py-3 text-sm font-semibold text-[var(--color-text)] transition hover:bg-[var(--color-background)]"
               >
                 Browse Businesses
               </Link>
@@ -375,14 +375,14 @@ export default function BusinessDashboardPage() {
     Number(dashboard.community.views ?? 0);
 
   return (
-    <main className="min-h-[calc(100vh-4rem)] bg-slate-50 px-4 py-6 sm:px-6 lg:px-8">
+    <main className="min-h-[calc(100vh-4rem)] bg-[var(--color-background)] px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl space-y-6">
         {/* Header */}
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <section className="rounded-2xl border border-[var(--color-border)] bg-white p-5 shadow-sm sm:p-6">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700">
+                <span className="inline-flex items-center rounded-full border border-[var(--color-border)] bg-[var(--color-background)] px-3 py-1 text-xs font-semibold text-[var(--color-primary-dark)]">
                   Business Dashboard
                 </span>
 
@@ -403,11 +403,11 @@ export default function BusinessDashboardPage() {
                 )}
               </div>
 
-              <h1 className="mt-3 truncate text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
+              <h1 className="mt-3 truncate text-2xl font-bold tracking-tight text-[var(--color-text)] sm:text-3xl">
                 {business.business_name}
               </h1>
 
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
                 {business.business_type || "Business"} ·{" "}
                 {statusLabel(business.business_status)}
               </p>
@@ -417,7 +417,7 @@ export default function BusinessDashboardPage() {
               {business.slug && (
                 <Link
                   href={`/businesses/${business.slug}`}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-[var(--color-border)] bg-white px-4 py-2.5 text-sm font-semibold text-[var(--color-text)] transition hover:bg-[var(--color-background)]"
                 >
                   View Public Profile
                   <ChevronRight className="h-4 w-4" />
@@ -426,7 +426,7 @@ export default function BusinessDashboardPage() {
 
               <Link
                 href="/messages"
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--color-primary-dark)]"
               >
                 <MessageCircle className="h-4 w-4" />
                 Messages
@@ -435,24 +435,24 @@ export default function BusinessDashboardPage() {
           </div>
 
           {/* Profile completion */}
-          <div className="mt-6 border-t border-slate-100 pt-5">
+          <div className="mt-6 border-t border-[var(--color-border-light)] pt-5">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-sm font-semibold text-slate-900">
+                <p className="text-sm font-semibold text-[var(--color-text)]">
                   Profile completion
                 </p>
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-1 text-xs text-[var(--color-text-secondary)]">
                   Complete your business profile to provide customers with
                   better information.
                 </p>
               </div>
 
-              <span className="text-sm font-bold text-slate-950">
+              <span className="text-sm font-bold text-[var(--color-text)]">
                 {profileCompletion}%
               </span>
             </div>
 
-            <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
+            <div className="mt-3 h-2 overflow-hidden rounded-full bg-[var(--color-primary-light)]">
               <div
                 className="h-full rounded-full bg-slate-900 transition-all"
                 style={{ width: `${profileCompletion}%` }}
@@ -499,10 +499,10 @@ export default function BusinessDashboardPage() {
         {/* Quick actions */}
         <section>
           <div className="mb-4">
-            <h2 className="text-lg font-bold text-slate-950">
+            <h2 className="text-lg font-bold text-[var(--color-text)]">
               Quick Actions
             </h2>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
               Manage the main parts of your Twimzi business presence.
             </p>
           </div>
@@ -510,76 +510,76 @@ export default function BusinessDashboardPage() {
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Link
               href="/businesses/dashboard/products"
-              className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-slate-300 hover:shadow-md"
+              className="group rounded-2xl border border-[var(--color-border)] bg-white p-4 shadow-sm transition hover:border-[var(--color-border-strong)] hover:shadow-md"
             >
               <div className="flex items-center justify-between">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]">
                   <Package className="h-5 w-5" />
                 </div>
-                <ChevronRight className="h-4 w-4 text-slate-400 transition group-hover:translate-x-0.5" />
+                <ChevronRight className="h-4 w-4 text-[var(--color-text-light)] transition group-hover:translate-x-0.5" />
               </div>
 
-              <p className="mt-4 font-semibold text-slate-950">
+              <p className="mt-4 font-semibold text-[var(--color-text)]">
                 Manage Products
               </p>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-[var(--color-text-secondary)]">
                 Add and manage your products.
               </p>
             </Link>
 
             <Link
               href="/businesses/dashboard/services"
-              className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-slate-300 hover:shadow-md"
+              className="group rounded-2xl border border-[var(--color-border)] bg-white p-4 shadow-sm transition hover:border-[var(--color-border-strong)] hover:shadow-md"
             >
               <div className="flex items-center justify-between">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]">
                   <Wrench className="h-5 w-5" />
                 </div>
-                <ChevronRight className="h-4 w-4 text-slate-400 transition group-hover:translate-x-0.5" />
+                <ChevronRight className="h-4 w-4 text-[var(--color-text-light)] transition group-hover:translate-x-0.5" />
               </div>
 
-              <p className="mt-4 font-semibold text-slate-950">
+              <p className="mt-4 font-semibold text-[var(--color-text)]">
                 Manage Services
               </p>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-[var(--color-text-secondary)]">
                 Manage services offered by your business.
               </p>
             </Link>
 
             <Link
               href="/businesses/dashboard/offers"
-              className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-slate-300 hover:shadow-md"
+              className="group rounded-2xl border border-[var(--color-border)] bg-white p-4 shadow-sm transition hover:border-[var(--color-border-strong)] hover:shadow-md"
             >
               <div className="flex items-center justify-between">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]">
                   <Gift className="h-5 w-5" />
                 </div>
-                <ChevronRight className="h-4 w-4 text-slate-400 transition group-hover:translate-x-0.5" />
+                <ChevronRight className="h-4 w-4 text-[var(--color-text-light)] transition group-hover:translate-x-0.5" />
               </div>
 
-              <p className="mt-4 font-semibold text-slate-950">
+              <p className="mt-4 font-semibold text-[var(--color-text)]">
                 Manage Offers
               </p>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-[var(--color-text-secondary)]">
                 Create and manage customer offers.
               </p>
             </Link>
 
             <Link
               href="/businesses/dashboard/posts"
-              className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-slate-300 hover:shadow-md"
+              className="group rounded-2xl border border-[var(--color-border)] bg-white p-4 shadow-sm transition hover:border-[var(--color-border-strong)] hover:shadow-md"
             >
               <div className="flex items-center justify-between">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]">
                   <FileText className="h-5 w-5" />
                 </div>
-                <ChevronRight className="h-4 w-4 text-slate-400 transition group-hover:translate-x-0.5" />
+                <ChevronRight className="h-4 w-4 text-[var(--color-text-light)] transition group-hover:translate-x-0.5" />
               </div>
 
-              <p className="mt-4 font-semibold text-slate-950">
+              <p className="mt-4 font-semibold text-[var(--color-text)]">
                 Community Posts
               </p>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-[var(--color-text-secondary)]">
                 Publish and manage business content.
               </p>
             </Link>
@@ -589,10 +589,10 @@ export default function BusinessDashboardPage() {
         {/* Activity breakdown */}
         <section>
           <div className="mb-4">
-            <h2 className="text-lg font-bold text-slate-950">
+            <h2 className="text-lg font-bold text-[var(--color-text)]">
               Business Activity
             </h2>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
               Activity recorded by the Twimzi analytics system.
             </p>
           </div>
@@ -740,25 +740,25 @@ export default function BusinessDashboardPage() {
 
         {/* Bottom information */}
         <section className="grid gap-5 lg:grid-cols-2">
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-[var(--color-border)] bg-white p-5 shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]">
                 <Store className="h-5 w-5" />
               </div>
 
               <div>
-                <h2 className="font-semibold text-slate-950">
+                <h2 className="font-semibold text-[var(--color-text)]">
                   Business Profile
                 </h2>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-[var(--color-text-secondary)]">
                   Current public business information
                 </p>
               </div>
             </div>
 
             <div className="mt-5 space-y-3">
-              <div className="flex items-center justify-between gap-4 border-b border-slate-100 pb-3">
-                <span className="text-sm text-slate-500">Status</span>
+              <div className="flex items-center justify-between gap-4 border-b border-[var(--color-border-light)] pb-3">
+                <span className="text-sm text-[var(--color-text-secondary)]">Status</span>
                 <span
                   className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${statusClasses(
                     business.business_status,
@@ -768,25 +768,25 @@ export default function BusinessDashboardPage() {
                 </span>
               </div>
 
-              <div className="flex items-center justify-between gap-4 border-b border-slate-100 pb-3">
-                <span className="text-sm text-slate-500">Verification</span>
-                <span className="text-sm font-semibold text-slate-900">
+              <div className="flex items-center justify-between gap-4 border-b border-[var(--color-border-light)] pb-3">
+                <span className="text-sm text-[var(--color-text-secondary)]">Verification</span>
+                <span className="text-sm font-semibold text-[var(--color-text)]">
                   {statusLabel(business.verification_status)}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between gap-4 border-b border-slate-100 pb-3">
-                <span className="text-sm text-slate-500">Total Views</span>
-                <span className="text-sm font-semibold text-slate-900">
+              <div className="flex items-center justify-between gap-4 border-b border-[var(--color-border-light)] pb-3">
+                <span className="text-sm text-[var(--color-text-secondary)]">Total Views</span>
+                <span className="text-sm font-semibold text-[var(--color-text)]">
                   {numberValue(business.total_views)}
                 </span>
               </div>
 
               <div className="flex items-center justify-between gap-4">
-                <span className="text-sm text-slate-500">
+                <span className="text-sm text-[var(--color-text-secondary)]">
                   Last Activity
                 </span>
-                <span className="text-right text-sm font-semibold text-slate-900">
+                <span className="text-right text-sm font-semibold text-[var(--color-text)]">
                   {formatLastActivity(dashboard.summary.last_activity)}
                 </span>
               </div>
@@ -794,40 +794,40 @@ export default function BusinessDashboardPage() {
 
             <Link
               href="/businesses/dashboard/settings"
-              className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-slate-900 hover:underline"
+              className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-[var(--color-text)] hover:underline"
             >
               <Settings className="h-4 w-4" />
               Business Settings
             </Link>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-[var(--color-border)] bg-white p-5 shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]">
                 <Send className="h-5 w-5" />
               </div>
 
               <div>
-                <h2 className="font-semibold text-slate-950">
+                <h2 className="font-semibold text-[var(--color-text)]">
                   Messaging
                 </h2>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-[var(--color-text-secondary)]">
                   Communicate with customers and businesses
                 </p>
               </div>
             </div>
 
             <div className="mt-5 grid grid-cols-2 gap-3">
-              <div className="rounded-xl bg-slate-50 p-4">
-                <p className="text-xs text-slate-500">Sent</p>
-                <p className="mt-1 text-xl font-bold text-slate-950">
+              <div className="rounded-xl bg-[var(--color-background)] p-4">
+                <p className="text-xs text-[var(--color-text-secondary)]">Sent</p>
+                <p className="mt-1 text-xl font-bold text-[var(--color-text)]">
                   {numberValue(dashboard.chat.messages_sent)}
                 </p>
               </div>
 
-              <div className="rounded-xl bg-slate-50 p-4">
-                <p className="text-xs text-slate-500">Read</p>
-                <p className="mt-1 text-xl font-bold text-slate-950">
+              <div className="rounded-xl bg-[var(--color-background)] p-4">
+                <p className="text-xs text-[var(--color-text-secondary)]">Read</p>
+                <p className="mt-1 text-xl font-bold text-[var(--color-text)]">
                   {numberValue(dashboard.chat.messages_read)}
                 </p>
               </div>
@@ -835,7 +835,7 @@ export default function BusinessDashboardPage() {
 
             <Link
               href="/messages"
-              className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+              className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[var(--color-primary-dark)]"
             >
               <MessageCircle className="h-4 w-4" />
               Open Messages

@@ -33,7 +33,17 @@ export default function AddBusiness() {
 
   const [businessName, setBusinessName] = useState("");
   const [businessType, setBusinessType] = useState("");
+  const [addressLine1, setAddressLine1] = useState("");
+  const [addressLine2, setAddressLine2] = useState("");
+  const [landmark, setLandmark] = useState("");
   const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [country, setCountry] = useState("India");
+  const [postalCode, setPostalCode] = useState("");
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [pincodeLoading, setPincodeLoading] = useState(false);
   const [description, setDescription] = useState("");
   const [phone, setPhone] = useState("");
   const [website, setWebsite] = useState("");
@@ -192,12 +202,234 @@ export default function AddBusiness() {
     );
 
     if (error) {
-      throw new Error(error.message);
+      const functionError = error as {
+        message?: string;
+        context?: Response;
+      };
+
+      if (functionError.context instanceof Response) {
+        try {
+          const responseBody = (await functionError.context.clone().json()) as {
+            error?: string;
+            message?: string;
+          };
+
+          const detailedError =
+            responseBody.error?.trim() || responseBody.message?.trim();
+
+          if (detailedError) {
+            throw new Error(detailedError);
+          }
+        } catch (responseError) {
+          if (responseError instanceof Error && responseError.message) {
+            throw responseError;
+          }
+        }
+      }
+
+      throw new Error(
+        functionError.message?.trim() ||
+          "Unable to upload the selected image. Please try again.",
+      );
     }
 
     if (!data?.success) {
       throw new Error(data?.error || "Unable to upload image.");
     }
+  }
+
+
+  async function useCurrentLocation() {
+    setErrorMessage("");
+    setMessage("");
+    setLocationLoading(true);
+
+    try {
+      if (!navigator.geolocation) {
+        throw new Error("Location is not supported by this browser.");
+      }
+
+      if (navigator.permissions?.query) {
+        const permission = await navigator.permissions.query({
+          name: "geolocation",
+        });
+
+        if (permission.state === "denied") {
+          throw new Error(
+            "Location access is blocked for this site. Open your browser site settings, set Location to Allow, then click Use Current Location again.",
+          );
+        }
+      }
+
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 15000,
+          maximumAge: 0,
+        });
+      });
+
+      const nextLatitude = position.coords.latitude;
+      const nextLongitude = position.coords.longitude;
+
+      setLatitude(nextLatitude);
+      setLongitude(nextLongitude);
+
+      const response = await fetch(
+        `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${encodeURIComponent(nextLatitude)}&longitude=${encodeURIComponent(nextLongitude)}&localityLanguage=en`,
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          "GPS location was captured, but the address could not be determined. Please enter the address manually.",
+        );
+      }
+
+      const data = (await response.json()) as {
+        locality?: string;
+        city?: string;
+        principalSubdivision?: string;
+        countryName?: string;
+        postcode?: string;
+        localityInfo?: { informative?: Array<{ name?: string }> };
+      };
+
+      const detectedCity = data.city || data.locality || "";
+      const detectedState = data.principalSubdivision || "";
+      const detectedCountry = data.countryName || "India";
+      const detectedPostalCode = data.postcode || "";
+
+      const informative =
+        data.localityInfo?.informative
+          ?.map((item) => item.name?.trim())
+          .filter((item): item is string => Boolean(item)) ?? [];
+
+      const addressParts = Array.from(
+        new Set(
+          informative.filter(
+            (item) =>
+              item !== detectedCity &&
+              item !== detectedState &&
+              item !== detectedCountry &&
+              item !== detectedPostalCode,
+          ),
+        ),
+      );
+
+      setAddressLine1(
+        addressParts.slice(0, 2).join(", ") ||
+          [detectedCity, detectedState].filter(Boolean).join(", "),
+      );
+      setCity(detectedCity);
+      setState(detectedState);
+      setCountry(detectedCountry);
+      if (detectedPostalCode) setPostalCode(detectedPostalCode);
+
+      setMessage(
+        "Current location captured successfully. Please verify the address before submitting.",
+      );
+    } catch (error) {
+      let message = "Unable to detect your location.";
+
+      if (error instanceof GeolocationPositionError) {
+        if (error.code === error.PERMISSION_DENIED) {
+          message =
+            "Location access is blocked or was denied. Please set Location to Allow in your browser site settings, then try again.";
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          message =
+            "Your current location is unavailable. Please enter the address manually.";
+        } else if (error.code === error.TIMEOUT) {
+          message =
+            "Location detection timed out. Please try again or enter the address manually.";
+        }
+      } else if (error instanceof Error) {
+        message = error.message;
+      }
+
+      setErrorMessage(message);
+    } finally {
+      setLocationLoading(false);
+    }
+  }
+
+  async function lookupPincode(value: string) {
+    const pin = value.replace(/\D/g, "").slice(0, 6);
+    setPostalCode(pin);
+    setMessage("");
+
+    if (pin.length !== 6) return;
+
+    setPincodeLoading(true);
+    setErrorMessage("");
+
+    try {
+      const response = await fetch(
+        `https://api.postalpincode.in/pincode/${encodeURIComponent(pin)}`,
+      );
+
+      if (!response.ok) {
+        throw new Error("Unable to look up this PIN code right now.");
+      }
+
+      const data = (await response.json()) as Array<{
+        Status?: string;
+        Message?: string;
+        PostOffice?: Array<{
+          Name?: string;
+          District?: string;
+          State?: string;
+          Country?: string;
+          Block?: string;
+        }>;
+      }>;
+
+      const result = data[0];
+      const postOffice = result?.PostOffice?.[0];
+
+      if (result?.Status !== "Success" || !postOffice) {
+        throw new Error(
+          result?.Message || "Please enter a valid 6-digit PIN code.",
+        );
+      }
+
+      const detectedCity = postOffice.District || postOffice.Block || "";
+      const detectedState = postOffice.State || "";
+      const detectedCountry = postOffice.Country || "India";
+
+      if (detectedCity) setCity(detectedCity);
+      if (detectedState) setState(detectedState);
+      setCountry(detectedCountry);
+
+      setMessage(
+        `PIN code verified: ${postOffice.Name || detectedCity}${detectedCity ? `, ${detectedCity}` : ""}${detectedState ? `, ${detectedState}` : ""}.`,
+      );
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Unable to verify the PIN code.",
+      );
+    } finally {
+      setPincodeLoading(false);
+    }
+  }
+
+  function extractSupabaseError(error: unknown) {
+    if (!error || typeof error !== "object") {
+      return "Unable to submit the business right now. Please try again.";
+    }
+
+    const candidate = error as { message?: string; details?: string };
+    const message = candidate.message?.trim();
+    const details = candidate.details?.trim();
+
+    if (message) {
+      return details && details !== message ? `${message} ${details}` : message;
+    }
+
+    if (details) return details;
+
+    return "Unable to submit the business right now. Please try again.";
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -206,13 +438,58 @@ export default function AddBusiness() {
     setMessage("");
     setErrorMessage("");
 
-    if (!businessName.trim() || !businessType.trim() || !city.trim()) {
-      setErrorMessage(
-        "Business name, business type and city/location are required.",
-      );
+    if (!businessName.trim()) {
+      setErrorMessage("Business name is required.");
       return;
     }
-
+    if (!businessType.trim()) {
+      setErrorMessage("Business type is required.");
+      return;
+    }
+    if (!addressLine1.trim()) {
+      setErrorMessage("Business address is required.");
+      return;
+    }
+    if (!city.trim()) {
+      setErrorMessage("Business city is required.");
+      return;
+    }
+    if (!state.trim()) {
+      setErrorMessage("Business state is required.");
+      return;
+    }
+    if (!country.trim()) {
+      setErrorMessage("Business country is required.");
+      return;
+    }
+    if (!postalCode.trim()) {
+      setErrorMessage("Business PIN code is required.");
+      return;
+    }
+    if (
+      country.trim().toLowerCase() === "india" &&
+      !/^\d{6}$/.test(postalCode.trim())
+    ) {
+      setErrorMessage("Enter a valid 6-digit PIN code.");
+      return;
+    }
+    if (phone.trim()) {
+      const digits = phone.replace(/\D/g, "");
+      if (digits.length < 7 || digits.length > 15) {
+        setErrorMessage("Enter a valid mobile number with 7 to 15 digits.");
+        return;
+      }
+    }
+    if (website.trim()) {
+      try {
+        new URL(website.trim());
+      } catch {
+        setErrorMessage(
+          "Enter a valid website URL, for example https://example.com.",
+        );
+        return;
+      }
+    }
     setLoading(true);
     setUploadProgress("");
 
@@ -242,6 +519,14 @@ export default function AddBusiness() {
         p_description: description.trim() || null,
         p_phone: phone.trim() || null,
         p_website: website.trim() || null,
+        p_address_line_1: addressLine1.trim(),
+        p_address_line_2: addressLine2.trim() || null,
+        p_landmark: landmark.trim() || null,
+        p_state: state.trim(),
+        p_country: country.trim(),
+        p_postal_code: postalCode.trim(),
+        p_latitude: latitude,
+        p_longitude: longitude,
       });
 
       if (error) {
@@ -321,7 +606,15 @@ export default function AddBusiness() {
       setGallery([]);
       setBusinessName("");
       setBusinessType("");
+      setAddressLine1("");
+      setAddressLine2("");
+      setLandmark("");
       setCity("");
+      setState("");
+      setCountry("India");
+      setPostalCode("");
+      setLatitude(null);
+      setLongitude(null);
       setDescription("");
       setPhone("");
       setWebsite("");
@@ -333,11 +626,7 @@ export default function AddBusiness() {
     } catch (error) {
       setUploadProgress("");
 
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "Unable to submit the business right now. Please try again.",
-      );
+      setErrorMessage(extractSupabaseError(error));
     } finally {
       setLoading(false);
     }
@@ -422,25 +711,154 @@ export default function AddBusiness() {
                 </select>
               </div>
 
-              <div>
-                <label
-                  htmlFor="city"
-                  className="mb-2 block text-sm font-semibold"
-                >
-                  City / Location *
-                </label>
+              <section className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-secondary)] p-5">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <h3 className="font-bold">Business location</h3>
+                    <p className="mt-1 text-sm leading-6 text-[var(--color-text-muted)]">
+                      Add the complete address and capture the exact GPS location so customers can find your business.
+                    </p>
+                  </div>
 
-                <input
-                  id="city"
-                  value={city}
-                  onChange={(event) =>
-                    setCity(event.target.value)
-                  }
-                  placeholder="Ludhiana, Punjab"
-                  required
-                  className="min-h-12 w-full rounded-xl border border-[var(--color-border)] px-4 text-sm outline-none transition focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/10"
-                />
-              </div>
+                  <button
+                    type="button"
+                    onClick={useCurrentLocation}
+                    disabled={locationLoading}
+                    className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl bg-[var(--color-primary)] px-4 text-sm font-semibold text-white transition hover:bg-[var(--color-primary-dark)] disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {locationLoading ? "Detecting..." : "Use Current Location"}
+                  </button>
+                </div>
+
+                <div className="mt-5 grid gap-5">
+                  <div>
+                    <label htmlFor="address-line-1" className="mb-2 block text-sm font-semibold">
+                      Business address *
+                    </label>
+                    <textarea
+                      id="address-line-1"
+                      value={addressLine1}
+                      onChange={(event) => setAddressLine1(event.target.value)}
+                      placeholder="House / shop no., street, area"
+                      rows={3}
+                      required
+                      className="w-full rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm outline-none transition focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/10"
+                    />
+                  </div>
+
+                  <div className="grid gap-5 sm:grid-cols-2">
+                    <div>
+                      <label htmlFor="address-line-2" className="mb-2 block text-sm font-semibold">
+                        Address line 2
+                      </label>
+                      <input
+                        id="address-line-2"
+                        value={addressLine2}
+                        onChange={(event) => setAddressLine2(event.target.value)}
+                        placeholder="Building, floor, unit, etc."
+                        className="min-h-12 w-full rounded-xl border border-[var(--color-border)] px-4 text-sm outline-none transition focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/10"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="landmark" className="mb-2 block text-sm font-semibold">
+                        Landmark
+                      </label>
+                      <input
+                        id="landmark"
+                        value={landmark}
+                        onChange={(event) => setLandmark(event.target.value)}
+                        placeholder="Near landmark"
+                        className="min-h-12 w-full rounded-xl border border-[var(--color-border)] px-4 text-sm outline-none transition focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/10"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-5 sm:grid-cols-2">
+                    <div>
+                      <label htmlFor="city" className="mb-2 block text-sm font-semibold">
+                        City *
+                      </label>
+                      <input
+                        id="city"
+                        value={city}
+                        onChange={(event) => setCity(event.target.value)}
+                        placeholder="Ludhiana"
+                        required
+                        className="min-h-12 w-full rounded-xl border border-[var(--color-border)] px-4 text-sm outline-none transition focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/10"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="state" className="mb-2 block text-sm font-semibold">
+                        State *
+                      </label>
+                      <input
+                        id="state"
+                        value={state}
+                        onChange={(event) => setState(event.target.value)}
+                        placeholder="Punjab"
+                        required
+                        className="min-h-12 w-full rounded-xl border border-[var(--color-border)] px-4 text-sm outline-none transition focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/10"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-5 sm:grid-cols-2">
+                    <div>
+                      <label htmlFor="country" className="mb-2 block text-sm font-semibold">
+                        Country *
+                      </label>
+                      <input
+                        id="country"
+                        value={country}
+                        onChange={(event) => setCountry(event.target.value)}
+                        placeholder="India"
+                        required
+                        className="min-h-12 w-full rounded-xl border border-[var(--color-border)] px-4 text-sm outline-none transition focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/10"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="postal-code" className="mb-2 block text-sm font-semibold">
+                        PIN code *
+                      </label>
+                      <div className="relative">
+                        <input
+                          id="postal-code"
+                          inputMode="numeric"
+                          value={postalCode}
+                          onChange={(event) => lookupPincode(event.target.value)}
+                          placeholder="141001"
+                          maxLength={6}
+                          required
+                          className="min-h-12 w-full rounded-xl border border-[var(--color-border)] px-4 pr-28 text-sm outline-none transition focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/10"
+                        />
+                        <span className="absolute inset-y-0 right-3 flex items-center text-xs font-semibold text-[var(--color-text-muted)]">
+                          {pincodeLoading ? "Checking..." : "6 digits"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {latitude !== null && longitude !== null ? (
+                    <div className="rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-800">
+                      <p className="font-semibold">GPS location captured</p>
+                      <div className="mt-2 grid gap-1 sm:grid-cols-2">
+                        <span>Latitude: {latitude.toFixed(6)}</span>
+                        <span>Longitude: {longitude.toFixed(6)}</span>
+                      </div>
+                      <p className="mt-2 text-xs text-green-700">
+                        Please verify the address above before submitting.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+                      Exact GPS location is not captured yet. Use the location button above before submitting.
+                    </div>
+                  )}
+                </div>
+              </section>
 
               <div>
                 <label

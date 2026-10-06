@@ -207,25 +207,25 @@ function OfferCard({
   const offerHref = offer.slug ? `/offers/${offer.slug}` : "/offers";
 
   return (
-    <article className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md">
+    <article className="group relative overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[var(--color-primary)] hover:shadow-lg hover:shadow-[var(--color-primary-light)]">
       <Link
         href={offerHref}
         aria-label={`View ${offer.title || "Special Offer"}`}
-        className="absolute inset-0 z-0 rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2"
+        className="absolute inset-0 z-0 rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2"
       />
 
-      <div className="relative z-10 flex min-h-48 items-center justify-center overflow-hidden bg-slate-100 p-6">
+      <div className="relative z-10 flex min-h-48 items-center justify-center overflow-hidden bg-gradient-to-br from-[var(--color-primary-light)] via-[var(--color-secondary)] to-[var(--color-accent-light)] p-6">
         <div className="text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-slate-500 shadow-sm">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-[var(--color-primary)] shadow-sm">
             <Gift className="h-7 w-7" />
           </div>
 
           {discount ? (
-            <p className="mt-4 text-2xl font-extrabold tracking-tight text-slate-950">
+            <p className="mt-4 text-2xl font-extrabold tracking-tight text-[var(--color-primary-dark)]">
               {discount}
             </p>
           ) : (
-            <p className="mt-4 text-lg font-extrabold text-slate-950">
+            <p className="mt-4 text-lg font-extrabold text-[var(--color-text)]">
               Special Offer
             </p>
           )}
@@ -233,13 +233,13 @@ function OfferCard({
 
         <div className="absolute left-3 top-3 flex flex-wrap gap-2">
           {offer.is_featured ? (
-            <span className="rounded-full border border-white/60 bg-white/90 px-2.5 py-1 text-xs font-bold text-slate-900 backdrop-blur">
+            <span className="rounded-full border border-white/70 bg-white/95 px-2.5 py-1 text-xs font-bold text-[var(--color-primary-dark)] backdrop-blur">
               Featured
             </span>
           ) : null}
 
           {offer.offer_type ? (
-            <span className="rounded-full bg-slate-950 px-2.5 py-1 text-xs font-bold capitalize text-white">
+            <span className="rounded-full bg-[var(--color-primary)] px-2.5 py-1 text-xs font-bold capitalize text-white">
               {offer.offer_type}
             </span>
           ) : null}
@@ -247,66 +247,66 @@ function OfferCard({
       </div>
 
       <div className="relative z-10 p-4 sm:p-5">
-        <h2 className="line-clamp-2 text-base font-bold leading-6 text-slate-950">
+        <h2 className="line-clamp-2 text-base font-bold leading-6 text-[var(--color-text)]">
           {offer.title || "Special Offer"}
         </h2>
 
         {offer.short_description || offer.description ? (
-          <p className="mt-3 line-clamp-3 min-h-15 text-sm leading-5 text-slate-600">
+          <p className="mt-3 line-clamp-3 min-h-15 text-sm leading-5 text-[var(--color-text-secondary)]">
             {offer.short_description || offer.description}
           </p>
         ) : null}
 
         {offer.coupon_code ? (
-          <div className="mt-4 flex items-center gap-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-3 py-2.5">
-            <Tag className="h-4 w-4 shrink-0 text-slate-500" />
+          <div className="mt-4 flex items-center gap-2 rounded-xl border border-dashed border-[var(--color-border-strong)] bg-[var(--color-surface-soft)] px-3 py-2.5">
+            <Tag className="h-4 w-4 shrink-0 text-[var(--color-text-muted)]" />
 
-            <span className="text-xs font-medium text-slate-500">
+            <span className="text-xs font-medium text-[var(--color-text-muted)]">
               Code
             </span>
 
-            <code className="ml-auto text-sm font-extrabold tracking-wide text-slate-950">
+            <code className="ml-auto text-sm font-extrabold tracking-wide text-[var(--color-text)]">
               {offer.coupon_code}
             </code>
           </div>
         ) : null}
 
         <div className="mt-4 grid grid-cols-2 gap-3">
-          <div className="rounded-xl bg-slate-50 p-3">
-            <p className="text-xs text-slate-500">Starts</p>
+          <div className="rounded-xl bg-[var(--color-surface-soft)] p-3">
+            <p className="text-xs text-[var(--color-text-muted)]">Starts</p>
 
-            <p className="mt-1 text-sm font-semibold text-slate-900">
+            <p className="mt-1 text-sm font-semibold text-[var(--color-text)]">
               {formatDate(offer.start_at)}
             </p>
           </div>
 
-          <div className="rounded-xl bg-slate-50 p-3">
-            <p className="text-xs text-slate-500">Ends</p>
+          <div className="rounded-xl bg-[var(--color-surface-soft)] p-3">
+            <p className="text-xs text-[var(--color-text-muted)]">Ends</p>
 
-            <p className="mt-1 text-sm font-semibold text-slate-900">
+            <p className="mt-1 text-sm font-semibold text-[var(--color-text)]">
               {formatDate(offer.end_at)}
             </p>
           </div>
         </div>
 
         {offer.minimum_order_amount !== null ? (
-          <p className="mt-3 text-xs text-slate-500">
+          <p className="mt-3 text-xs text-[var(--color-text-muted)]">
             Minimum order: {formatMoney(offer.minimum_order_amount)}
           </p>
         ) : null}
 
-        <div className="mt-4 flex items-center gap-2 text-xs text-slate-500">
+        <div className="mt-4 flex items-center gap-2 text-xs text-[var(--color-text-muted)]">
           <Clock3 className="h-3.5 w-3.5" />
           Valid until {formatDateTime(offer.end_at)}
         </div>
 
-        <div className="mt-4 border-t border-slate-100 pt-4">
+        <div className="mt-4 border-t border-[var(--color-border-light)] pt-4">
           <Link
             href={getBusinessHref(business)}
-            className="relative z-20 flex items-center justify-between gap-3 text-sm font-semibold text-slate-900 transition group-hover:text-slate-700"
+            className="relative z-20 flex items-center justify-between gap-3 text-sm font-semibold text-[var(--color-text)] transition group-hover:text-[var(--color-primary-dark)]"
           >
             <span className="flex min-w-0 items-center gap-2">
-              <Store className="h-4 w-4 shrink-0 text-slate-400" />
+              <Store className="h-4 w-4 shrink-0 text-[var(--color-text-light)]" />
 
               <span className="truncate">
                 {business?.business_name || "View Business"}
@@ -412,20 +412,24 @@ export default async function OffersPage({
   const loadError = offersError || businessesError;
 
   return (
-    <main className="min-h-[calc(100vh-4rem)] bg-slate-50">
-      <section className="border-b border-slate-200 bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+    <main className="min-h-[calc(100vh-4rem)] bg-[var(--color-background)]">
+      <section className="relative overflow-hidden border-b border-[var(--color-border-light)] bg-[var(--color-secondary)]">
+        <div className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+          <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-28 h-72 w-72 rounded-full bg-[var(--color-primary-light)] opacity-80 blur-3xl" />
+          <div aria-hidden="true" className="pointer-events-none absolute -bottom-32 -left-24 h-64 w-64 rounded-full bg-[var(--color-accent-light)] opacity-70 blur-3xl" />
+
           <div className="max-w-3xl">
-            <div className="flex items-center gap-2 text-sm font-semibold text-slate-500">
-              <Gift className="h-4 w-4" />
+            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-primary-light)] bg-white/90 px-3.5 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-[var(--color-primary-dark)] shadow-[var(--shadow-xs)] backdrop-blur">
+              <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-[var(--color-accent)]" />
+              <Gift className="h-4 w-4 text-[var(--color-primary)]" />
               Offer Discovery
             </div>
 
-            <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
+            <h1 className="mt-3 text-3xl font-bold tracking-tight text-[var(--color-text)] sm:text-4xl">
               Discover Offers on Twimzi
             </h1>
 
-            <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
+            <p className="mt-3 max-w-2xl text-base leading-7 text-[var(--color-text-secondary)] sm:text-lg">
               Find active promotions, discounts, coupon codes, and special
               offers from local businesses.
             </p>
@@ -436,21 +440,21 @@ export default async function OffersPage({
             className="mt-8 flex w-full max-w-3xl flex-col gap-3 sm:flex-row"
           >
             <div className="relative flex-1">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--color-text-light)]" />
 
               <input
                 type="search"
                 name="q"
                 defaultValue={search}
                 placeholder="Search offers, discounts, coupon codes..."
-                className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
+                className="h-12 w-full rounded-xl border border-[var(--color-border)] bg-white pl-11 pr-4 text-sm text-[var(--color-text)] outline-none transition placeholder:text-[var(--color-text-light)] focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary-light)]"
                 aria-label="Search offers"
               />
             </div>
 
             <button
               type="submit"
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-slate-950 px-6 text-sm font-semibold text-white transition hover:bg-slate-800"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-6 text-sm font-semibold text-white transition hover:bg-[var(--color-primary-dark)]"
             >
               <Search className="h-4 w-4" />
               Search
@@ -459,7 +463,7 @@ export default async function OffersPage({
             {search ? (
               <Link
                 href="/offers"
-                className="inline-flex h-12 items-center justify-center rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-900 transition hover:bg-slate-50"
+                className="inline-flex h-12 items-center justify-center rounded-xl border border-[var(--color-border)] bg-white px-5 text-sm font-semibold text-[var(--color-text)] transition hover:bg-[var(--color-surface-soft)]"
               >
                 Clear
               </Link>
@@ -480,21 +484,21 @@ export default async function OffersPage({
           </div>
         ) : (
           <>
-            <div className="flex flex-col gap-3 border-b border-slate-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
+            <div className="flex flex-col gap-3 border-b border-[var(--color-border)] pb-5 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="text-sm font-semibold text-slate-500">
+                <p className="text-sm font-semibold text-[var(--color-text-muted)]">
                   {offers.length}{" "}
                   {offers.length === 1 ? "offer" : "offers"} found
                 </p>
 
-                <h2 className="mt-1 text-xl font-bold text-slate-950">
+                <h2 className="mt-1 text-xl font-bold text-[var(--color-text)]">
                   {search ? `Results for “${search}”` : "Active Offers"}
                 </h2>
               </div>
 
               <Link
                 href="/businesses"
-                className="inline-flex items-center gap-2 text-sm font-semibold text-slate-900 hover:underline"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--color-text)] hover:underline"
               >
                 <Store className="h-4 w-4" />
                 Browse Businesses
@@ -502,16 +506,16 @@ export default async function OffersPage({
             </div>
 
             {offers.length === 0 ? (
-              <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-sm">
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
+              <div className="mt-8 rounded-2xl border border-[var(--color-border)] bg-white p-10 text-center shadow-sm">
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--color-primary-light)] text-[var(--color-text-muted)]">
                   <Gift className="h-6 w-6" />
                 </div>
 
-                <h2 className="mt-4 text-lg font-bold text-slate-950">
+                <h2 className="mt-4 text-lg font-bold text-[var(--color-text)]">
                   No active offers found
                 </h2>
 
-                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[var(--color-text-muted)]">
                   {search
                     ? "Try a different offer name, discount, or coupon code."
                     : "There are no active public offers available yet."}
@@ -520,7 +524,7 @@ export default async function OffersPage({
                 {search ? (
                   <Link
                     href="/offers"
-                    className="mt-5 inline-flex items-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800"
+                    className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[var(--color-primary)] px-5 py-3 text-sm font-semibold text-white hover:bg-[var(--color-primary-dark)]"
                   >
                     View all offers
                     <ArrowRight className="h-4 w-4" />
