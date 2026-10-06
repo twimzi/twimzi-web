@@ -49,5 +49,9 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  return NextResponse.redirect(new URL(next, requestUrl.origin));
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
+    "https://www.twimzi.com";
+
+  return NextResponse.redirect(new URL(next, siteUrl));
 }
