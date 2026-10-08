@@ -253,7 +253,54 @@ function getStoragePublicUrl(
 
 async function getBusiness(slug: string): Promise<Business | null> {
   const supabase = await createSupabaseServerClient();
+  const normalizedSlug = slug.trim().toLowerCase();
 
+  if (!normalizedSlug) {
+    return null;
+  }
+
+  const findBusiness = (rows: unknown): Business | null => {
+    if (!Array.isArray(rows)) {
+      return null;
+    }
+
+    return (
+      (rows as Business[]).find((business) => {
+        const id = business.id?.trim().toLowerCase() ?? "";
+        const businessSlug = business.slug?.trim().toLowerCase() ?? "";
+        const publicHandle =
+          business.public_handle?.trim().toLowerCase() ?? "";
+
+        return (
+          id === normalizedSlug ||
+          businessSlug === normalizedSlug ||
+          publicHandle === normalizedSlug
+        );
+      }) ?? null
+    );
+  };
+
+  // First search using the URL value. This avoids missing businesses that
+  // are outside the first 100 globally ranked public businesses.
+  const { data: searchedData, error: searchedError } = await supabase.rpc(
+    "get_public_businesses",
+    {
+      p_search: normalizedSlug.replace(/[-_]+/g, " "),
+      p_limit: 100,
+      p_offset: 0,
+    },
+  );
+
+  if (!searchedError) {
+    const searchedBusiness = findBusiness(searchedData);
+
+    if (searchedBusiness) {
+      return searchedBusiness;
+    }
+  }
+
+  // Preserve support for direct business IDs/handles when the URL value does
+  // not match the business search fields.
   const { data, error } = await supabase.rpc("get_public_businesses", {
     p_search: null,
     p_limit: 100,
@@ -264,22 +311,7 @@ async function getBusiness(slug: string): Promise<Business | null> {
     return null;
   }
 
-  const normalizedSlug = slug.trim().toLowerCase();
-
-  return (
-    (data as Business[]).find((business) => {
-      const id = business.id.toLowerCase();
-      const businessSlug = business.slug?.trim().toLowerCase() ?? "";
-      const publicHandle =
-        business.public_handle?.trim().toLowerCase() ?? "";
-
-      return (
-        id === normalizedSlug ||
-        businessSlug === normalizedSlug ||
-        publicHandle === normalizedSlug
-      );
-    }) ?? null
-  );
+  return findBusiness(data);
 }
 
 async function getBusinessMedia(
@@ -500,7 +532,7 @@ export default async function BusinessDetailPage({
           __html: JSON.stringify(structuredData).replace(/</g, "\\u003c"),
         }}
       />
-      <main className="min-h-screen bg-slate-50">
+      <main className="min-h-screen bg-[var(--color-background)]">
       {/* HERO */}
       <section className="relative overflow-hidden">
         <div className="relative h-56 overflow-hidden sm:h-72 lg:h-80">
@@ -515,9 +547,9 @@ export default async function BusinessDetailPage({
             />
           ) : (
             <>
-              <div className="absolute inset-0 bg-[linear-gradient(120deg,#020d3a_0%,#1879fd_48%,#8e07fb_100%)]" />
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(5,205,252,0.35),transparent_35%)]" />
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,rgba(142,7,251,0.35),transparent_35%)]" />
+              <div className="absolute inset-0 bg-[var(--color-brand-gradient)]" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,color-mix(in_srgb,var(--color-primary-light)_55%,transparent),transparent_35%)]" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,color-mix(in_srgb,var(--color-accent-light)_55%,transparent),transparent_35%)]" />
             </>
           )}
 
@@ -527,10 +559,10 @@ export default async function BusinessDetailPage({
         </div>
 
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="relative -mt-20 rounded-3xl border border-slate-200 bg-white p-5 shadow-xl sm:-mt-24 sm:p-7">
+          <div className="relative -mt-20 rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-xl sm:-mt-24 sm:p-7">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
               <div className="flex flex-col gap-5 sm:flex-row sm:items-end">
-                <div className="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-3xl border-4 border-white bg-white shadow-lg sm:h-36 sm:w-36">
+                <div className="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-3xl border-4 border-[var(--color-surface)] bg-[var(--color-surface)] shadow-lg sm:h-36 sm:w-36">
                   {logoUrl ? (
                     <Image
                       src={logoUrl}
@@ -555,29 +587,29 @@ export default async function BusinessDetailPage({
                 <div className="pb-1">
                   <div className="mb-2 flex flex-wrap items-center gap-2">
                     {business.is_featured && (
-                      <span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700">
+                      <span className="rounded-full bg-[var(--color-accent-light)] px-3 py-1 text-xs font-semibold text-[var(--color-accent-dark)]">
                         Featured
                       </span>
                     )}
 
                     {business.verification_status === "verified" && (
-                      <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+                      <span className="rounded-full bg-[var(--color-primary-light)] px-3 py-1 text-xs font-semibold text-[var(--color-primary-dark)]">
                         ✓ Verified
                       </span>
                     )}
                   </div>
 
-                  <h1 className="text-3xl font-bold tracking-tight text-[#020D3A] sm:text-4xl">
+                  <h1 className="text-3xl font-bold tracking-tight text-[var(--color-text)] sm:text-4xl">
                     {business.business_name}
                   </h1>
 
                   {business.business_type && (
-                    <p className="mt-2 text-sm font-medium text-slate-500">
+                    <p className="mt-2 text-sm font-medium text-[var(--color-text-muted)]">
                       {business.business_type}
                     </p>
                   )}
 
-                  <p className="mt-1 text-sm text-slate-400">
+                  <p className="mt-1 text-sm text-[var(--color-text-light)]">
                     {business.business_code}
                   </p>
                 </div>
@@ -598,7 +630,7 @@ export default async function BusinessDetailPage({
                     }
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-[#020D3A] transition hover:border-blue-300 hover:bg-blue-50"
+                    className="inline-flex h-11 items-center justify-center rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-5 text-sm font-semibold text-[var(--color-text)] transition hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-light)]"
                   >
                     Visit Website
                   </a>
@@ -617,22 +649,22 @@ export default async function BusinessDetailPage({
             {selectedPost && (
               <section
                 id="post"
-                className="scroll-mt-24 rounded-3xl border border-blue-100 bg-white p-6 shadow-sm sm:p-7"
+                className="scroll-mt-24 rounded-3xl border border-[var(--color-primary-light)] bg-[var(--color-surface)] p-6 shadow-sm sm:p-7"
               >
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-5">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--color-border-light)] pb-5">
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-wider text-[#1879FD]">
+                    <p className="text-xs font-bold uppercase tracking-wider text-[var(--color-primary)]">
                       Community Post
                     </p>
 
-                    <h2 className="mt-1 text-2xl font-bold text-[#020D3A]">
+                    <h2 className="mt-1 text-2xl font-bold text-[var(--color-text)]">
                       {selectedPost.title || "Business Update"}
                     </h2>
                   </div>
 
                   <Link
                     href={`${businessHref}#community`}
-                    className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                    className="rounded-xl border border-[var(--color-border)] px-4 py-2 text-sm font-semibold text-[var(--color-text-secondary)] transition hover:bg-[var(--color-background)]"
                   >
                     All Posts
                   </Link>
@@ -645,15 +677,15 @@ export default async function BusinessDetailPage({
                 {/* COMMENTS */}
                 <section
                   id="comments"
-                  className="mt-6 scroll-mt-24 rounded-2xl border border-slate-200 bg-slate-50 p-5"
+                  className="mt-6 scroll-mt-24 rounded-2xl border border-[var(--color-border)] bg-[var(--color-background)] p-5"
                 >
                   <div className="flex items-center justify-between gap-4">
                     <div>
-                      <h3 className="text-lg font-bold text-[#020D3A]">
+                      <h3 className="text-lg font-bold text-[var(--color-text)]">
                         Comments
                       </h3>
 
-                      <p className="mt-1 text-sm text-slate-500">
+                      <p className="mt-1 text-sm text-[var(--color-text-muted)]">
                         {comments.length}{" "}
                         {comments.length === 1 ? "comment" : "comments"}
                       </p>
@@ -668,24 +700,24 @@ export default async function BusinessDetailPage({
                           className="py-4 first:pt-0 last:pb-0"
                         >
                           <div className="flex gap-3">
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-50 text-sm font-bold text-[#1879FD]">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary-light)] text-sm font-bold text-[var(--color-primary)]">
                               T
                             </div>
 
                             <div className="min-w-0 flex-1">
                               <div className="flex flex-wrap items-center gap-2">
-                                <span className="text-sm font-semibold text-[#020D3A]">
+                                <span className="text-sm font-semibold text-[var(--color-text)]">
                                   Twimzi User
                                 </span>
 
                                 {formatDate(comment.created_at) && (
-                                  <span className="text-xs text-slate-400">
+                                  <span className="text-xs text-[var(--color-text-light)]">
                                     {formatDate(comment.created_at)}
                                   </span>
                                 )}
                               </div>
 
-                              <p className="mt-1 whitespace-pre-line text-sm leading-6 text-slate-600">
+                              <p className="mt-1 whitespace-pre-line text-sm leading-6 text-[var(--color-text-secondary)]">
                                 {comment.comment}
                               </p>
                             </div>
@@ -694,16 +726,16 @@ export default async function BusinessDetailPage({
                       ))}
                     </div>
                   ) : (
-                    <div className="mt-5 rounded-2xl bg-white px-5 py-8 text-center">
-                      <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-lg">
+                    <div className="mt-5 rounded-2xl bg-[var(--color-surface)] px-5 py-8 text-center">
+                      <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--color-primary-light)] text-lg">
                         💬
                       </div>
 
-                      <p className="mt-3 text-sm font-semibold text-[#020D3A]">
+                      <p className="mt-3 text-sm font-semibold text-[var(--color-text)]">
                         No comments yet
                       </p>
 
-                      <p className="mt-1 text-xs text-slate-500">
+                      <p className="mt-1 text-xs text-[var(--color-text-muted)]">
                         There are no comments on this post yet.
                       </p>
                     </div>
@@ -714,12 +746,12 @@ export default async function BusinessDetailPage({
 
             {/* ABOUT */}
             {!selectedPost && (
-              <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h2 className="text-xl font-bold text-[#020D3A]">
+              <section className="rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm">
+                <h2 className="text-xl font-bold text-[var(--color-text)]">
                   About Business
                 </h2>
 
-                <p className="mt-4 whitespace-pre-line text-sm leading-7 text-slate-600">
+                <p className="mt-4 whitespace-pre-line text-sm leading-7 text-[var(--color-text-secondary)]">
                   {business.description ||
                     "This business has not added a description yet."}
                 </p>
@@ -730,20 +762,20 @@ export default async function BusinessDetailPage({
             {!selectedPost && posts.length > 0 && (
               <section
                 id="community"
-                className="scroll-mt-24 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
+                className="scroll-mt-24 rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm"
               >
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <h2 className="text-xl font-bold text-[#020D3A]">
+                    <h2 className="text-xl font-bold text-[var(--color-text)]">
                       Latest Posts
                     </h2>
 
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="mt-1 text-sm text-[var(--color-text-muted)]">
                       Updates and community content from this business
                     </p>
                   </div>
 
-                  <span className="rounded-full bg-purple-50 px-3 py-1 text-xs font-semibold text-purple-700">
+                  <span className="rounded-full bg-[var(--color-accent-light)] px-3 py-1 text-xs font-semibold text-[var(--color-accent-dark)]">
                     {posts.length}
                   </span>
                 </div>
@@ -758,19 +790,19 @@ export default async function BusinessDetailPage({
 
             {/* PRODUCTS */}
             {products.length > 0 && (
-              <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+              <section className="rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm">
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <h2 className="text-xl font-bold text-[#020D3A]">
+                    <h2 className="text-xl font-bold text-[var(--color-text)]">
                       Products
                     </h2>
 
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="mt-1 text-sm text-[var(--color-text-muted)]">
                       Products offered by this business
                     </p>
                   </div>
 
-                  <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-[#1879FD]">
+                  <span className="rounded-full bg-[var(--color-primary-light)] px-3 py-1 text-xs font-semibold text-[var(--color-primary)]">
                     {products.length}
                   </span>
                 </div>
@@ -783,9 +815,9 @@ export default async function BusinessDetailPage({
                     return (
                       <article
                         key={product.id}
-                        className="group overflow-hidden rounded-2xl border border-slate-200 bg-white transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md"
+                        className="group overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] transition hover:-translate-y-0.5 hover:border-[var(--color-primary)] hover:shadow-md"
                       >
-                        <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-slate-100">
+                        <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-[var(--color-surface-muted)]">
                           {product.thumbnail_url ? (
                             <Image
                               src={product.thumbnail_url}
@@ -801,19 +833,19 @@ export default async function BusinessDetailPage({
                           )}
 
                           {product.is_featured && (
-                            <span className="absolute left-3 top-3 rounded-full bg-purple-600 px-2.5 py-1 text-[11px] font-bold text-white">
+                            <span className="absolute left-3 top-3 rounded-full bg-[var(--color-accent-dark)] px-2.5 py-1 text-[11px] font-bold text-white">
                               Featured
                             </span>
                           )}
                         </div>
 
                         <div className="p-4">
-                          <h3 className="line-clamp-2 font-bold text-[#020D3A]">
+                          <h3 className="line-clamp-2 font-bold text-[var(--color-text)]">
                             {product.product_name}
                           </h3>
 
                           {(product.brand || product.model) && (
-                            <p className="mt-1 text-xs text-slate-400">
+                            <p className="mt-1 text-xs text-[var(--color-text-light)]">
                               {[product.brand, product.model]
                                 .filter(Boolean)
                                 .join(" • ")}
@@ -821,21 +853,21 @@ export default async function BusinessDetailPage({
                           )}
 
                           {product.short_description && (
-                            <p className="mt-2 line-clamp-2 text-sm leading-5 text-slate-500">
+                            <p className="mt-2 line-clamp-2 text-sm leading-5 text-[var(--color-text-muted)]">
                               {product.short_description}
                             </p>
                           )}
 
                           <div className="mt-4 flex items-end gap-2">
                             {price && (
-                              <span className="text-lg font-bold text-[#1879FD]">
+                              <span className="text-lg font-bold text-[var(--color-primary)]">
                                 {price}
                               </span>
                             )}
 
                             {mrp &&
                               product.mrp !== product.selling_price && (
-                                <span className="text-xs text-slate-400 line-through">
+                                <span className="text-xs text-[var(--color-text-light)] line-through">
                                   {mrp}
                                 </span>
                               )}
@@ -850,19 +882,19 @@ export default async function BusinessDetailPage({
 
             {/* SERVICES */}
             {services.length > 0 && (
-              <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+              <section className="rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm">
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <h2 className="text-xl font-bold text-[#020D3A]">
+                    <h2 className="text-xl font-bold text-[var(--color-text)]">
                       Services
                     </h2>
 
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="mt-1 text-sm text-[var(--color-text-muted)]">
                       Services provided by this business
                     </p>
                   </div>
 
-                  <span className="rounded-full bg-purple-50 px-3 py-1 text-xs font-semibold text-purple-700">
+                  <span className="rounded-full bg-[var(--color-accent-light)] px-3 py-1 text-xs font-semibold text-[var(--color-accent-dark)]">
                     {services.length}
                   </span>
                 </div>
@@ -877,55 +909,55 @@ export default async function BusinessDetailPage({
                     return (
                       <article
                         key={service.id}
-                        className="rounded-2xl border border-slate-200 p-5 transition hover:border-purple-200 hover:shadow-md"
+                        className="rounded-2xl border border-[var(--color-border)] p-5 transition hover:border-[var(--color-accent)] hover:shadow-md"
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div>
-                            <h3 className="font-bold text-[#020D3A]">
+                            <h3 className="font-bold text-[var(--color-text)]">
                               {service.service_name}
                             </h3>
 
                             {service.service_code && (
-                              <p className="mt-1 text-xs text-slate-400">
+                              <p className="mt-1 text-xs text-[var(--color-text-light)]">
                                 {service.service_code}
                               </p>
                             )}
                           </div>
 
                           {service.is_featured && (
-                            <span className="shrink-0 rounded-full bg-purple-100 px-2.5 py-1 text-[11px] font-bold text-purple-700">
+                            <span className="shrink-0 rounded-full bg-[var(--color-accent-light)] px-2.5 py-1 text-[11px] font-bold text-[var(--color-accent-dark)]">
                               Featured
                             </span>
                           )}
                         </div>
 
                         {service.short_description && (
-                          <p className="mt-3 text-sm leading-6 text-slate-500">
+                          <p className="mt-3 text-sm leading-6 text-[var(--color-text-muted)]">
                             {service.short_description}
                           </p>
                         )}
 
                         <div className="mt-4 flex flex-wrap gap-2">
                           {price && (
-                            <span className="rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-semibold text-[#1879FD]">
+                            <span className="rounded-lg bg-[var(--color-primary-light)] px-3 py-1.5 text-xs font-semibold text-[var(--color-primary)]">
                               {price}
                             </span>
                           )}
 
                           {duration && (
-                            <span className="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600">
+                            <span className="rounded-lg bg-[var(--color-surface-muted)] px-3 py-1.5 text-xs font-semibold text-[var(--color-text-secondary)]">
                               {duration}
                             </span>
                           )}
 
                           {service.booking_required && (
-                            <span className="rounded-lg bg-purple-50 px-3 py-1.5 text-xs font-semibold text-purple-700">
+                            <span className="rounded-lg bg-[var(--color-accent-light)] px-3 py-1.5 text-xs font-semibold text-[var(--color-accent-dark)]">
                               Booking Required
                             </span>
                           )}
 
                           {service.home_service_available && (
-                            <span className="rounded-lg bg-cyan-50 px-3 py-1.5 text-xs font-semibold text-cyan-700">
+                            <span className="rounded-lg bg-[var(--color-primary-light)] px-3 py-1.5 text-xs font-semibold text-[var(--color-primary-dark)]">
                               Home Service
                             </span>
                           )}
@@ -939,19 +971,19 @@ export default async function BusinessDetailPage({
 
             {/* OFFERS */}
             {offers.length > 0 && (
-              <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+              <section className="rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm">
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <h2 className="text-xl font-bold text-[#020D3A]">
+                    <h2 className="text-xl font-bold text-[var(--color-text)]">
                       Active Offers
                     </h2>
 
-                    <p className="mt-1 text-sm text-slate-500">
+                    <p className="mt-1 text-sm text-[var(--color-text-muted)]">
                       Current offers from this business
                     </p>
                   </div>
 
-                  <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+                  <span className="rounded-full bg-[var(--color-primary-light)] px-3 py-1 text-xs font-semibold text-[var(--color-primary-dark)]">
                     {offers.length}
                   </span>
                 </div>
@@ -976,26 +1008,26 @@ export default async function BusinessDetailPage({
                     return (
                       <article
                         key={asString(offer.id) ?? `offer-${index}`}
-                        className="rounded-2xl border border-slate-200 p-5 transition hover:border-blue-200 hover:shadow-md"
+                        className="rounded-2xl border border-[var(--color-border)] p-5 transition hover:border-[var(--color-primary)] hover:shadow-md"
                       >
                         {discount && (
-                          <span className="inline-flex rounded-full bg-purple-100 px-3 py-1 text-xs font-bold text-purple-700">
+                          <span className="inline-flex rounded-full bg-[var(--color-accent-light)] px-3 py-1 text-xs font-bold text-[var(--color-accent-dark)]">
                             {discount}
                           </span>
                         )}
 
-                        <h3 className="mt-3 font-bold text-[#020D3A]">
+                        <h3 className="mt-3 font-bold text-[var(--color-text)]">
                           {title}
                         </h3>
 
                         {description && (
-                          <p className="mt-2 text-sm leading-6 text-slate-500">
+                          <p className="mt-2 text-sm leading-6 text-[var(--color-text-muted)]">
                             {description}
                           </p>
                         )}
 
                         {endDate && (
-                          <p className="mt-4 text-xs font-medium text-slate-400">
+                          <p className="mt-4 text-xs font-medium text-[var(--color-text-light)]">
                             Valid until {endDate}
                           </p>
                         )}
@@ -1012,16 +1044,16 @@ export default async function BusinessDetailPage({
               services.length === 0 &&
               offers.length === 0 &&
               posts.length === 0 && (
-                <section className="rounded-3xl border border-slate-200 bg-white p-10 text-center shadow-sm">
-                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-2xl">
+                <section className="rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-10 text-center shadow-sm">
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--color-primary-light)] text-2xl">
                     ✦
                   </div>
 
-                  <h2 className="mt-4 text-lg font-bold text-[#020D3A]">
+                  <h2 className="mt-4 text-lg font-bold text-[var(--color-text)]">
                     Business profile is being built
                   </h2>
 
-                  <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+                  <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[var(--color-text-muted)]">
                     Products, services, offers and posts will appear here
                     when this business adds them.
                   </p>
@@ -1031,69 +1063,69 @@ export default async function BusinessDetailPage({
 
           {/* SIDEBAR */}
           <aside className="space-y-6">
-            <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-bold text-[#020D3A]">
+            <section className="rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm">
+              <h2 className="text-lg font-bold text-[var(--color-text)]">
                 Business Overview
               </h2>
 
               <div className="mt-5 grid grid-cols-2 gap-3">
-                <div className="rounded-2xl bg-slate-50 p-4">
-                  <p className="text-2xl font-bold text-[#1879FD]">
+                <div className="rounded-2xl bg-[var(--color-background)] p-4">
+                  <p className="text-2xl font-bold text-[var(--color-primary)]">
                     {business.total_followers.toLocaleString("en-IN")}
                   </p>
 
-                  <p className="mt-1 text-xs font-medium text-slate-500">
+                  <p className="mt-1 text-xs font-medium text-[var(--color-text-muted)]">
                     Followers
                   </p>
                 </div>
 
-                <div className="rounded-2xl bg-slate-50 p-4">
+                <div className="rounded-2xl bg-[var(--color-background)] p-4">
                   <p className="text-2xl font-bold text-[#8E07FB]">
                     {business.total_views.toLocaleString("en-IN")}
                   </p>
 
-                  <p className="mt-1 text-xs font-medium text-slate-500">
+                  <p className="mt-1 text-xs font-medium text-[var(--color-text-muted)]">
                     Views
                   </p>
                 </div>
 
-                <div className="rounded-2xl bg-slate-50 p-4">
+                <div className="rounded-2xl bg-[var(--color-background)] p-4">
                   <p className="text-2xl font-bold text-[#05CDFC]">
                     {business.average_rating !== null
                       ? Number(business.average_rating).toFixed(1)
                       : "—"}
                   </p>
 
-                  <p className="mt-1 text-xs font-medium text-slate-500">
+                  <p className="mt-1 text-xs font-medium text-[var(--color-text-muted)]">
                     Rating
                   </p>
                 </div>
 
-                <div className="rounded-2xl bg-slate-50 p-4">
-                  <p className="text-2xl font-bold text-[#020D3A]">
+                <div className="rounded-2xl bg-[var(--color-background)] p-4">
+                  <p className="text-2xl font-bold text-[var(--color-text)]">
                     {business.profile_completion}%
                   </p>
 
-                  <p className="mt-1 text-xs font-medium text-slate-500">
+                  <p className="mt-1 text-xs font-medium text-[var(--color-text-muted)]">
                     Profile
                   </p>
                 </div>
               </div>
             </section>
 
-            <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-bold text-[#020D3A]">
+            <section className="rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm">
+              <h2 className="text-lg font-bold text-[var(--color-text)]">
                 Business Information
               </h2>
 
               <div className="mt-5 space-y-4">
                 {business.established_year && (
                   <div>
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                    <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-text-light)]">
                       Established
                     </p>
 
-                    <p className="mt-1 text-sm font-semibold text-slate-700">
+                    <p className="mt-1 text-sm font-semibold text-[var(--color-text-secondary)]">
                       {business.established_year}
                     </p>
                   </div>
@@ -1101,22 +1133,22 @@ export default async function BusinessDetailPage({
 
                 {business.public_handle && (
                   <div>
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                    <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-text-light)]">
                       Twimzi Handle
                     </p>
 
-                    <p className="mt-1 text-sm font-semibold text-[#1879FD]">
+                    <p className="mt-1 text-sm font-semibold text-[var(--color-primary)]">
                       @{business.public_handle}
                     </p>
                   </div>
                 )}
 
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+                  <p className="text-xs font-medium uppercase tracking-wide text-[var(--color-text-light)]">
                     Business ID
                   </p>
 
-                  <p className="mt-1 break-all text-sm font-semibold text-slate-700">
+                  <p className="mt-1 break-all text-sm font-semibold text-[var(--color-text-secondary)]">
                     {business.business_code}
                   </p>
                 </div>
