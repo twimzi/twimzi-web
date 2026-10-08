@@ -515,9 +515,15 @@ export default function AddBusiness() {
         return;
       }
     }
-    if (website.trim()) {
+    const normalizedWebsite = website.trim()
+      ? /^https?:\/\//i.test(website.trim())
+        ? website.trim()
+        : `https://${website.trim()}`
+      : "";
+
+    if (normalizedWebsite) {
       try {
-        new URL(website.trim());
+        new URL(normalizedWebsite);
       } catch {
         setErrorMessage(
           "Enter a valid website URL, for example https://example.com.",
@@ -553,7 +559,7 @@ export default function AddBusiness() {
         p_city: city.trim(),
         p_description: description.trim() || null,
         p_phone: phone.trim() || null,
-        p_website: website.trim() || null,
+        p_website: normalizedWebsite || null,
         p_address_line_1: addressLine1.trim(),
         p_address_line_2: addressLine2.trim() || null,
         p_landmark: landmark.trim() || null,
@@ -984,7 +990,8 @@ export default function AddBusiness() {
 
                 <input
                   id="website"
-                  type="url"
+                  type="text"
+                  inputMode="url"
                   value={website}
                   onChange={(event) =>
                     setWebsite(event.target.value)
