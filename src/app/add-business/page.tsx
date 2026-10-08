@@ -655,9 +655,8 @@ export default function AddBusiness() {
       setWebsite("");
 
       window.setTimeout(() => {
-        router.push("/businesses/dashboard");
-        router.refresh();
-      }, 900);
+  window.location.replace("/businesses/dashboard");
+}, 900);
     } catch (error) {
       setUploadProgress("");
 

@@ -8,11 +8,13 @@ import {
   Edit3,
   Package,
   Plus,
+  UploadCloud,
   Search,
   Trash2,
   X,
 } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { siteConfig } from "@/config/site";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type Business = {
@@ -114,6 +116,8 @@ export default function BusinessProductsDashboardPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [form, setForm] = useState<ProductForm>(emptyForm);
+  const [productImage, setProductImage] = useState<File | null>(null);
+  const [productImagePreview, setProductImagePreview] = useState<string>("");
 
   useEffect(() => {
     let cancelled = false;
@@ -242,6 +246,8 @@ export default function BusinessProductsDashboardPage() {
   function openCreateModal() {
     setEditingProduct(null);
     setForm(emptyForm);
+    setProductImage(null);
+    setProductImagePreview("");
     setError(null);
     setSuccess(null);
     setModalOpen(true);
@@ -249,6 +255,8 @@ export default function BusinessProductsDashboardPage() {
 
   function openEditModal(product: Product) {
     setEditingProduct(product);
+    setProductImage(null);
+    setProductImagePreview(product.thumbnail_url ?? "");
     setForm({
       product_name: product.product_name ?? "",
       product_code: product.product_code ?? "",
@@ -287,6 +295,8 @@ export default function BusinessProductsDashboardPage() {
     setModalOpen(false);
     setEditingProduct(null);
     setForm(emptyForm);
+    setProductImage(null);
+    setProductImagePreview("");
   }
 
   function updateForm<K extends keyof ProductForm>(
@@ -297,6 +307,80 @@ export default function BusinessProductsDashboardPage() {
       ...current,
       [field]: value,
     }));
+  }
+
+  function handleProductImageChange(file: File | undefined) {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("Please select an image file.");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setError("Product image must be 10 MB or smaller.");
+      return;
+    }
+    setError(null);
+    setProductImage(file);
+    setProductImagePreview((current) => {
+      if (current.startsWith("blob:")) URL.revokeObjectURL(current);
+      return URL.createObjectURL(file);
+    });
+  }
+
+  function clearProductImage() {
+    setProductImage(null);
+    setProductImagePreview((current) => {
+      if (current.startsWith("blob:")) URL.revokeObjectURL(current);
+      return "";
+    });
+  }
+
+  async function uploadProductImage(
+    supabase: ReturnType<typeof createSupabaseBrowserClient>,
+    productId: string,
+    userId: string,
+  ) {
+    if (!productImage || !business) return;
+
+    const formData = new FormData();
+    formData.append("business_id", business.id);
+    formData.append("product_id", productId);
+    formData.append("kind", "product");
+    formData.append("file", productImage);
+    formData.append("alt_text", `${form.product_name.trim()} product image`);
+
+    const { data, error: functionError } = await supabase.functions.invoke(
+      "upload-media",
+      { body: formData },
+    );
+
+    if (functionError) {
+      throw new Error(
+        functionError.message?.trim() || "Unable to upload the product image.",
+      );
+    }
+    if (!data?.success || !data?.media?.object_path) {
+      throw new Error(data?.error || "Unable to upload the product image.");
+    }
+
+    const publicUrl =
+      data.media.public_url ||
+      `${siteConfig.media.publicUrl}/${String(data.media.object_path)
+        .split("/")
+        .map(encodeURIComponent)
+        .join("/")}`;
+
+    const { error: imageUpdateError } = await supabase
+      .from("products")
+      .update({
+        thumbnail_url: publicUrl,
+        image_count: 1,
+        updated_by: userId,
+      })
+      .eq("id", productId)
+      .eq("business_id", business.id);
+
+    if (imageUpdateError) throw imageUpdateError;
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -314,6 +398,12 @@ export default function BusinessProductsDashboardPage() {
 
     if (!form.product_code.trim()) {
       setError("Product code is required.");
+      return;
+    }
+
+    const sellingPrice = toNullableNumber(form.selling_price);
+    if (sellingPrice === null || sellingPrice < 0) {
+      setError("Selling price is required and must be 0 or greater.");
       return;
     }
 
@@ -344,7 +434,7 @@ export default function BusinessProductsDashboardPage() {
         sku: form.sku.trim() || null,
         brand: form.brand.trim() || null,
         model: form.model.trim() || null,
-        selling_price: toNullableNumber(form.selling_price),
+        selling_price: sellingPrice,
         mrp: toNullableNumber(form.mrp),
         cost_price: toNullableNumber(form.cost_price),
         stock_quantity: toNullableNumber(form.stock_quantity) ?? 0,
@@ -357,6 +447,8 @@ export default function BusinessProductsDashboardPage() {
         updated_by: user.id,
       };
 
+      let productId = editingProduct?.id ?? "";
+
       if (editingProduct) {
         const { error: updateError } = await supabase
           .from("products")
@@ -364,25 +456,28 @@ export default function BusinessProductsDashboardPage() {
           .eq("id", editingProduct.id)
           .eq("business_id", business.id);
 
-        if (updateError) {
-          throw updateError;
-        }
-
-        setSuccess("Product updated successfully.");
+        if (updateError) throw updateError;
       } else {
-        const { error: insertError } = await supabase
+        const { data: createdProduct, error: insertError } = await supabase
           .from("products")
-          .insert({
-            ...payload,
-            created_by: user.id,
-          });
+          .insert({ ...payload, created_by: user.id })
+          .select("id")
+          .single();
 
-        if (insertError) {
-          throw insertError;
-        }
-
-        setSuccess("Product created successfully.");
+        if (insertError) throw insertError;
+        productId = createdProduct.id;
       }
+
+      if (productImage && productId) {
+        setSuccess("Product saved. Uploading image...");
+        await uploadProductImage(supabase, productId, user.id);
+      }
+
+      setSuccess(
+        editingProduct
+          ? "Product updated successfully."
+          : "Product created successfully.",
+      );
 
       await loadProducts(business.id);
 
@@ -1082,25 +1177,50 @@ export default function BusinessProductsDashboardPage() {
                 </div>
 
                 <div className="sm:col-span-2">
+                  <div className="mb-2 flex items-center justify-between">
+                    <label htmlFor="product-image" className="text-sm font-semibold text-slate-700">
+                      Product Image
+                    </label>
+                    {productImagePreview ? (
+                      <button type="button" onClick={clearProductImage} className="text-xs font-semibold text-red-600 hover:text-red-700">
+                        Remove
+                      </button>
+                    ) : null}
+                  </div>
+
                   <label
-                    htmlFor="thumbnail_url"
-                    className="mb-1.5 block text-sm font-semibold text-slate-700"
+                    htmlFor="product-image"
+                    className="group relative flex min-h-48 cursor-pointer items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 transition hover:border-slate-400"
                   >
-                    Product Image URL
+                    {productImagePreview ? (
+                      <Image
+                        src={productImagePreview}
+                        alt="Product preview"
+                        fill
+                        unoptimized={productImagePreview.startsWith("blob:")}
+                        className="object-contain p-4"
+                      />
+                    ) : (
+                      <div className="text-center">
+                        <UploadCloud className="mx-auto h-9 w-9 text-slate-500" />
+                        <p className="mt-2 text-sm font-semibold text-slate-700">Upload product image</p>
+                        <p className="mt-1 text-xs text-slate-500">PNG, JPG, WEBP · 10 MB max</p>
+                      </div>
+                    )}
+                    <input
+                      id="product-image"
+                      type="file"
+                      accept="image/*"
+                      className="sr-only"
+                      onChange={(event) => {
+                        handleProductImageChange(event.target.files?.[0]);
+                        event.currentTarget.value = "";
+                      }}
+                    />
                   </label>
-                  <input
-                    id="thumbnail_url"
-                    type="url"
-                    value={form.thumbnail_url}
-                    onChange={(event) =>
-                      updateForm("thumbnail_url", event.target.value)
-                    }
-                    placeholder="https://..."
-                    className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
-                  />
+
                   <p className="mt-1.5 text-xs text-slate-500">
-                    Optional. Product image upload/storage can be connected to
-                    the existing media/storage system later.
+                    Upload one primary image for this product. It will be stored in the existing Twimzi media system.
                   </p>
                 </div>
 
