@@ -39,7 +39,14 @@ export async function proxy(request: NextRequest) {
     },
   );
 
-  await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (request.nextUrl.pathname === "/add-business" && !user) {
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = "/login";
+    loginUrl.search = `?next=${encodeURIComponent("/add-business")}`;
+    return NextResponse.redirect(loginUrl);
+  }
 
   return response;
 }
@@ -52,6 +59,7 @@ export async function proxy(request: NextRequest) {
  */
 export const config = {
   matcher: [
+    "/add-business",
     "/businesses/dashboard/:path*",
     "/admin/:path*",
     "/messages/:path*",

@@ -1,7 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Check,
@@ -52,10 +53,44 @@ export default function AddBusiness() {
   const [cover, setCover] = useState<SelectedImage | null>(null);
   const [gallery, setGallery] = useState<SelectedImage[]>([]);
 
+  const [authChecking, setAuthChecking] = useState(true);
+  const [authenticated, setAuthenticated] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState("");
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    let active = true;
+
+    async function checkAuthentication() {
+      try {
+        const supabase = createSupabaseBrowserClient();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (active) {
+          setAuthenticated(Boolean(user));
+        }
+      } catch {
+        if (active) {
+          setAuthenticated(false);
+        }
+      } finally {
+        if (active) {
+          setAuthChecking(false);
+        }
+      }
+    }
+
+    void checkAuthentication();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const totalSelectedImages = useMemo(
     () => gallery.length + (logo ? 1 : 0) + (cover ? 1 : 0),
@@ -630,6 +665,66 @@ export default function AddBusiness() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (authChecking) {
+    return (
+      <>
+        <PageHero
+          eyebrow="For businesses"
+          title="Create your Twimzi business presence."
+          description="Sign in to create and manage your business profile on Twimzi."
+        />
+        <Container>
+          <div className="max-w-3xl py-14">
+            <div className="rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-8 text-center shadow-[var(--shadow-md)]">
+              <p className="text-sm font-semibold text-[var(--color-text-secondary)]">
+                Checking your account...
+              </p>
+            </div>
+          </div>
+        </Container>
+      </>
+    );
+  }
+
+  if (!authenticated) {
+    return (
+      <>
+        <PageHero
+          eyebrow="For businesses"
+          title="Sign in to add your business."
+          description="Create a Twimzi account or sign in to submit your business for approval."
+        />
+        <Container>
+          <div className="max-w-2xl py-14">
+            <div className="rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-8 text-center shadow-[var(--shadow-md)] sm:p-10">
+              <h2 className="text-2xl font-bold text-[var(--color-text)]">
+                Account required
+              </h2>
+              <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-[var(--color-text-secondary)]">
+                Please log in or create a Twimzi account first. After you sign
+                in, you can return here and submit your business.
+              </p>
+              <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
+                <Link
+                  href="/login?next=%2Fadd-business"
+                  className="inline-flex min-h-11 items-center justify-center rounded-xl bg-[var(--color-primary)] px-6 text-sm font-semibold text-white transition hover:bg-[var(--color-primary-dark)]"
+                >
+                  Log In
+                </Link>
+                <Link
+                  href="/register?next=%2Fadd-business"
+                  className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-6 text-sm font-semibold text-[var(--color-text)] transition hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
+                >
+                  Create Account
+                </Link>
+              </div>
+            </div>
+          </div>
+        </Container>
+      </>
+    );
   }
 
   return (
