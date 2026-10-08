@@ -256,48 +256,12 @@ export default async function AdminBusinessDetail({ params }: PageProps) {
 
   const supabase = await requireSuperAdmin();
 
-  const { data: business, error: businessError } = await supabase
-    .from("businesses")
-    .select(
-      [
-        "id",
-        "owner_profile_id",
-        "business_code",
-        "business_name",
-        "legal_name",
-        "slug",
-        "public_handle",
-        "description",
-        "business_type",
-        "email",
-        "phone",
-        "whatsapp_number",
-        "website",
-        "established_year",
-        "gst_number",
-        "pan_number",
-        "verification_status",
-        "business_status",
-        "average_rating",
-        "total_reviews",
-        "total_followers",
-        "total_views",
-        "created_at",
-        "updated_at",
-        "is_active",
-        "is_featured",
-        "featured_until",
-        "boost_until",
-        "priority_score",
-        "profile_completion",
-        "qr_scan_count",
-        "business_card_download_count",
-        "logo_media_id",
-        "cover_media_id",
-      ].join(","),
-    )
-    .eq("id", id)
-    .maybeSingle();
+  const { data: businessRows, error: businessError } = await supabase.rpc(
+    "admin_get_business",
+    { p_business_id: id },
+  );
+
+  const business = businessRows?.[0] ?? null;
 
   if (businessError || !business) {
     return (
