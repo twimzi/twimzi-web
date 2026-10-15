@@ -232,7 +232,6 @@ function formatOfferValue(offer: Offer): string | null {
 }
 
 function getStoragePublicUrl(
-  supabaseUrl: string,
   bucketName: string | null,
   objectPath: string | null,
   isPublic: boolean | null,
@@ -246,9 +245,7 @@ function getStoragePublicUrl(
     .map((segment) => encodeURIComponent(segment))
     .join("/");
 
-  return `${supabaseUrl}/storage/v1/object/public/${encodeURIComponent(
-    bucketName,
-  )}/${encodedPath}`;
+  return `${siteConfig.media.publicUrl.replace(/\/$/, "")}/media/${encodedPath}`;
 }
 
 async function getBusiness(slug: string): Promise<Business | null> {
@@ -465,25 +462,18 @@ export default async function BusinessDetailPage({
     : [];
 
   const website = asString(business.website);
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
-  const logoUrl = supabaseUrl
-    ? getStoragePublicUrl(
-        supabaseUrl,
-        media?.logo_bucket_name ?? null,
-        media?.logo_object_path ?? null,
-        media?.logo_is_public ?? null,
-      )
-    : null;
+  const logoUrl = getStoragePublicUrl(
+    media?.logo_bucket_name ?? null,
+    media?.logo_object_path ?? null,
+    media?.logo_is_public ?? null,
+  );
 
-  const coverUrl = supabaseUrl
-    ? getStoragePublicUrl(
-        supabaseUrl,
-        media?.cover_bucket_name ?? null,
-        media?.cover_object_path ?? null,
-        media?.cover_is_public ?? null,
-      )
-    : null;
+  const coverUrl = getStoragePublicUrl(
+    media?.cover_bucket_name ?? null,
+    media?.cover_object_path ?? null,
+    media?.cover_is_public ?? null,
+  );
 
   const businessHref = `/businesses/${business.slug || business.id}`;
   const canonicalUrl = new URL(businessHref, siteConfig.url).toString();
