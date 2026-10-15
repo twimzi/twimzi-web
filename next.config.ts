@@ -1,3 +1,4 @@
+
 import type { NextConfig } from "next";
 
 const isProduction = process.env.NODE_ENV === "production";
@@ -55,6 +56,11 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "twimzi-media.twimziofficial.workers.dev",
+      },
+      {
+        protocol: "https",
+        hostname: "*.supabase.co",
+        pathname: "/storage/v1/object/public/**",
       },
     ],
   },

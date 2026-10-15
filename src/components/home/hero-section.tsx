@@ -1,3 +1,4 @@
+
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -86,14 +87,19 @@ export function HeroSection({
             </p>
 
             <div className="mt-8 rounded-2xl border border-[var(--color-border)] bg-white p-2 shadow-[var(--shadow-lg)]">
-              <div className="flex flex-col gap-2 sm:flex-row">
+              <form
+                action="/explore"
+                method="get"
+                className="flex flex-col gap-2 sm:flex-row"
+              >
                 <label className="sr-only" htmlFor="hero-search">
                   Search businesses, products or services
                 </label>
 
                 <input
                   id="hero-search"
-                  name="search"
+                  name="q"
+                  type="search"
                   className="min-h-12 flex-1 rounded-xl bg-[var(--color-secondary)] px-4 text-sm outline-none transition focus:ring-2 focus:ring-[var(--color-primary)]/20"
                   placeholder="Search businesses, products or services"
                 />
@@ -105,16 +111,15 @@ export function HeroSection({
                 <input
                   id="hero-location"
                   name="location"
+                  type="text"
                   className="min-h-12 rounded-xl bg-[var(--color-secondary)] px-4 text-sm outline-none transition focus:ring-2 focus:ring-[var(--color-primary)]/20 sm:w-48"
                   placeholder="Your location"
                 />
 
-                <Link href="/explore">
-                  <Button className="min-h-12 w-full sm:w-auto">
-                    Search
-                  </Button>
-                </Link>
-              </div>
+                <Button type="submit" className="min-h-12 w-full sm:w-auto">
+                  Search
+                </Button>
+              </form>
             </div>
 
             <div className="mt-7 flex flex-wrap gap-3">

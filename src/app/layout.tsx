@@ -1,3 +1,4 @@
+
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import { siteConfig } from "@/config/site";
@@ -51,14 +52,14 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: "/icon.png",
+        url: "/icon.png?v=20261015",
         type: "image/png",
       },
       {
-        url: "/favicon.ico",
+        url: "/favicon.ico?v=20261015",
       },
     ],
-    apple: "/apple-icon.png",
+    apple: "/apple-icon.png?v=20261015",
   },
 
   openGraph: {

@@ -1,3 +1,4 @@
+
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
@@ -296,6 +297,7 @@ export default async function BusinessesPage({
       "get_public_businesses_by_category",
       {
         p_category_id: categoryId,
+        p_search: search || null,
         p_limit: 60,
         p_offset: 0,
       },
@@ -306,24 +308,6 @@ export default async function BusinessesPage({
       businesses = [];
     } else if (categoryResult.data) {
       businesses = categoryResult.data as Business[];
-
-      if (search) {
-        const query = search.toLowerCase();
-
-        businesses = businesses.filter((business) =>
-          [
-            business.business_name,
-            business.description,
-            business.business_type,
-            business.city,
-            business.state,
-          ]
-            .filter(Boolean)
-            .some((value) =>
-              String(value).toLowerCase().includes(query),
-            ),
-        );
-      }
     }
   }
 
@@ -377,11 +361,9 @@ export default async function BusinessesPage({
             </button>
           </form>
 
-          {/* Category navigation */}
           <div className="relative z-10 mt-7">
             <div className="twimzi-horizontal-scroll -mx-1 px-1 pb-3">
               <div className="flex min-w-max items-center gap-2">
-                {/* All */}
                 <Link
                   href={
                     search
@@ -443,7 +425,6 @@ export default async function BusinessesPage({
               </div>
             </div>
 
-            {/* Subtle scroll indicator on mobile */}
             {sortedCategories.length > 4 ? (
               <div
                 aria-hidden="true"
