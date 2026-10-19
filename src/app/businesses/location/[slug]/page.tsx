@@ -19,7 +19,7 @@ type Business = {
 type PageProps = { params: Promise<{ slug: string }> };
 
 function slugPart(value: string) {
-  return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return value.trim().toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "");
 }
 
 function getLocationSlug(business: Business) {
