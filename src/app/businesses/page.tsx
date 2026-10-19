@@ -448,7 +448,7 @@ export default async function BusinessesPage({
                 <div className="mt-2 flex flex-wrap gap-2">
                   {sortedCategories.slice(0, 12).map((category) => {
                     const categorySlug = category.slug?.trim() ||
-                      category.category_name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+                      category.category_name.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "");
                     return (
                       <Link
                         key={category.id}
@@ -468,7 +468,7 @@ export default async function BusinessesPage({
                 const city = business.city?.trim();
                 const state = business.state?.trim();
                 if (!city || !state) continue;
-                const slugPart = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+                const slugPart = (value: string) => value.trim().toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "");
                 const slug = `${slugPart(city)}-${slugPart(state)}`;
                 const existing = locations.get(slug);
                 if (existing) existing.count += 1;
