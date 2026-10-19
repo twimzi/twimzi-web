@@ -32,11 +32,11 @@ type PublicCategory = {
 };
 
 function slugPart(value: string): string {
-  return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return value.trim().toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "");
 }
 
 function getCategorySlug(category: PublicCategory): string {
-  return category.slug?.trim() || slugPart(category.category_name);
+  return slugPart(category.slug?.trim() || category.category_name);
 }
 
 function getLocationSlug(business: PublicBusiness): string | null {
