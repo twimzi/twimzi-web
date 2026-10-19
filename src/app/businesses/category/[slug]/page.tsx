@@ -54,7 +54,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!category) return { title: "Category Not Found | Twimzi", robots: { index: false, follow: true } };
 
-  const canonical = `${siteConfig.url}/businesses/category/${encodeURIComponent(normalizeSlug(slugifyCategory(category.slug?.trim() || category.category_name)))}`;
+  const canonical = `${siteConfig.url}/businesses/category/${encodeURIComponent(slugifyCategory(category.slug?.trim() || category.category_name))}`;
   const description = category.description?.trim() ||
     `Discover ${category.category_name.toLowerCase()} businesses, shops, professionals and service providers on Twimzi.`;
 
@@ -82,8 +82,7 @@ export default async function BusinessCategoryPage({ params }: PageProps) {
 
   const businesses = (data ?? []) as Business[];
   const categorySlug = normalizeSlug(
-    category.slug?.trim() ||
-      slugifyCategory(category.category_name),
+    slugifyCategory(category.slug?.trim() || category.category_name),
   );
 
   return (
