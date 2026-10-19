@@ -86,4 +86,4 @@ jobs:
         with:
           deno-version: v2.x
       - name: Type-check upload function
-        run: deno check supabase/functions/upload-media/index.ts
+        run: deno check --config supabase/functions/upload-media/deno.json supabase/functions/upload-media/index.ts
