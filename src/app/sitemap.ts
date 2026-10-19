@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
 import { siteConfig } from "@/config/site";
 
 const routes = [
@@ -46,6 +46,25 @@ function getLocationSlug(business: PublicBusiness): string | null {
   return `${slugPart(city)}-${slugPart(state)}`;
 }
 
+function createPublicSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error(
+      "Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY.",
+    );
+  }
+
+  return createClient(supabaseUrl, supabaseKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+  });
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
   const staticPages: MetadataRoute.Sitemap = routes.map((route) => ({
@@ -60,7 +79,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const locationCounts = new Map<string, number>();
 
   try {
-    const supabase = await createSupabaseServerClient();
+    // Use the public Supabase client so sitemap generation does not access
+    // Next.js cookies or depend on an authenticated visitor session.
+    const supabase = createPublicSupabaseClient();
     const pageSize = 100;
     let offset = 0;
 
