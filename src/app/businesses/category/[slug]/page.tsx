@@ -31,7 +31,7 @@ function normalizeSlug(value: string) {
 }
 
 function slugifyCategory(value: string) {
-  return value.trim().toLowerCase().replace(/[^\\p{L}\\p{N}]+/gu, "-").replace(/^-|-$/g, "");
+  return value.trim().toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "");
 }
 
 async function getCategory(slug: string): Promise<Category | null> {
@@ -83,7 +83,7 @@ export default async function BusinessCategoryPage({ params }: PageProps) {
   const businesses = (data ?? []) as Business[];
   const categorySlug = normalizeSlug(
     category.slug?.trim() ||
-      category.category_name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
+      slugifyCategory(category.category_name),
   );
 
   return (
