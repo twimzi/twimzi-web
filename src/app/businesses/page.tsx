@@ -434,6 +434,67 @@ export default async function BusinessesPage({
           </div>
         </section>
 
+        {!search && !categoryId ? (
+          <section className="mb-8 rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 sm:p-6" aria-labelledby="directory-discovery-links">
+            <h2 id="directory-discovery-links" className="text-lg font-bold text-[var(--color-text)]">
+              Explore categories and locations
+            </h2>
+            <p className="mt-1 text-sm text-[var(--color-text-muted)]">
+              Find businesses by what they do or where they are based.
+            </p>
+            {sortedCategories.length > 0 ? (
+              <div className="mt-4">
+                <h3 className="text-sm font-semibold text-[var(--color-text-secondary)]">Popular categories</h3>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {sortedCategories.slice(0, 12).map((category) => {
+                    const categorySlug = category.slug?.trim() ||
+                      category.category_name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+                    return (
+                      <Link
+                        key={category.id}
+                        href={`/businesses/category/${encodeURIComponent(categorySlug)}`}
+                        className="rounded-full border border-[var(--color-border)] px-3 py-2 text-sm font-medium text-[var(--color-text-secondary)] transition hover:border-[var(--color-primary)]/40 hover:text-[var(--color-primary)]"
+                      >
+                        {category.category_name}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
+            {(() => {
+              const locations = new Map<string, { label: string; slug: string; count: number }>();
+              for (const business of businesses) {
+                const city = business.city?.trim();
+                const state = business.state?.trim();
+                if (!city || !state) continue;
+                const slugPart = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+                const slug = `${slugPart(city)}-${slugPart(state)}`;
+                const existing = locations.get(slug);
+                if (existing) existing.count += 1;
+                else locations.set(slug, { label: `${city}, ${state}`, slug, count: 1 });
+              }
+              const populatedLocations = [...locations.values()].filter((location) => location.count >= 2).slice(0, 8);
+              return populatedLocations.length > 0 ? (
+                <div className="mt-5">
+                  <h3 className="text-sm font-semibold text-[var(--color-text-secondary)]">Locations with public listings</h3>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {populatedLocations.map((location) => (
+                      <Link
+                        key={location.slug}
+                        href={`/businesses/location/${encodeURIComponent(location.slug)}`}
+                        className="rounded-full border border-[var(--color-border)] px-3 py-2 text-sm font-medium text-[var(--color-text-secondary)] transition hover:border-[var(--color-primary)]/40 hover:text-[var(--color-primary)]"
+                      >
+                        {location.label} ({location.count})
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              ) : null;
+            })()}
+          </section>
+        ) : null}
+
         <section className="pb-16">
           <div className="mb-7 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
