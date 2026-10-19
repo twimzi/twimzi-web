@@ -1,61 +1,85 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+const protectedPathPrefixes = [
+  "/add-business",
+  "/businesses/dashboard",
+  "/admin",
+  "/messages",
+];
+
+function isProtectedPath(pathname: string) {
+  return protectedPathPrefixes.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+}
+
+function loginRedirect(request: NextRequest) {
+  const loginUrl = request.nextUrl.clone();
+  loginUrl.pathname = "/login";
+  loginUrl.search = "";
+  loginUrl.searchParams.set(
+    "next",
+    `${request.nextUrl.pathname}${request.nextUrl.search}`,
+  );
+  return NextResponse.redirect(loginUrl);
+}
+
 export async function proxy(request: NextRequest) {
-  let response = NextResponse.next({
-    request,
-  });
+  const protectedPath = isProtectedPath(request.nextUrl.pathname);
+  let response = NextResponse.next({ request });
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabasePublishableKey =
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
+  // Fail closed for protected routes if auth cannot be checked.
   if (!supabaseUrl || !supabasePublishableKey) {
+    if (protectedPath) {
+      return new NextResponse("Authentication is temporarily unavailable.", {
+        status: 503,
+        headers: { "Cache-Control": "no-store" },
+      });
+    }
     return response;
   }
 
-  const supabase = createServerClient(
-    supabaseUrl,
-    supabasePublishableKey,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => {
-            request.cookies.set(name, value);
-          });
+  const supabase = createServerClient(supabaseUrl, supabasePublishableKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value }) => {
+          request.cookies.set(name, value);
+        });
 
-          response = NextResponse.next({
-            request,
-          });
+        response = NextResponse.next({ request });
 
-          cookiesToSet.forEach(({ name, value, options }) => {
-            response.cookies.set(name, value, options);
-          });
-        },
+        cookiesToSet.forEach(({ name, value, options }) => {
+          response.cookies.set(name, value, options);
+        });
       },
     },
-  );
+  });
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
 
-  if (request.nextUrl.pathname === "/add-business" && !user) {
-    const loginUrl = request.nextUrl.clone();
-    loginUrl.pathname = "/login";
-    loginUrl.search = `?next=${encodeURIComponent("/add-business")}`;
-    return NextResponse.redirect(loginUrl);
+  // Never allow a protected route through when the session cannot be verified.
+  if (protectedPath && (error || !user)) {
+    return loginRedirect(request);
   }
 
   return response;
 }
 
 /*
- * Supabase auth is only required for protected areas.
- * Keeping public pages out of this proxy avoids an auth network request
- * on every public page load and prevents Supabase latency from blocking
- * the entire website.
+ * This proxy provides a navigation-level authentication gate only.
+ * Every database mutation, server action, RPC and admin operation must
+ * independently enforce authentication, ownership and role authorization.
  */
 export const config = {
   matcher: [
