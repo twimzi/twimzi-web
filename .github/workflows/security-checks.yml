@@ -53,7 +53,7 @@ jobs:
         run: npm audit --omit=dev --audit-level=high
 
   lint:
-    name: ESLint
+    name: ESLint and TypeScript
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -67,6 +67,8 @@ jobs:
         run: npm ci
       - name: Run lint
         run: npm run lint
+      - name: Type-check Next.js application
+        run: npx tsc --noEmit
 
   edge-function-check:
     name: Type-check Supabase upload function
