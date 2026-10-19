@@ -33,7 +33,8 @@ jobs:
         run: npm ci
       - name: Apply compatible security updates on this PR branch
         if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
-        run: npm audit fix
+        run: |
+          npm audit fix || echo "Some advisories have no compatible upstream fix; the production audit below remains blocking."
       - name: Commit compatible security updates
         if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
         env:
