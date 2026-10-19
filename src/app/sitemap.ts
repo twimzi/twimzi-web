@@ -21,8 +21,12 @@ type PublicBusiness = {
   id: string;
   slug: string | null;
   updated_at: string | null;
-  city: string | null;
-  state: string | null;
+};
+
+type BusinessLocation = {
+  business_id: string;
+  city: string;
+  state: string;
 };
 
 type PublicCategory = {
@@ -39,11 +43,8 @@ function getCategorySlug(category: PublicCategory): string {
   return slugPart(category.slug?.trim() || category.category_name);
 }
 
-function getLocationSlug(business: PublicBusiness): string | null {
-  const city = business.city?.trim();
-  const state = business.state?.trim();
-  if (!city || !state) return null;
-  return `${slugPart(city)}-${slugPart(state)}`;
+function getLocationSlug(location: BusinessLocation): string {
+  return `${slugPart(location.city)}-${slugPart(location.state)}`;
 }
 
 function createPublicSupabaseClient() {
@@ -51,9 +52,7 @@ function createPublicSupabaseClient() {
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
   if (!supabaseUrl || !supabaseKey) {
-    throw new Error(
-      "Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY.",
-    );
+    throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY.");
   }
 
   return createClient(supabaseUrl, supabaseKey, {
@@ -79,8 +78,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const locationCounts = new Map<string, number>();
 
   try {
-    // Use the public Supabase client so sitemap generation does not access
-    // Next.js cookies or depend on an authenticated visitor session.
     const supabase = createPublicSupabaseClient();
     const pageSize = 100;
     let offset = 0;
@@ -109,15 +106,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             priority: 0.7,
           });
         }
-
-        const locationSlug = getLocationSlug(business);
-        if (locationSlug) {
-          locationCounts.set(locationSlug, (locationCounts.get(locationSlug) ?? 0) + 1);
-        }
       }
 
       if (businesses.length < pageSize) break;
       offset += pageSize;
+    }
+
+    const { data: locationData, error: locationError } =
+      await supabase.rpc("get_public_business_locations");
+
+    if (locationError) {
+      console.error("Failed to load public locations for sitemap:", locationError);
+    } else {
+      for (const location of (locationData ?? []) as BusinessLocation[]) {
+        const slug = getLocationSlug(location);
+        locationCounts.set(slug, (locationCounts.get(slug) ?? 0) + 1);
+      }
     }
 
     const { data: categoryData, error: categoryError } =
