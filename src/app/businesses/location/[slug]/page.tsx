@@ -11,9 +11,13 @@ type Business = {
   slug: string | null;
   description: string | null;
   business_type: string | null;
-  city: string | null;
-  state: string | null;
   updated_at?: string | null;
+};
+
+type BusinessLocation = {
+  business_id: string;
+  city: string;
+  state: string;
 };
 
 type PageProps = { params: Promise<{ slug: string }> };
@@ -22,49 +26,40 @@ function slugPart(value: string) {
   return value.trim().toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "");
 }
 
-function getLocationSlug(business: Business) {
-  const city = business.city?.trim();
-  const state = business.state?.trim();
-  if (!city || !state) return null;
-  return `${slugPart(city)}-${slugPart(state)}`;
-}
-
-async function getPublicBusinesses(): Promise<Business[]> {
-  const supabase = await createSupabaseServerClient();
-  const pageSize = 100;
-  const rows: Business[] = [];
-  let offset = 0;
-
-  while (true) {
-    const { data, error } = await supabase.rpc("get_public_businesses", {
-      p_search: null,
-      p_limit: pageSize,
-      p_offset: offset,
-    });
-
-    if (error || !data) {
-      if (error) console.error("Failed to load public businesses for location page:", error);
-      break;
-    }
-
-    const page = data as Business[];
-    rows.push(...page);
-    if (page.length < pageSize) break;
-    offset += pageSize;
-  }
-
-  return rows;
-}
-
-function getLocationLabel(businesses: Business[]) {
-  const first = businesses[0];
-  return [first?.city?.trim(), first?.state?.trim()].filter(Boolean).join(", ");
+function getLocationSlug(location: BusinessLocation) {
+  return `${slugPart(location.city)}-${slugPart(location.state)}`;
 }
 
 async function getLocationBusinesses(slug: string) {
-  const allBusinesses = await getPublicBusinesses();
-  const businesses = allBusinesses.filter((business) => getLocationSlug(business) === slugPart(slug));
-  return { businesses, location: getLocationLabel(businesses) };
+  const supabase = await createSupabaseServerClient();
+  const normalizedSlug = slugPart(slug);
+
+  const [{ data: locationData, error: locationError }, { data: businessData, error: businessError }] =
+    await Promise.all([
+      supabase.rpc("get_public_business_locations"),
+      supabase.rpc("get_public_businesses", {
+        p_search: null,
+        p_limit: 100,
+        p_offset: 0,
+      }),
+    ]);
+
+  if (locationError) console.error("Failed to load public business locations:", locationError);
+  if (businessError) console.error("Failed to load public businesses for location page:", businessError);
+
+  const locations = (locationData ?? []) as BusinessLocation[];
+  const businesses = (businessData ?? []) as Business[];
+  const locationByBusinessId = new Map(locations.map((item) => [item.business_id, item]));
+  const matchingLocations = locations.filter((item) => getLocationSlug(item) === normalizedSlug);
+  const matchingIds = new Set(matchingLocations.map((item) => item.business_id));
+  const matchedBusinesses = businesses.filter((business) => matchingIds.has(business.id));
+  const firstLocation = matchingLocations[0];
+
+  return {
+    businesses: matchedBusinesses,
+    location: firstLocation ? `${firstLocation.city}, ${firstLocation.state}` : "",
+    locationByBusinessId,
+  };
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
