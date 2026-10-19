@@ -3,11 +3,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 function getSafeNextPath(value: string | null): string {
-  if (!value) {
-    return "/";
-  }
-
-  if (!value.startsWith("/") || value.startsWith("//")) {
+  if (
+    !value ||
+    !value.startsWith("/") ||
+    value.startsWith("//") ||
+    value.includes("\\") ||
+    /[\u0000-\u001f\u007f]/.test(value)
+  ) {
     return "/";
   }
 
@@ -53,5 +55,10 @@ export async function GET(request: NextRequest) {
     process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
     "https://www.twimzi.com";
 
-  return NextResponse.redirect(new URL(next, siteUrl));
+  const redirectUrl = new URL(next, siteUrl);
+  if (redirectUrl.origin !== new URL(siteUrl).origin) {
+    return NextResponse.redirect(new URL("/", siteUrl));
+  }
+
+  return NextResponse.redirect(redirectUrl);
 }
