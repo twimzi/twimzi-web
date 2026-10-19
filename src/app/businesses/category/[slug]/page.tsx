@@ -30,6 +30,10 @@ function normalizeSlug(value: string) {
   return value.trim().toLowerCase();
 }
 
+function slugifyCategory(value: string) {
+  return value.trim().toLowerCase().replace(/[^\\p{L}\\p{N}]+/gu, "-").replace(/^-|-$/g, "");
+}
+
 async function getCategory(slug: string): Promise<Category | null> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.rpc("get_public_categories");
@@ -38,8 +42,7 @@ async function getCategory(slug: string): Promise<Category | null> {
 
   return (data as Category[]).find((category) => {
     const categorySlug = normalizeSlug(
-      category.slug?.trim() ||
-        category.category_name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
+      slugifyCategory(category.slug?.trim() || category.category_name),
     );
     return categorySlug === normalizeSlug(slug);
   }) ?? null;
@@ -51,7 +54,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   if (!category) return { title: "Category Not Found | Twimzi", robots: { index: false, follow: true } };
 
-  const canonical = `${siteConfig.url}/businesses/category/${encodeURIComponent(normalizeSlug(category.slug?.trim() || category.category_name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")))}`;
+  const canonical = `${siteConfig.url}/businesses/category/${encodeURIComponent(normalizeSlug(slugifyCategory(category.slug?.trim() || category.category_name)))}`;
   const description = category.description?.trim() ||
     `Discover ${category.category_name.toLowerCase()} businesses, shops, professionals and service providers on Twimzi.`;
 
