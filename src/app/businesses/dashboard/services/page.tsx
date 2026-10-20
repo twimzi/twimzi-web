@@ -27,6 +27,8 @@ type Service = {
   slug: string | null;
   short_description: string | null;
   description: string | null;
+  keywords: string[];
+  hashtags: string[];
   duration_minutes: number | null;
   price: number | null;
   booking_required: boolean;
@@ -45,6 +47,8 @@ type ServiceForm = {
   slug: string;
   short_description: string;
   description: string;
+  keywords: string;
+  hashtags: string;
   duration_minutes: string;
   price: string;
   booking_required: boolean;
@@ -60,6 +64,8 @@ const emptyForm: ServiceForm = {
   slug: "",
   short_description: "",
   description: "",
+  keywords: "",
+  hashtags: "",
   duration_minutes: "",
   price: "",
   booking_required: false,
@@ -79,6 +85,13 @@ function toNullableNumber(value: string): number | null {
   const parsed = Number(trimmed);
 
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+function parseTagList(value: string, hashtags = false): string[] {
+  return Array.from(new Set(value.split(",").map((item) => {
+    const trimmed = item.trim().replace(/^#+/, "");
+    return hashtags ? trimmed.toLowerCase() : trimmed;
+  }).filter(Boolean))).slice(0, 20);
 }
 
 function formatPrice(value: number | null) {
@@ -170,7 +183,7 @@ export default function BusinessServicesDashboardPage() {
         const { data: serviceData, error: servicesError } = await supabase
           .from("services")
           .select(
-            "id, business_id, service_code, service_name, slug, short_description, description, duration_minutes, price, booking_required, home_service_available, service_radius_km, is_featured, is_active, created_at, updated_at, deleted_at",
+            "id, business_id, service_code, service_name, slug, short_description, description, keywords, hashtags, duration_minutes, price, booking_required, home_service_available, service_radius_km, is_featured, is_active, created_at, updated_at, deleted_at",
           )
           .eq("business_id", businessData.id)
           .is("deleted_at", null)
@@ -216,7 +229,7 @@ export default function BusinessServicesDashboardPage() {
     const { data, error: servicesError } = await supabase
       .from("services")
       .select(
-        "id, business_id, service_code, service_name, slug, short_description, description, duration_minutes, price, booking_required, home_service_available, service_radius_km, is_featured, is_active, created_at, updated_at, deleted_at",
+        "id, business_id, service_code, service_name, slug, short_description, description, keywords, hashtags, duration_minutes, price, booking_required, home_service_available, service_radius_km, is_featured, is_active, created_at, updated_at, deleted_at",
       )
       .eq("business_id", businessId)
       .is("deleted_at", null)
@@ -242,6 +255,8 @@ export default function BusinessServicesDashboardPage() {
         service.service_code,
         service.slug,
         service.short_description,
+        ...(service.keywords ?? []),
+        ...(service.hashtags ?? []),
       ]
         .filter(Boolean)
         .some((value) => value?.toLowerCase().includes(query)),
@@ -265,6 +280,8 @@ export default function BusinessServicesDashboardPage() {
       slug: service.slug ?? "",
       short_description: service.short_description ?? "",
       description: service.description ?? "",
+      keywords: (service.keywords ?? []).join(", "),
+      hashtags: (service.hashtags ?? []).join(", "),
       duration_minutes:
         service.duration_minutes === null
           ? ""
@@ -350,6 +367,8 @@ export default function BusinessServicesDashboardPage() {
         slug: form.slug.trim() || null,
         short_description: form.short_description.trim() || null,
         description: form.description.trim() || null,
+        keywords: parseTagList(form.keywords),
+        hashtags: parseTagList(form.hashtags, true),
         duration_minutes: toNullableNumber(form.duration_minutes),
         price: toNullableNumber(form.price),
         booking_required: form.booking_required,
@@ -1038,6 +1057,18 @@ export default function BusinessServicesDashboardPage() {
                     className="w-full resize-y rounded-xl border border-slate-200 px-3 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
                   />
                 </div>
+
+                <div>
+                  <label htmlFor="service_keywords" className="mb-1.5 block text-sm font-semibold text-slate-700">Keywords</label>
+                  <input id="service_keywords" value={form.keywords} onChange={(event) => updateForm("keywords", event.target.value)} placeholder="e.g. local shop, wholesale, repair" className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100" />
+                  <p className="mt-1 text-xs text-slate-500">Comma-separated; up to 20 keywords.</p>
+                </div>
+                <div>
+                  <label htmlFor="service_hashtags" className="mb-1.5 block text-sm font-semibold text-slate-700">Hashtags</label>
+                  <input id="service_hashtags" value={form.hashtags} onChange={(event) => updateForm("hashtags", event.target.value)} placeholder="e.g. #Ludhiana, #Wholesale" className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100" />
+                  <p className="mt-1 text-xs text-slate-500">Comma-separated; # is optional.</p>
+                </div>
+
 
                 <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-4 transition hover:bg-slate-50">
                   <input
