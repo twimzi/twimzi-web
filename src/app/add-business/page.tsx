@@ -29,6 +29,13 @@ function revokePreview(preview: string) {
   URL.revokeObjectURL(preview);
 }
 
+function parseTagList(value: string, hashtags = false): string[] {
+  return Array.from(new Set(value.split(",").map((item) => {
+    const trimmed = item.trim().replace(/^#+/, "");
+    return hashtags ? trimmed.toLowerCase() : trimmed;
+  }).filter(Boolean))).slice(0, 20);
+}
+
 export default function AddBusiness() {
   const router = useRouter();
 
@@ -46,6 +53,8 @@ export default function AddBusiness() {
   const [locationLoading, setLocationLoading] = useState(false);
   const [pincodeLoading, setPincodeLoading] = useState(false);
   const [description, setDescription] = useState("");
+  const [keywords, setKeywords] = useState("");
+  const [hashtags, setHashtags] = useState("");
   const [phone, setPhone] = useState("");
   const [website, setWebsite] = useState("");
 
@@ -582,6 +591,13 @@ export default function AddBusiness() {
         );
       }
 
+      const { error: tagsError } = await supabase
+        .from("businesses")
+        .update({ keywords: parseTagList(keywords), hashtags: parseTagList(hashtags, true) })
+        .eq("id", business.id);
+
+      if (tagsError) throw tagsError;
+
       const uploads: Array<{
         kind: MediaKind;
         selected: SelectedImage;
@@ -1026,6 +1042,17 @@ export default function AddBusiness() {
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--color-primary-light)] text-[var(--color-primary)]">
                     <ImagePlus className="h-5 w-5" />
                   </div>
+
+                <div>
+                  <label htmlFor="business_keywords" className="mb-2 block text-sm font-semibold">Keywords</label>
+                  <input id="business_keywords" value={keywords} onChange={(event) => setKeywords(event.target.value)} placeholder="e.g. local shop, wholesale, repair" className="h-11 w-full rounded-xl border border-[var(--color-border)] px-3 text-sm" />
+                  <p className="mt-1 text-xs text-[var(--color-text-muted)]">Comma-separated; up to 20 keywords.</p>
+                </div>
+                <div>
+                  <label htmlFor="business_hashtags" className="mb-2 block text-sm font-semibold">Hashtags</label>
+                  <input id="business_hashtags" value={hashtags} onChange={(event) => setHashtags(event.target.value)} placeholder="e.g. #Ludhiana, #Wholesale" className="h-11 w-full rounded-xl border border-[var(--color-border)] px-3 text-sm" />
+                  <p className="mt-1 text-xs text-[var(--color-text-muted)]">Comma-separated; # is optional.</p>
+                </div>
 
                   <div>
                     <h3 className="font-bold">

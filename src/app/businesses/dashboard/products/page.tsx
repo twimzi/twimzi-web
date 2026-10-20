@@ -32,6 +32,8 @@ type Product = {
   model: string | null;
   short_description: string | null;
   description: string | null;
+  keywords: string[];
+  hashtags: string[];
   selling_price: number | null;
   mrp: number | null;
   cost_price: number | null;
@@ -59,6 +61,8 @@ type ProductForm = {
   thumbnail_url: string;
   short_description: string;
   description: string;
+  keywords: string;
+  hashtags: string;
   is_active: boolean;
   is_featured: boolean;
 };
@@ -77,6 +81,8 @@ const emptyForm: ProductForm = {
   thumbnail_url: "",
   short_description: "",
   description: "",
+  keywords: "",
+  hashtags: "",
   is_active: true,
   is_featured: false,
 };
@@ -90,6 +96,13 @@ function toNullableNumber(value: string): number | null {
 
   const parsed = Number(trimmed);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+function parseTagList(value: string, hashtags = false): string[] {
+  return Array.from(new Set(value.split(",").map((item) => {
+    const trimmed = item.trim().replace(/^#+/, "");
+    return hashtags ? trimmed.toLowerCase() : trimmed;
+  }).filter(Boolean))).slice(0, 20);
 }
 
 function formatPrice(value: number | null) {
@@ -164,7 +177,7 @@ export default function BusinessProductsDashboardPage() {
         const { data: productData, error: productsError } = await supabase
           .from("products")
           .select(
-            "id, business_id, product_code, product_name, sku, brand, model, short_description, description, selling_price, mrp, cost_price, stock_quantity, minimum_stock, thumbnail_url, is_active, is_featured, created_at, updated_at, deleted_at",
+            "id, business_id, product_code, product_name, sku, brand, model, short_description, description, keywords, hashtags, selling_price, mrp, cost_price, stock_quantity, minimum_stock, thumbnail_url, is_active, is_featured, created_at, updated_at, deleted_at",
           )
           .eq("business_id", businessData.id)
           .is("deleted_at", null)
@@ -210,7 +223,7 @@ export default function BusinessProductsDashboardPage() {
     const { data, error: productsError } = await supabase
       .from("products")
       .select(
-        "id, business_id, product_code, product_name, sku, brand, model, short_description, description, selling_price, mrp, cost_price, stock_quantity, minimum_stock, thumbnail_url, is_active, is_featured, created_at, updated_at, deleted_at",
+        "id, business_id, product_code, product_name, sku, brand, model, short_description, description, keywords, hashtags, selling_price, mrp, cost_price, stock_quantity, minimum_stock, thumbnail_url, is_active, is_featured, created_at, updated_at, deleted_at",
       )
       .eq("business_id", businessId)
       .is("deleted_at", null)
@@ -237,6 +250,8 @@ export default function BusinessProductsDashboardPage() {
         product.sku,
         product.brand,
         product.model,
+        ...(product.keywords ?? []),
+        ...(product.hashtags ?? []),
       ]
         .filter(Boolean)
         .some((value) => value?.toLowerCase().includes(query)),
@@ -279,6 +294,8 @@ export default function BusinessProductsDashboardPage() {
       thumbnail_url: product.thumbnail_url ?? "",
       short_description: product.short_description ?? "",
       description: product.description ?? "",
+      keywords: (product.keywords ?? []).join(", "),
+      hashtags: (product.hashtags ?? []).join(", "),
       is_active: product.is_active,
       is_featured: product.is_featured,
     });
@@ -442,6 +459,8 @@ export default function BusinessProductsDashboardPage() {
         thumbnail_url: form.thumbnail_url.trim() || null,
         short_description: form.short_description.trim() || null,
         description: form.description.trim() || null,
+        keywords: parseTagList(form.keywords),
+        hashtags: parseTagList(form.hashtags, true),
         is_active: form.is_active,
         is_featured: form.is_featured,
         updated_by: user.id,
@@ -1261,6 +1280,18 @@ export default function BusinessProductsDashboardPage() {
                     className="w-full resize-y rounded-xl border border-slate-200 px-3 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
                   />
                 </div>
+
+                <div>
+                  <label htmlFor="product_keywords" className="mb-1.5 block text-sm font-semibold text-slate-700">Keywords</label>
+                  <input id="product_keywords" value={form.keywords} onChange={(event) => updateForm("keywords", event.target.value)} placeholder="e.g. local shop, wholesale, repair" className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100" />
+                  <p className="mt-1 text-xs text-slate-500">Comma-separated; up to 20 keywords.</p>
+                </div>
+                <div>
+                  <label htmlFor="product_hashtags" className="mb-1.5 block text-sm font-semibold text-slate-700">Hashtags</label>
+                  <input id="product_hashtags" value={form.hashtags} onChange={(event) => updateForm("hashtags", event.target.value)} placeholder="e.g. #Ludhiana, #Wholesale" className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100" />
+                  <p className="mt-1 text-xs text-slate-500">Comma-separated; # is optional.</p>
+                </div>
+
 
                 <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-4 transition hover:bg-slate-50">
                   <input
