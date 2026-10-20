@@ -425,6 +425,14 @@ export default function BusinessDashboardPage() {
               )}
 
               <Link
+                href="/businesses/dashboard/settings"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-[var(--color-border)] bg-white px-4 py-2.5 text-sm font-semibold text-[var(--color-text)] transition hover:bg-[var(--color-background)]"
+              >
+                <Settings className="h-4 w-4" />
+                Edit Business
+              </Link>
+
+              <Link
                 href="/messages"
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--color-primary-dark)]"
               >
