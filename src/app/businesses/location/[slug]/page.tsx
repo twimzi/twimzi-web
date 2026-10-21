@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { StructuredData } from "@/components/seo/structured-data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { siteConfig } from "@/config/site";
 
@@ -88,6 +89,26 @@ export default async function BusinessLocationPage({ params }: PageProps) {
 
   if (!businesses.length || !location) notFound();
 
+  const canonical = `${siteConfig.url}/businesses/location/${encodeURIComponent(slugPart(slug))}`;
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: siteConfig.url },
+      { "@type": "ListItem", position: 2, name: "Businesses", item: `${siteConfig.url}/businesses` },
+      { "@type": "ListItem", position: 3, name: location, item: canonical },
+    ],
+  };
+
+  const collectionPageSchema = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: `Businesses in ${location} on Twimzi`,
+    url: canonical,
+    isPartOf: { "@type": "WebSite", name: "Twimzi", url: siteConfig.url },
+  };
+
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
       <nav aria-label="Breadcrumb" className="mb-6 text-sm text-[var(--color-text-muted)]">
@@ -129,13 +150,8 @@ export default async function BusinessLocationPage({ params }: PageProps) {
         Want to discover more? <Link href="/businesses" className="font-semibold text-[var(--color-primary)] hover:underline">Browse all businesses on Twimzi</Link>.
       </p>
 
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
-        "@context": "https://schema.org",
-        "@type": "CollectionPage",
-        name: `Businesses in ${location} on Twimzi`,
-        url: `${siteConfig.url}/businesses/location/${encodeURIComponent(slugPart(slug))}`,
-        isPartOf: { "@type": "WebSite", name: "Twimzi", url: siteConfig.url },
-      }).replace(/</g, "\\u003c") }} />
+      <StructuredData data={breadcrumbSchema} />
+      <StructuredData data={collectionPageSchema} />
     </main>
   );
 }

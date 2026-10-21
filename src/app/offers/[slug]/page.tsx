@@ -12,6 +12,7 @@ import { notFound } from "next/navigation";
 
 import { StructuredData } from "@/components/seo/structured-data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { siteConfig } from "@/config/site";
 
 type Offer = {
   id: string;
@@ -228,21 +229,26 @@ export async function generateMetadata({
       business ? ` from ${business.business_name}` : ""
     } on Twimzi.`;
 
-  const canonicalUrl = `https://www.twimzi.com/offers/${encodeURIComponent(
-    offer.slug,
-  )}`;
+  const canonicalUrl = new URL(
+    `/offers/${encodeURIComponent(offer.slug)}`,
+    siteConfig.url,
+  ).toString();
 
   return {
     title,
     description,
-    alternates: {
-      canonical: canonicalUrl,
-    },
+    alternates: { canonical: canonicalUrl },
     openGraph: {
       title,
       description,
       type: "website",
       url: canonicalUrl,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: ["/twimzi-logo.png"],
     },
   };
 }
@@ -362,9 +368,20 @@ export default async function OfferDetailPage({ params }: PageProps) {
     offerSchema.additionalProperty = additionalProperties;
   }
 
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: siteConfig.url },
+      { "@type": "ListItem", position: 2, name: "Offers", item: `${siteConfig.url}/offers` },
+      { "@type": "ListItem", position: 3, name: offer.title, item: offerUrl },
+    ],
+  };
+
   return (
     <main className="min-h-[calc(100vh-4rem)] bg-slate-50">
       <StructuredData data={offerSchema} />
+      <StructuredData data={breadcrumbSchema} />
 
       <section className="border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
@@ -377,6 +394,15 @@ export default async function OfferDetailPage({ params }: PageProps) {
           </Link>
         </div>
       </section>
+
+      {/* BREADCRUMB */}
+      <nav aria-label="Breadcrumb" className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8 text-sm text-slate-500">
+        <Link href="/" className="hover:underline">Home</Link>
+        {" / "}
+        <Link href="/offers" className="hover:underline">Offers</Link>
+        {" / "}
+        <span aria-current="page">{offer.title}</span>
+      </nav>
 
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.9fr)]">

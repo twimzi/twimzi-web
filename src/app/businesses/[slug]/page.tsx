@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import BusinessFollowButton from "@/components/business/business-follow-button";
 import BusinessPostCard from "@/components/business/business-post-card";
 import { MessageBusinessButton } from "@/components/messaging/message-business-button";
+import { StructuredData } from "@/components/seo/structured-data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { siteConfig } from "@/config/site";
 
@@ -514,14 +515,20 @@ export default async function BusinessDetailPage({
     };
   }
 
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: siteConfig.url },
+      { "@type": "ListItem", position: 2, name: "Businesses", item: `${siteConfig.url}/businesses` },
+      { "@type": "ListItem", position: 3, name: business.business_name, item: canonicalUrl },
+    ],
+  };
+
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify(structuredData).replace(/</g, "\\u003c"),
-        }}
-      />
+      <StructuredData data={structuredData} />
+      <StructuredData data={breadcrumbSchema} />
       <main className="min-h-screen bg-[var(--color-background)]">
       {/* HERO */}
       <section className="relative overflow-hidden">
@@ -630,6 +637,15 @@ export default async function BusinessDetailPage({
           </div>
         </div>
       </section>
+
+      {/* BREADCRUMB */}
+      <nav aria-label="Breadcrumb" className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8 text-sm text-[var(--color-text-muted)]">
+        <Link href="/" className="hover:underline">Home</Link>
+        {" / "}
+        <Link href="/businesses" className="hover:underline">Businesses</Link>
+        {" / "}
+        <span aria-current="page">{business.business_name}</span>
+      </nav>
 
       {/* CONTENT */}
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -801,33 +817,66 @@ export default async function BusinessDetailPage({
                   {products.map((product) => {
                     const price = formatPrice(product.selling_price);
                     const mrp = formatPrice(product.mrp);
+                    const productHref = product.slug
+                      ? `/products/${product.slug}`
+                      : null;
 
                     return (
                       <article
                         key={product.id}
                         className="group overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] transition hover:-translate-y-0.5 hover:border-[var(--color-primary)] hover:shadow-md"
                       >
-                        <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-[var(--color-surface-muted)]">
-                          {product.thumbnail_url ? (
-                            <Image
-                              src={product.thumbnail_url}
-                              alt={product.product_name}
-                              width={600}
-                              height={450}
-                              className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-                            />
-                          ) : (
-                            <div className="text-4xl font-bold text-slate-300">
-                              T
-                            </div>
-                          )}
+                        {productHref ? (
+                          <Link
+                            href={productHref}
+                            className="block"
+                            aria-label={`View ${product.product_name} details`}
+                          >
+                            <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-[var(--color-surface-muted)]">
+                              {product.thumbnail_url ? (
+                                <Image
+                                  src={product.thumbnail_url}
+                                  alt={product.product_name}
+                                  width={600}
+                                  height={450}
+                                  className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                                />
+                              ) : (
+                                <div className="text-4xl font-bold text-slate-300">
+                                  T
+                                </div>
+                              )}
 
-                          {product.is_featured && (
-                            <span className="absolute left-3 top-3 rounded-full bg-[var(--color-accent-dark)] px-2.5 py-1 text-[11px] font-bold text-white">
-                              Featured
-                            </span>
-                          )}
-                        </div>
+                              {product.is_featured && (
+                                <span className="absolute left-3 top-3 rounded-full bg-[var(--color-accent-dark)] px-2.5 py-1 text-[11px] font-bold text-white">
+                                  Featured
+                                </span>
+                              )}
+                            </div>
+                          </Link>
+                        ) : (
+                          <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-[var(--color-surface-muted)]">
+                            {product.thumbnail_url ? (
+                              <Image
+                                src={product.thumbnail_url}
+                                alt={product.product_name}
+                                width={600}
+                                height={450}
+                                className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                              />
+                            ) : (
+                              <div className="text-4xl font-bold text-slate-300">
+                                T
+                              </div>
+                            )}
+
+                            {product.is_featured && (
+                              <span className="absolute left-3 top-3 rounded-full bg-[var(--color-accent-dark)] px-2.5 py-1 text-[11px] font-bold text-white">
+                                Featured
+                              </span>
+                            )}
+                          </div>
+                        )}
 
                         <div className="p-4">
                           <h3 className="line-clamp-2 font-bold text-[var(--color-text)]">
@@ -895,31 +944,62 @@ export default async function BusinessDetailPage({
                     const duration = formatDuration(
                       service.duration_minutes,
                     );
+                    const serviceHref = service.slug
+                      ? `/services/${service.slug}`
+                      : null;
 
                     return (
                       <article
                         key={service.id}
                         className="rounded-2xl border border-[var(--color-border)] p-5 transition hover:border-[var(--color-accent)] hover:shadow-md"
                       >
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <h3 className="font-bold text-[var(--color-text)]">
-                              {service.service_name}
-                            </h3>
+                        {serviceHref ? (
+                          <Link
+                            href={serviceHref}
+                            className="hover:underline"
+                            aria-label={`View ${service.service_name} details`}
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <h3 className="font-bold text-[var(--color-text)]">
+                                  {service.service_name}
+                                </h3>
 
-                            {service.service_code && (
-                              <p className="mt-1 text-xs text-[var(--color-text-light)]">
-                                {service.service_code}
-                              </p>
+                                {service.service_code && (
+                                  <p className="mt-1 text-xs text-[var(--color-text-light)]">
+                                    {service.service_code}
+                                  </p>
+                                )}
+                              </div>
+
+                              {service.is_featured && (
+                                <span className="shrink-0 rounded-full bg-[var(--color-accent-light)] px-2.5 py-1 text-[11px] font-bold text-[var(--color-accent-dark)]">
+                                  Featured
+                                </span>
+                              )}
+                            </div>
+                          </Link>
+                        ) : (
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <h3 className="font-bold text-[var(--color-text)]">
+                                {service.service_name}
+                              </h3>
+
+                              {service.service_code && (
+                                <p className="mt-1 text-xs text-[var(--color-text-light)]">
+                                  {service.service_code}
+                                </p>
+                              )}
+                            </div>
+
+                            {service.is_featured && (
+                              <span className="shrink-0 rounded-full bg-[var(--color-accent-light)] px-2.5 py-1 text-[11px] font-bold text-[var(--color-accent-dark)]">
+                                Featured
+                              </span>
                             )}
                           </div>
-
-                          {service.is_featured && (
-                            <span className="shrink-0 rounded-full bg-[var(--color-accent-light)] px-2.5 py-1 text-[11px] font-bold text-[var(--color-accent-dark)]">
-                              Featured
-                            </span>
-                          )}
-                        </div>
+                        )}
 
                         {service.short_description && (
                           <p className="mt-3 text-sm leading-6 text-[var(--color-text-muted)]">
@@ -995,6 +1075,10 @@ export default async function BusinessDetailPage({
                       formatDate(offer.end_at) ||
                       formatDate(offer.end_date);
 
+                    const offerHref = asString(offer.slug)
+                      ? `/offers/${offer.slug}`
+                      : null;
+
                     return (
                       <article
                         key={asString(offer.id) ?? `offer-${index}`}
@@ -1006,9 +1090,21 @@ export default async function BusinessDetailPage({
                           </span>
                         )}
 
-                        <h3 className="mt-3 font-bold text-[var(--color-text)]">
-                          {title}
-                        </h3>
+                        {offerHref ? (
+                          <Link
+                            href={offerHref}
+                            className="hover:underline"
+                            aria-label={`View ${title} details`}
+                          >
+                            <h3 className="mt-3 font-bold text-[var(--color-text)]">
+                              {title}
+                            </h3>
+                          </Link>
+                        ) : (
+                          <h3 className="mt-3 font-bold text-[var(--color-text)]">
+                            {title}
+                          </h3>
+                        )}
 
                         {description && (
                           <p className="mt-2 text-sm leading-6 text-[var(--color-text-muted)]">

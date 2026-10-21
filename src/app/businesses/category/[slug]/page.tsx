@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { StructuredData } from "@/components/seo/structured-data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { siteConfig } from "@/config/site";
 
@@ -81,9 +82,26 @@ export default async function BusinessCategoryPage({ params }: PageProps) {
   });
 
   const businesses = (data ?? []) as Business[];
-  const categorySlug = normalizeSlug(
-    slugifyCategory(category.slug?.trim() || category.category_name),
-  );
+
+  const canonical = `${siteConfig.url}/businesses/category/${encodeURIComponent(slugifyCategory(category.slug?.trim() || category.category_name))}`;
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: siteConfig.url },
+      { "@type": "ListItem", position: 2, name: "Businesses", item: `${siteConfig.url}/businesses` },
+      { "@type": "ListItem", position: 3, name: category.category_name, item: canonical },
+    ],
+  };
+
+  const collectionPageSchema = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: `${category.category_name} Businesses on Twimzi`,
+    url: canonical,
+    isPartOf: { "@type": "WebSite", name: "Twimzi", url: siteConfig.url },
+  };
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
@@ -145,13 +163,8 @@ export default async function BusinessCategoryPage({ params }: PageProps) {
         </section>
       )}
 
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
-        "@context": "https://schema.org",
-        "@type": "CollectionPage",
-        name: `${category.category_name} Businesses on Twimzi`,
-        url: `${siteConfig.url}/businesses/category/${encodeURIComponent(categorySlug)}`,
-        isPartOf: { "@type": "WebSite", name: "Twimzi", url: siteConfig.url },
-      }).replace(/</g, "\\u003c") }} />
+      <StructuredData data={breadcrumbSchema} />
+      <StructuredData data={collectionPageSchema} />
     </main>
   );
 }

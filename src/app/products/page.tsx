@@ -81,13 +81,62 @@ function ProductCard({ product }: { product: Product }) {
       )
     : 0;
 
+  const productHref = product.slug
+    ? `/products/${product.slug}`
+    : null;
+
+  const businessHref = getBusinessHref(product);
+
   return (
     <article className="group overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[var(--color-primary)]/40 hover:shadow-[var(--shadow-md)]">
-      <Link
-        href={getBusinessHref(product)}
-        className="block"
-        aria-label={`View ${product.business_name || "business"} profile`}
-      >
+      {productHref ? (
+        <Link
+          href={productHref}
+          className="block"
+          aria-label={`View ${name} details`}
+        >
+          <div className="relative aspect-[4/3] overflow-hidden bg-[var(--color-secondary)]">
+            {product.thumbnail_url ? (
+              <div
+                className="absolute inset-0 bg-cover bg-center transition duration-300 group-hover:scale-105"
+                style={{
+                  backgroundImage: `url("${product.thumbnail_url.replace(/"/g, '\\"')}")`,
+                }}
+                role="img"
+                aria-label={name}
+              />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center bg-[var(--color-secondary)]">
+                <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white text-3xl font-bold text-[var(--color-text-muted)] shadow-sm">
+                  {getProductInitial(product.product_name)}
+                </div>
+              </div>
+            )}
+
+            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/40 to-transparent" />
+
+            <div className="absolute left-3 top-3 flex flex-wrap gap-2">
+              {product.is_featured ? (
+                <span className="rounded-full border border-white/50 bg-white/90 px-2.5 py-1 text-xs font-bold text-[var(--color-text)] backdrop-blur">
+                  Featured
+                </span>
+              ) : null}
+
+              {discountPercent > 0 ? (
+                <span className="rounded-full bg-[var(--color-primary)] px-2.5 py-1 text-xs font-bold text-white">
+                  {discountPercent}% off
+                </span>
+              ) : null}
+            </div>
+
+            {product.image_count && product.image_count > 1 ? (
+              <span className="absolute bottom-3 right-3 rounded-full bg-black/60 px-2.5 py-1 text-xs font-semibold text-white">
+                {product.image_count} photos
+              </span>
+            ) : null}
+          </div>
+        </Link>
+      ) : (
         <div className="relative aspect-[4/3] overflow-hidden bg-[var(--color-secondary)]">
           {product.thumbnail_url ? (
             <div
@@ -128,7 +177,7 @@ function ProductCard({ product }: { product: Product }) {
             </span>
           ) : null}
         </div>
-      </Link>
+      )}
 
       <div className="p-4 sm:p-5">
         <div className="flex items-start justify-between gap-3">
@@ -179,7 +228,7 @@ function ProductCard({ product }: { product: Product }) {
 
         <div className="mt-4 border-t border-[var(--color-border)] pt-4">
           <Link
-            href={getBusinessHref(product)}
+            href={businessHref}
             className="flex items-center justify-between gap-3 text-sm font-semibold text-[var(--color-text)] transition group-hover:text-[var(--color-primary)]"
           >
             <span className="flex min-w-0 items-center gap-2">

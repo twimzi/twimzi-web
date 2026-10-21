@@ -81,27 +81,61 @@ function ServiceCard({ service }: { service: Service }) {
 
   const duration = formatDuration(service.duration_minutes);
 
+  const serviceHref = service.slug
+    ? `/services/${service.slug}`
+    : null;
+
+  const businessHref = getBusinessHref(service);
+
   return (
     <article className="group overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-[var(--color-primary)]/40 hover:shadow-[var(--shadow-md)]">
-      <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-[var(--color-secondary)]">
-        <div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-white text-4xl font-bold text-[var(--color-text-muted)] shadow-sm transition group-hover:scale-105">
-          {getInitial(service.service_name)}
-        </div>
+      {serviceHref ? (
+        <Link
+          href={serviceHref}
+          className="block"
+          aria-label={`View ${name} details`}
+        >
+          <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-[var(--color-secondary)]">
+            <div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-white text-4xl font-bold text-[var(--color-text-muted)] shadow-sm transition group-hover:scale-105">
+              {getInitial(service.service_name)}
+            </div>
 
-        <div className="absolute left-3 top-3 flex flex-wrap gap-2">
-          {service.is_featured ? (
-            <span className="rounded-full border border-white/60 bg-white/90 px-2.5 py-1 text-xs font-bold text-[var(--color-text)] backdrop-blur">
-              Featured
-            </span>
-          ) : null}
+            <div className="absolute left-3 top-3 flex flex-wrap gap-2">
+              {service.is_featured ? (
+                <span className="rounded-full border border-white/60 bg-white/90 px-2.5 py-1 text-xs font-bold text-[var(--color-text)] backdrop-blur">
+                  Featured
+                </span>
+              ) : null}
 
-          {service.home_service_available ? (
-            <span className="rounded-full bg-[var(--color-primary)] px-2.5 py-1 text-xs font-bold text-white">
-              Home Service
-            </span>
-          ) : null}
+              {service.home_service_available ? (
+                <span className="rounded-full bg-[var(--color-primary)] px-2.5 py-1 text-xs font-bold text-white">
+                  Home Service
+                </span>
+              ) : null}
+            </div>
+          </div>
+        </Link>
+      ) : (
+        <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-[var(--color-secondary)]">
+          <div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-white text-4xl font-bold text-[var(--color-text-muted)] shadow-sm transition group-hover:scale-105">
+            {getInitial(service.service_name)}
+          </div>
+
+          <div className="absolute left-3 top-3 flex flex-wrap gap-2">
+            {service.is_featured ? (
+              <span className="rounded-full border border-white/60 bg-white/90 px-2.5 py-1 text-xs font-bold text-[var(--color-text)] backdrop-blur">
+                Featured
+              </span>
+            ) : null}
+
+            {service.home_service_available ? (
+              <span className="rounded-full bg-[var(--color-primary)] px-2.5 py-1 text-xs font-bold text-white">
+                Home Service
+              </span>
+            ) : null}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="p-4 sm:p-5">
         <div className="flex items-start justify-between gap-3">
@@ -154,7 +188,7 @@ function ServiceCard({ service }: { service: Service }) {
 
         <div className="mt-4 border-t border-[var(--color-border)] pt-4">
           <Link
-            href={getBusinessHref(service)}
+            href={businessHref}
             className="flex items-center justify-between gap-3 text-sm font-semibold text-[var(--color-text)] transition group-hover:text-[var(--color-primary)]"
           >
             <span className="flex min-w-0 items-center gap-2">
