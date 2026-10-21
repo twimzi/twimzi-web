@@ -525,16 +525,20 @@ export default async function BusinessDetailPage({
       <main className="min-h-screen bg-[var(--color-background)]">
       {/* HERO */}
       <section className="relative overflow-hidden">
-        <div className="relative h-56 overflow-hidden sm:h-72 lg:h-80">
+        <div className="relative h-64 overflow-hidden bg-[var(--color-surface-muted)] sm:h-80 lg:h-[380px]">
           {coverUrl ? (
-            <Image
-              src={coverUrl}
-              alt={`${business.business_name} cover`}
-              fill
-              priority
-              sizes="100vw"
-              className="object-contain bg-[var(--color-surface-muted)]"
-            />
+            <>
+              {/* Use the cover as a true full-width background; do not render a narrow contained copy over it. */}
+              <Image
+                src={coverUrl}
+                alt={`${business.business_name} cover`}
+                fill
+                priority
+                sizes="100vw"
+                className="object-cover object-center"
+              />
+              <div className="absolute inset-0 bg-black/10" />
+            </>
           ) : (
             <>
               <div className="absolute inset-0 bg-[var(--color-brand-gradient)]" />
@@ -542,17 +546,13 @@ export default async function BusinessDetailPage({
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,color-mix(in_srgb,var(--color-accent-light)_55%,transparent),transparent_35%)]" />
             </>
           )}
-
-          {coverUrl && (
-            <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-black/10" />
-          )}
         </div>
 
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="relative -mt-20 rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-xl sm:-mt-24 sm:p-7">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
               <div className="flex flex-col gap-5 sm:flex-row sm:items-end">
-                <div className="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-3xl border-4 border-[var(--color-surface)] bg-[var(--color-surface)] shadow-lg sm:h-36 sm:w-36">
+                <div className="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-full border-4 border-[var(--color-surface)] bg-[var(--color-surface)] shadow-lg sm:h-36 sm:w-36">
                   {logoUrl ? (
                     <Image
                       src={logoUrl}

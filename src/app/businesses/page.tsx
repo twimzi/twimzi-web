@@ -1,4 +1,5 @@
 
+import Image from "next/image";
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
@@ -23,6 +24,7 @@ import {
 import { Container } from "@/components/ui/container";
 import { PageHero } from "@/components/ui/page-hero";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { siteConfig } from "@/config/site";
 
 export const metadata: Metadata = {
   title: "Businesses | Twimzi",
@@ -63,6 +65,35 @@ type Business = {
   is_featured: boolean;
   created_at: string;
 };
+
+type BusinessMedia = {
+  logo_bucket_name: string | null;
+  logo_object_path: string | null;
+  logo_is_public: boolean | null;
+  cover_bucket_name: string | null;
+  cover_object_path: string | null;
+  cover_is_public: boolean | null;
+};
+
+type BusinessCardData = Business & {
+  logoUrl: string | null;
+  coverUrl: string | null;
+};
+
+function getStoragePublicUrl(
+  bucketName: string | null,
+  objectPath: string | null,
+  isPublic: boolean | null,
+): string | null {
+  if (!bucketName || !objectPath || isPublic !== true) return null;
+
+  const encodedPath = objectPath
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+
+  return `${siteConfig.media.publicUrl.replace(/\/$/, "")}/media/${encodedPath}`;
+}
 
 function getBusinessHref(business: Business) {
   return business.slug?.trim()
@@ -194,7 +225,7 @@ function getCategoryIcon(category: Category): LucideIcon {
   return Sparkles;
 }
 
-function BusinessCard({ business }: { business: Business }) {
+function BusinessCard({ business }: { business: BusinessCardData }) {
   const location = getLocation(business);
   const verified = isVerified(business);
 
@@ -202,12 +233,37 @@ function BusinessCard({ business }: { business: Business }) {
     <article className="group overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[var(--shadow-sm)] transition duration-200 hover:-translate-y-1 hover:border-[var(--color-primary)]/30 hover:shadow-[var(--shadow-lg)]">
       <Link href={getBusinessHref(business)} className="block">
         <div className="relative flex h-44 items-center justify-center overflow-hidden bg-[var(--color-secondary)]">
-          <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[var(--color-primary-light)] opacity-70 transition duration-300 group-hover:scale-125" />
+          {business.coverUrl ? (
+            <>
+              <Image
+                src={business.coverUrl}
+                alt={`${business.business_name} cover`}
+                fill
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                className="object-cover transition duration-300 group-hover:scale-[1.03]"
+              />
+              <div className="absolute inset-0 bg-black/10" />
+            </>
+          ) : (
+            <>
+              <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-[var(--color-primary-light)] opacity-70 transition duration-300 group-hover:scale-125" />
+              <div className="pointer-events-none absolute -bottom-16 -left-12 h-36 w-36 rounded-full bg-[var(--color-accent-light)] opacity-50 transition duration-300 group-hover:scale-110" />
+            </>
+          )}
 
-          <div className="pointer-events-none absolute -bottom-16 -left-12 h-36 w-36 rounded-full bg-[var(--color-accent-light)] opacity-50 transition duration-300 group-hover:scale-110" />
-
-          <div className="relative flex h-20 w-20 items-center justify-center rounded-2xl border border-white/80 bg-white text-2xl font-extrabold text-[var(--color-primary-dark)] shadow-[var(--shadow-md)]">
-            {getInitials(business.business_name)}
+          <div className="relative z-[1] flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-white text-2xl font-extrabold text-[var(--color-primary-dark)] shadow-[var(--shadow-md)]">
+            {business.logoUrl ? (
+              <Image
+                src={business.logoUrl}
+                alt={`${business.business_name} logo`}
+                width={80}
+                height={80}
+                sizes="80px"
+                className="h-full w-full object-contain p-2"
+              />
+            ) : (
+              getInitials(business.business_name)
+            )}
           </div>
 
           {business.is_featured ? (
@@ -310,6 +366,35 @@ export default async function BusinessesPage({
       businesses = categoryResult.data as Business[];
     }
   }
+
+  // Resolve public logo and cover media through the same RPC used by public profiles.
+  // Keep media lookup scoped to businesses currently displayed in this directory.
+  const businessesWithMedia: BusinessCardData[] = await Promise.all(
+    businesses.map(async (business) => {
+      const { data, error } = await supabase.rpc("get_public_business_media", {
+        p_business_id: business.id,
+      });
+
+      const media =
+        !error && Array.isArray(data) && data.length > 0
+          ? (data[0] as BusinessMedia)
+          : null;
+
+      return {
+        ...business,
+        logoUrl: getStoragePublicUrl(
+          media?.logo_bucket_name ?? null,
+          media?.logo_object_path ?? null,
+          media?.logo_is_public ?? null,
+        ),
+        coverUrl: getStoragePublicUrl(
+          media?.cover_bucket_name ?? null,
+          media?.cover_object_path ?? null,
+          media?.cover_is_public ?? null,
+        ),
+      };
+    }),
+  );
 
   const title = selectedCategory
     ? selectedCategory.category_name
@@ -573,7 +658,7 @@ export default async function BusinessesPage({
             </div>
           ) : (
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {businesses.map((business) => (
+              {businessesWithMedia.map((business) => (
                 <BusinessCard key={business.id} business={business} />
               ))}
             </div>
