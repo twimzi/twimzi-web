@@ -36,6 +36,8 @@ type Business = {
   public_handle: string | null;
   share_url: string | null;
   profile_completion: number | null;
+  keywords: string[] | null;
+  hashtags: string[] | null;
 };
 
 type BusinessForm = {
@@ -51,10 +53,12 @@ type BusinessForm = {
   gst_number: string;
   pan_number: string;
   public_handle: string;
+  keywords: string;
+  hashtags: string;
 };
 
 const BUSINESS_SELECT =
-  "id, business_code, business_name, legal_name, slug, description, business_type, email, phone, whatsapp_number, website, established_year, gst_number, pan_number, verification_status, business_status, public_handle, share_url, profile_completion";
+  "id, business_code, business_name, legal_name, slug, description, business_type, email, phone, whatsapp_number, website, established_year, gst_number, pan_number, verification_status, business_status, public_handle, share_url, profile_completion, keywords, hashtags";
 
 function createForm(business: Business): BusinessForm {
   return {
@@ -73,6 +77,8 @@ function createForm(business: Business): BusinessForm {
     gst_number: business.gst_number ?? "",
     pan_number: business.pan_number ?? "",
     public_handle: business.public_handle ?? "",
+    keywords: (business.keywords ?? []).join(", "),
+    hashtags: (business.hashtags ?? []).join(", "),
   };
 }
 
@@ -88,6 +94,30 @@ function normalizeUrl(value: string) {
   }
 
   return `https://${trimmed}`;
+}
+
+function parseList(value: string) {
+  return Array.from(
+    new Set(
+      value
+        .split(/[\n,;]+/)
+        .map((item) => item.trim())
+        .filter(Boolean),
+    ),
+  );
+}
+
+function parseHashtags(value: string) {
+  return Array.from(
+    new Set(
+      parseList(value)
+        .map((item) => {
+          const cleaned = item.replace(/^#+/, "").replace(/\s+/g, "");
+          return cleaned ? `#${cleaned}` : "";
+        })
+        .filter(Boolean),
+    ),
+  );
 }
 
 export default function BusinessSettingsPage() {
@@ -243,6 +273,8 @@ export default function BusinessSettingsPage() {
           gst_number: form.gst_number.trim() || null,
           pan_number: form.pan_number.trim() || null,
           public_handle: form.public_handle.trim() || null,
+          keywords: parseList(form.keywords),
+          hashtags: parseHashtags(form.hashtags),
           updated_by: user.id,
         })
         .eq("id", business.id)
@@ -551,6 +583,64 @@ export default function BusinessSettingsPage() {
 
                 <p className="mt-1.5 text-xs text-slate-500">
                   Used as your public business identity where supported.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+            <div className="mb-6">
+              <h2 className="text-lg font-bold text-slate-900">
+                Search Keywords & Hashtags
+              </h2>
+              <p className="mt-1 text-sm leading-6 text-slate-500">
+                Help customers discover your business through relevant search
+                terms and topics. Separate entries with commas or put each one
+                on a new line.
+              </p>
+            </div>
+
+            <div className="grid gap-5 sm:grid-cols-2">
+              <div>
+                <label
+                  htmlFor="keywords"
+                  className="mb-1.5 block text-sm font-semibold text-slate-700"
+                >
+                  Keywords
+                </label>
+                <textarea
+                  id="keywords"
+                  value={form.keywords}
+                  onChange={(event) => updateField("keywords", event.target.value)}
+                  rows={4}
+                  maxLength={2000}
+                  placeholder="e.g. manufacturer, wholesale supplier, agricultural parts, Ludhiana"
+                  className="w-full resize-y rounded-xl border border-slate-200 px-3 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
+                />
+                <p className="mt-1.5 text-xs text-slate-500">
+                  Use specific products, services, categories, and locations.
+                </p>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="hashtags"
+                  className="mb-1.5 block text-sm font-semibold text-slate-700"
+                >
+                  Hashtags
+                </label>
+                <textarea
+                  id="hashtags"
+                  value={form.hashtags}
+                  onChange={(event) => updateField("hashtags", event.target.value)}
+                  rows={4}
+                  maxLength={2000}
+                  placeholder="e.g. #Ludhiana, #Manufacturer, #Wholesale"
+                  className="w-full resize-y rounded-xl border border-slate-200 px-3 py-3 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
+                />
+                <p className="mt-1.5 text-xs text-slate-500">
+                  The # symbol is added automatically when you save. Duplicate
+                  entries are removed.
                 </p>
               </div>
             </div>

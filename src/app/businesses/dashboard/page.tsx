@@ -433,6 +433,14 @@ export default function BusinessDashboardPage() {
               </Link>
 
               <Link
+                href="/businesses/dashboard/growth"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--color-primary-dark)]"
+              >
+                <BarChart3 className="h-4 w-4" />
+                Business Growth Center
+              </Link>
+
+              <Link
                 href="/messages"
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--color-primary-dark)]"
               >
@@ -516,6 +524,24 @@ export default function BusinessDashboardPage() {
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <Link
+              href="/businesses/dashboard/growth"
+              className="group rounded-2xl border border-[var(--color-border)] bg-white p-4 shadow-sm transition hover:border-[var(--color-border-strong)] hover:shadow-md"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]">
+                  <BarChart3 className="h-5 w-5" />
+                </div>
+                <ChevronRight className="h-4 w-4 text-[var(--color-text-light)] transition group-hover:translate-x-0.5" />
+              </div>
+              <p className="mt-4 font-semibold text-[var(--color-text)]">
+                Business Growth Center
+              </p>
+              <p className="mt-1 text-xs text-[var(--color-text-secondary)]">
+                View your business health score, shareable profile and QR code.
+              </p>
+            </Link>
+
             <Link
               href="/businesses/dashboard/products"
               className="group rounded-2xl border border-[var(--color-border)] bg-white p-4 shadow-sm transition hover:border-[var(--color-border-strong)] hover:shadow-md"
