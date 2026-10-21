@@ -533,7 +533,7 @@ export default async function BusinessDetailPage({
               fill
               priority
               sizes="100vw"
-              className="object-cover"
+              className="object-contain bg-[var(--color-surface-muted)]"
             />
           ) : (
             <>
@@ -560,7 +560,7 @@ export default async function BusinessDetailPage({
                       width={144}
                       height={144}
                       priority
-                      className="h-full w-full object-cover"
+                      className="h-full w-full object-contain p-3 sm:p-4"
                     />
                   ) : (
                     <Image
