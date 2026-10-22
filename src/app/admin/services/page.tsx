@@ -24,7 +24,30 @@ type Service = {
 
 type SearchParams = {
   q?: string;
+  page?: string;
 };
+
+const SERVICES_PER_PAGE = 25;
+const SERVICES_FETCH_LIMIT = SERVICES_PER_PAGE + 1;
+const SERVICES_MAX_PAGE = 10000;
+
+function parsePageParam(
+  value: string | undefined,
+  maxPage: number
+): number {
+  const normalized = value?.trim() ?? "";
+
+  if (!/^\d+$/.test(normalized)) return 1;
+
+  const parsed = Number(normalized);
+
+  if (parsed < 1) return 1;
+  if (!Number.isSafeInteger(parsed) || parsed > maxPage) {
+    return maxPage;
+  }
+
+  return parsed;
+}
 
 function formatDate(value: string | null) {
   if (!value) return "—";
@@ -56,6 +79,8 @@ export default async function AdminServices({
 }) {
   const params = await searchParams;
   const search = params.q?.trim() ?? "";
+  const page = parsePageParam(params.page, SERVICES_MAX_PAGE);
+  const offset = (page - 1) * SERVICES_PER_PAGE;
 
   const supabase = await createSupabaseServerClient();
 
@@ -105,11 +130,13 @@ export default async function AdminServices({
   const { data, error } = await supabase.rpc("admin_get_services", {
     p_search: search || null,
     p_business_id: null,
-    p_limit: 100,
-    p_offset: 0,
+    p_limit: SERVICES_FETCH_LIMIT,
+    p_offset: offset,
   });
 
-  const services = (data ?? []) as Service[];
+  const fetchedServices = (data ?? []) as Service[];
+  const hasNextPage = fetchedServices.length > SERVICES_PER_PAGE;
+  const services = hasNextPage ? fetchedServices.slice(0, SERVICES_PER_PAGE) : fetchedServices;
 
   const activeCount = services.filter(
     (service) => service.is_active,
@@ -243,7 +270,7 @@ export default async function AdminServices({
                 </h2>
 
                 <p className="mt-1 text-xs text-[var(--color-text-muted)]">
-                  Showing up to 100 services
+                  Showing page {page} ({services.length} services)
                   {search ? ` matching "${search}"` : ""}.
                 </p>
               </div>
@@ -266,8 +293,9 @@ export default async function AdminServices({
                 </p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-[1400px] w-full text-left text-sm">
+              <>
+                <div className="overflow-x-auto">
+                  <table className="min-w-[1400px] w-full text-left text-sm">
                   <thead className="border-b bg-[var(--color-surface)]">
                     <tr>
                       {[
@@ -410,6 +438,51 @@ export default async function AdminServices({
                   </tbody>
                 </table>
               </div>
+
+              <div className="border-t border-[var(--color-border)] px-5 py-4 flex items-center justify-between">
+                <p className="text-xs text-[var(--color-text-muted)]">
+                  Page {page} ({services.length} services)
+                </p>
+
+                <div className="flex items-center gap-2">
+                  {page > 1 ? (
+                    <Link
+                      href={`/admin/services?${search ? `q=${encodeURIComponent(search)}&` : ''}page=${page - 1}`}
+                      className="rounded-xl border border-[var(--color-border)] bg-white px-3 py-2 text-xs font-bold text-[var(--color-text-secondary)] hover:bg-[var(--color-surface)]"
+                      aria-label="Previous page"
+                    >
+                      Previous
+                    </Link>
+                  ) : (
+                    <span
+                      className="rounded-xl border border-transparent bg-[var(--color-surface)] px-3 py-2 text-xs font-bold text-[var(--color-text-muted)] cursor-not-allowed"
+                      aria-label="Previous page"
+                      aria-disabled="true"
+                    >
+                      Previous
+                    </span>
+                  )}
+
+                  {hasNextPage ? (
+                    <Link
+                      href={`/admin/services?${search ? `q=${encodeURIComponent(search)}&` : ''}page=${page + 1}`}
+                      className="rounded-xl border border-[var(--color-border)] bg-white px-3 py-2 text-xs font-bold text-[var(--color-text-secondary)] hover:bg-[var(--color-surface)]"
+                      aria-label="Next page"
+                    >
+                      Next
+                    </Link>
+                  ) : (
+                    <span
+                      className="rounded-xl border border-transparent bg-[var(--color-surface)] px-3 py-2 text-xs font-bold text-[var(--color-text-muted)] cursor-not-allowed"
+                      aria-label="Next page"
+                      aria-disabled="true"
+                    >
+                      Next
+                    </span>
+                  )}
+                </div>
+              </div>
+              </>
             )}
           </div>
         </>

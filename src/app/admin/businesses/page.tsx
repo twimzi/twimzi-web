@@ -6,6 +6,7 @@ type PageProps = {
   searchParams: Promise<{
     search?: string;
     status?: string;
+    page?: string;
   }>;
 };
 
@@ -59,6 +60,28 @@ function formatStatus(value: string | null) {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
+const BUSINESSES_PER_PAGE = 25;
+const BUSINESSES_FETCH_LIMIT = BUSINESSES_PER_PAGE + 1;
+const BUSINESSES_MAX_PAGE = 10000;
+
+function parsePageParam(
+  value: string | undefined,
+  maxPage: number
+): number {
+  const normalized = value?.trim() ?? "";
+
+  if (!/^\d+$/.test(normalized)) return 1;
+
+  const parsed = Number(normalized);
+
+  if (parsed < 1) return 1;
+  if (!Number.isSafeInteger(parsed) || parsed > maxPage) {
+    return maxPage;
+  }
+
+  return parsed;
+}
+
 export default async function AdminBusinesses({
   searchParams,
 }: PageProps) {
@@ -66,6 +89,8 @@ export default async function AdminBusinesses({
 
   const search = params.search?.trim() ?? "";
   const requestedStatus = params.status?.trim() ?? "all";
+  const page = parsePageParam(params.page, BUSINESSES_MAX_PAGE);
+  const offset = (page - 1) * BUSINESSES_PER_PAGE;
 
   const status = STATUSES.includes(
     requestedStatus as (typeof STATUSES)[number],
@@ -78,11 +103,13 @@ export default async function AdminBusinesses({
   const { data, error } = await supabase.rpc("get_admin_businesses", {
     p_search: search || null,
     p_status: status === "all" ? null : status,
-    p_limit: 100,
-    p_offset: 0,
+    p_limit: BUSINESSES_FETCH_LIMIT,
+    p_offset: offset,
   });
 
-  const businesses = (data ?? []) as BusinessRow[];
+  const fetchedBusinesses = (data ?? []) as BusinessRow[];
+  const hasNextPage = fetchedBusinesses.length > BUSINESSES_PER_PAGE;
+  const businesses = hasNextPage ? fetchedBusinesses.slice(0, BUSINESSES_PER_PAGE) : fetchedBusinesses;
 
   return (
     <div className="pb-12">
@@ -190,11 +217,11 @@ export default async function AdminBusinesses({
 
               {search || status !== "all" ? (
                 <p className="mt-1 text-xs text-[var(--color-text-muted)]">
-                  Showing filtered results.
+                  Showing page {page} ({businesses.length} businesses).
                 </p>
               ) : (
                 <p className="mt-1 text-xs text-[var(--color-text-muted)]">
-                  Showing the latest 100 businesses.
+                  Showing page {page} of latest businesses.
                 </p>
               )}
             </div>
@@ -209,8 +236,9 @@ export default async function AdminBusinesses({
 
           <div className="mt-5 overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white shadow-[var(--shadow-sm)]">
             {businesses.length ? (
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-left text-sm">
+              <>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-left text-sm">
                   <thead className="border-b border-[var(--color-border)] bg-[var(--color-surface)]">
                     <tr>
                       {[
@@ -311,6 +339,58 @@ export default async function AdminBusinesses({
                   </tbody>
                 </table>
               </div>
+
+              <div className="border-t border-[var(--color-border)] px-5 py-4 flex items-center justify-between gap-4">
+                <p className="text-sm text-[var(--color-text-secondary)]">
+                  Page {page} ({businesses.length} businesses)
+                </p>
+                <div className="flex items-center gap-2">
+                  {page > 1 ? (
+                    <Link
+                      href={`/admin/businesses?${new URLSearchParams({
+                        ...(search && { search }),
+                        ...(status !== "all" && { status }),
+                        page: String(page - 1),
+                      })}`}
+                      className="inline-flex rounded-xl border border-[var(--color-border)] bg-white px-3 py-2 text-xs font-bold text-[var(--color-text-secondary)] hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary-dark)]"
+                      aria-label="Previous page"
+                    >
+                      Previous
+                    </Link>
+                  ) : (
+                    <span
+                      className="inline-flex rounded-xl border border-transparent bg-[var(--color-surface)] px-3 py-2 text-xs font-bold text-[var(--color-text-muted)] cursor-not-allowed"
+                      aria-label="Previous page"
+                      aria-disabled="true"
+                    >
+                      Previous
+                    </span>
+                  )}
+
+                  {hasNextPage ? (
+                    <Link
+                      href={`/admin/businesses?${new URLSearchParams({
+                        ...(search && { search }),
+                        ...(status !== "all" && { status }),
+                        page: String(page + 1),
+                      })}`}
+                      className="inline-flex rounded-xl border border-[var(--color-border)] bg-white px-3 py-2 text-xs font-bold text-[var(--color-text-secondary)] hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary-dark)]"
+                      aria-label="Next page"
+                    >
+                      Next
+                    </Link>
+                  ) : (
+                    <span
+                      className="inline-flex rounded-xl border border-transparent bg-[var(--color-surface)] px-3 py-2 text-xs font-bold text-[var(--color-text-muted)] cursor-not-allowed"
+                      aria-label="Next page"
+                      aria-disabled="true"
+                    >
+                      Next
+                    </span>
+                  )}
+                </div>
+              </div>
+              </>
             ) : (
               <div className="p-10 text-center">
                 <p className="font-bold text-[var(--color-text)]">

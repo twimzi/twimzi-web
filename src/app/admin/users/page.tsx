@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -16,6 +17,28 @@ type User = {
   is_active: boolean;
   created_at: string | null;
 };
+
+const USERS_PER_PAGE = 25;
+const USERS_FETCH_LIMIT = USERS_PER_PAGE + 1;
+const USERS_MAX_PAGE = 10000;
+
+function parsePageParam(
+  value: string | undefined,
+  maxPage: number
+): number {
+  const normalized = value?.trim() ?? "";
+
+  if (!/^\d+$/.test(normalized)) return 1;
+
+  const parsed = Number(normalized);
+
+  if (parsed < 1) return 1;
+  if (!Number.isSafeInteger(parsed) || parsed > maxPage) {
+    return maxPage;
+  }
+
+  return parsed;
+}
 
 async function requireSuperAdmin() {
   const supabase = await createSupabaseServerClient();
@@ -91,20 +114,25 @@ export default async function AdminUsers({
 }: {
   searchParams: Promise<{
     q?: string;
+    page?: string;
   }>;
 }) {
   const params = await searchParams;
   const search = params.q?.trim() ?? "";
+  const page = parsePageParam(params.page, USERS_MAX_PAGE);
+  const offset = (page - 1) * USERS_PER_PAGE;
 
   const supabase = await requireSuperAdmin();
 
   const { data, error } = await supabase.rpc("admin_get_users", {
     p_search: search || null,
-    p_limit: 100,
-    p_offset: 0,
+    p_limit: USERS_FETCH_LIMIT,
+    p_offset: offset,
   });
 
-  const users = (data ?? []) as User[];
+  const fetchedUsers = (data ?? []) as User[];
+  const hasNextPage = fetchedUsers.length > USERS_PER_PAGE;
+  const users = hasNextPage ? fetchedUsers.slice(0, USERS_PER_PAGE) : fetchedUsers;
 
   return (
     <div className="pb-12">
@@ -173,7 +201,7 @@ export default async function AdminUsers({
                 <h2 className="font-extrabold">User Accounts</h2>
 
                 <p className="mt-1 text-xs text-[var(--color-text-muted)]">
-                  Showing up to 100 users.
+                  Showing page {page} ({users.length} users).
                   {search ? ` Search: "${search}"` : ""}
                 </p>
               </div>
@@ -351,6 +379,50 @@ export default async function AdminUsers({
                     })}
                   </tbody>
                 </table>
+
+                <div className="border-t border-[var(--color-border)] px-5 py-4 flex items-center justify-between">
+                  <p className="text-xs text-[var(--color-text-muted)]">
+                    Page {page} ({users.length} users)
+                  </p>
+
+                  <div className="flex items-center gap-2">
+                    {page > 1 ? (
+                      <Link
+                        href={`/admin/users?${search ? `q=${encodeURIComponent(search)}&` : ''}page=${page - 1}`}
+                        className="rounded-xl border border-[var(--color-border)] bg-white px-3 py-2 text-xs font-bold text-[var(--color-text-secondary)] hover:bg-[var(--color-surface)]"
+                        aria-label="Previous page"
+                      >
+                        Previous
+                      </Link>
+                    ) : (
+                      <span
+                        className="rounded-xl border border-transparent bg-[var(--color-surface)] px-3 py-2 text-xs font-bold text-[var(--color-text-muted)] cursor-not-allowed"
+                        aria-label="Previous page"
+                        aria-disabled="true"
+                      >
+                        Previous
+                      </span>
+                    )}
+
+                    {hasNextPage ? (
+                      <Link
+                        href={`/admin/users?${search ? `q=${encodeURIComponent(search)}&` : ''}page=${page + 1}`}
+                        className="rounded-xl border border-[var(--color-border)] bg-white px-3 py-2 text-xs font-bold text-[var(--color-text-secondary)] hover:bg-[var(--color-surface)]"
+                        aria-label="Next page"
+                      >
+                        Next
+                      </Link>
+                    ) : (
+                      <span
+                        className="rounded-xl border border-transparent bg-[var(--color-surface)] px-3 py-2 text-xs font-bold text-[var(--color-text-muted)] cursor-not-allowed"
+                        aria-label="Next page"
+                        aria-disabled="true"
+                      >
+                        Next
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
           </div>

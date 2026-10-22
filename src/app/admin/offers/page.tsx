@@ -80,8 +80,31 @@ type PageProps = {
   searchParams: Promise<{
     q?: string;
     status?: string;
+    page?: string;
   }>;
 };
+
+const OFFERS_PER_PAGE = 25;
+const OFFERS_FETCH_LIMIT = OFFERS_PER_PAGE + 1;
+const OFFERS_MAX_PAGE = 10000;
+
+function parsePageParam(
+  value: string | undefined,
+  maxPage: number
+): number {
+  const normalized = value?.trim() ?? "";
+
+  if (!/^\d+$/.test(normalized)) return 1;
+
+  const parsed = Number(normalized);
+
+  if (parsed < 1) return 1;
+  if (!Number.isSafeInteger(parsed) || parsed > maxPage) {
+    return maxPage;
+  }
+
+  return parsed;
+}
 
 export default async function AdminOffers({
   searchParams,
@@ -89,6 +112,9 @@ export default async function AdminOffers({
   const params = await searchParams;
   const search = params.q?.trim() ?? "";
   const status = params.status?.trim() ?? "";
+  const page = parsePageParam(params.page, OFFERS_MAX_PAGE);
+  const offset = (page - 1) * OFFERS_PER_PAGE;
+  const rangeEnd = offset + OFFERS_FETCH_LIMIT - 1;
 
   const supabase = await createSupabaseServerClient();
 
@@ -137,7 +163,7 @@ export default async function AdminOffers({
     .is("deleted_at", null)
     .order("priority", { ascending: false })
     .order("created_at", { ascending: false })
-    .limit(100);
+    .range(offset, rangeEnd);
 
   if (status) {
     query = query.eq("status", status);
@@ -151,7 +177,9 @@ export default async function AdminOffers({
 
   const { data, error } = await query;
 
-  const offers = (data ?? []) as Offer[];
+  const fetchedOffers = (data ?? []) as Offer[];
+  const hasNextPage = fetchedOffers.length > OFFERS_PER_PAGE;
+  const offers = hasNextPage ? fetchedOffers.slice(0, OFFERS_PER_PAGE) : fetchedOffers;
 
   const businessIds = [
     ...new Set(offers.map((offer) => offer.business_id)),
@@ -483,7 +511,7 @@ export default async function AdminOffers({
 
             {offers.length > 0 ? (
               <div className="flex flex-wrap gap-4 border-t bg-[var(--color-surface)] px-5 py-4 text-xs text-[var(--color-text-muted)]">
-                <span>Showing up to 100 offers</span>
+                <span>Page {page} ({offers.length} offers)</span>
                 <span>â€¢</span>
                 <span>{activeCount} active</span>
                 <span>â€¢</span>
@@ -494,6 +522,52 @@ export default async function AdminOffers({
                 <span>{featuredCount} featured</span>
               </div>
             ) : null}
+
+            {offers.length > 0 && (
+              <div className="border-t border-[var(--color-border)] px-5 py-4 flex items-center justify-between">
+                <p className="text-xs text-[var(--color-text-muted)]">
+                  Page {page} ({offers.length} offers)
+                </p>
+
+                <div className="flex items-center gap-2">
+                  {page > 1 ? (
+                    <Link
+                      href={`/admin/offers?${search ? `q=${encodeURIComponent(search)}&` : ''}${status ? `status=${encodeURIComponent(status)}&` : ''}page=${page - 1}`}
+                      className="rounded-xl border border-[var(--color-border)] bg-white px-3 py-2 text-xs font-bold text-[var(--color-text-secondary)] hover:bg-[var(--color-surface)]"
+                      aria-label="Previous page"
+                    >
+                      Previous
+                    </Link>
+                  ) : (
+                    <span
+                      className="rounded-xl border border-transparent bg-[var(--color-surface)] px-3 py-2 text-xs font-bold text-[var(--color-text-muted)] cursor-not-allowed"
+                      aria-label="Previous page"
+                      aria-disabled="true"
+                    >
+                      Previous
+                    </span>
+                  )}
+
+                  {hasNextPage ? (
+                    <Link
+                      href={`/admin/offers?${search ? `q=${encodeURIComponent(search)}&` : ''}${status ? `status=${encodeURIComponent(status)}&` : ''}page=${page + 1}`}
+                      className="rounded-xl border border-[var(--color-border)] bg-white px-3 py-2 text-xs font-bold text-[var(--color-text-secondary)] hover:bg-[var(--color-surface)]"
+                      aria-label="Next page"
+                    >
+                      Next
+                    </Link>
+                  ) : (
+                    <span
+                      className="rounded-xl border border-transparent bg-[var(--color-surface)] px-3 py-2 text-xs font-bold text-[var(--color-text-muted)] cursor-not-allowed"
+                      aria-label="Next page"
+                      aria-disabled="true"
+                    >
+                      Next
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </>
       )}
