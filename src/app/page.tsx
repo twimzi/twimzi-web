@@ -5,7 +5,6 @@ import {
   type HeroInterestingItem,
 } from "@/components/home/hero-section";
 import { CategorySection } from "@/components/home/category-section";
-import { DiscoverySection } from "@/components/home/discovery-section";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { AndroidAppSection } from "@/components/home/android-app-section";
 
@@ -252,8 +251,6 @@ export default async function Home() {
         featured={featured}
         latest={latest}
       />
-
-      <DiscoverySection businesses={businesses} />
 
       <AndroidAppSection />
 
