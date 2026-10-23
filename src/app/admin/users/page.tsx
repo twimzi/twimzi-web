@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
+
+import { UserActions } from "@/components/admin/user-actions";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type User = {
@@ -16,6 +18,7 @@ type User = {
   account_status: string | null;
   is_active: boolean;
   created_at: string | null;
+  updated_at: string | null;
 };
 
 const USERS_PER_PAGE = 25;
@@ -60,30 +63,6 @@ async function requireSuperAdmin() {
   return supabase;
 }
 
-async function updateUserStatus(formData: FormData) {
-  "use server";
-
-  const userId = String(formData.get("user_id") ?? "");
-  const active = String(formData.get("active") ?? "") === "true";
-
-  if (!userId) {
-    return;
-  }
-
-  const supabase = await requireSuperAdmin();
-
-  const { error } = await supabase.rpc("admin_set_user_active", {
-    p_profile_id: userId,
-    p_is_active: active,
-  });
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  revalidatePath("/admin/users");
-}
-
 function formatDate(value: string | null) {
   if (!value) return "â€”";
 
@@ -107,6 +86,84 @@ function getStatusClass(status: string | null) {
     default:
       return "border-slate-200 bg-slate-50 text-slate-600";
   }
+}
+
+async function updateUser(formData: FormData) {
+  "use server";
+
+  const profileId = String(formData.get("profile_id") ?? "").trim();
+  const fullName = String(formData.get("full_name") ?? "").trim();
+  const username = String(formData.get("username") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim();
+  const phone = String(formData.get("phone") ?? "").trim();
+  const city = String(formData.get("city") ?? "").trim();
+  const state = String(formData.get("state") ?? "").trim();
+  const country = String(formData.get("country") ?? "").trim();
+  const isBusiness = formData.get("is_business") === "true";
+  const isVerified = formData.get("is_verified") === "true";
+  const accountStatus = String(formData.get("account_status") ?? "").trim();
+  const isActive = formData.get("is_active") === "true";
+
+  if (!profileId) {
+    throw new Error("User ID is required.");
+  }
+  if (!fullName) {
+    throw new Error("Full name is required.");
+  }
+  if (!username) {
+    throw new Error("Username is required.");
+  }
+  if (!email) {
+    throw new Error("Email is required.");
+  }
+  if (!email.includes("@")) {
+    throw new Error("Email must be valid.");
+  }
+
+  const supabase = await requireSuperAdmin();
+
+  const { error } = await supabase.rpc("admin_update_user", {
+    p_profile_id: profileId,
+    p_full_name: fullName,
+    p_username: username,
+    p_email: email,
+    p_phone: phone || null,
+    p_city: city || null,
+    p_state: state || null,
+    p_country: country || null,
+    p_is_business: isBusiness,
+    p_is_verified: isVerified,
+    p_account_status: accountStatus || null,
+    p_is_active: isActive,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/admin/users");
+}
+
+async function deleteUser(formData: FormData) {
+  "use server";
+
+  const profileId = String(formData.get("profile_id") ?? "").trim();
+
+  if (!profileId) {
+    throw new Error("User ID is required.");
+  }
+
+  const supabase = await requireSuperAdmin();
+
+  const { error } = await supabase.rpc("admin_delete_user", {
+    p_profile_id: profileId,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/admin/users");
 }
 
 export default async function AdminUsers({
@@ -347,32 +404,11 @@ export default async function AdminUsers({
                           </td>
 
                           <td className="px-5 py-4">
-                            <form action={updateUserStatus}>
-                              <input
-                                type="hidden"
-                                name="user_id"
-                                value={user.id}
-                              />
-
-                              <input
-                                type="hidden"
-                                name="active"
-                                value={user.is_active ? "false" : "true"}
-                              />
-
-                              <button
-                                type="submit"
-                                className={`rounded-xl border px-3 py-2 text-xs font-bold ${
-                                  user.is_active
-                                    ? "border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
-                                    : "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                                }`}
-                              >
-                                {user.is_active
-                                  ? "Deactivate"
-                                  : "Activate"}
-                              </button>
-                            </form>
+                            <UserActions
+                              user={user}
+                              onUpdate={updateUser}
+                              onDelete={deleteUser}
+                            />
                           </td>
                         </tr>
                       );

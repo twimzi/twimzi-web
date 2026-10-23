@@ -1,5 +1,8 @@
 import Link from "next/link";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
+import { BusinessActions } from "@/components/admin/business-actions";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type PageProps = {
@@ -14,10 +17,23 @@ type BusinessRow = {
   id: string;
   business_name: string;
   business_code: string | null;
+  legal_name: string | null;
+  slug: string | null;
+  public_handle: string | null;
+  description: string | null;
+  business_type: string | null;
+  email: string | null;
+  phone: string | null;
+  whatsapp_number: string | null;
+  website: string | null;
+  established_year: number | null;
+  gst_number: string | null;
+  pan_number: string | null;
   business_status: string | null;
   verification_status: string | null;
   is_active: boolean;
   is_featured: boolean;
+  featured_until: string | null;
   priority_score: number | null;
   created_at: string | null;
 };
@@ -58,6 +74,126 @@ function formatStatus(value: string | null) {
   if (!value) return "Unknown";
 
   return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+async function requireSuperAdmin() {
+  const supabase = await createSupabaseServerClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const { data, error } = await supabase.rpc("is_super_admin");
+
+  if (error || data !== true) {
+    redirect("/");
+  }
+
+  return supabase;
+}
+
+async function updateBusiness(formData: FormData) {
+  "use server";
+
+  const businessId = String(formData.get("business_id") ?? "").trim();
+  const businessCode = String(formData.get("business_code") ?? "").trim();
+  const businessName = String(formData.get("business_name") ?? "").trim();
+  const legalName = String(formData.get("legal_name") ?? "").trim();
+  const slug = String(formData.get("slug") ?? "").trim();
+  const publicHandle = String(formData.get("public_handle") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim();
+  const businessType = String(formData.get("business_type") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim();
+  const phone = String(formData.get("phone") ?? "").trim();
+  const whatsappNumber = String(formData.get("whatsapp_number") ?? "").trim();
+  const website = String(formData.get("website") ?? "").trim();
+  const establishedYear = String(formData.get("established_year") ?? "").trim();
+  const gstNumber = String(formData.get("gst_number") ?? "").trim();
+  const panNumber = String(formData.get("pan_number") ?? "").trim();
+  const businessStatus = String(formData.get("business_status") ?? "").trim();
+  const verificationStatus = String(formData.get("verification_status") ?? "").trim();
+  const isActive = formData.get("is_active") === "true";
+  const isFeatured = formData.get("is_featured") === "true";
+  const featuredUntil = String(formData.get("featured_until") ?? "").trim();
+  const priorityScore = String(formData.get("priority_score") ?? "").trim();
+
+  if (!businessId) {
+    throw new Error("Business ID is required.");
+  }
+  if (!businessName) {
+    throw new Error("Business name is required.");
+  }
+  if (!businessCode) {
+    throw new Error("Business code is required.");
+  }
+
+  const parsedEstablishedYear = establishedYear ? Number(establishedYear) : null;
+  if (parsedEstablishedYear !== null && (!Number.isFinite(parsedEstablishedYear) || parsedEstablishedYear < 1800 || parsedEstablishedYear > new Date().getFullYear() + 1)) {
+    throw new Error("Established year must be a valid year.");
+  }
+
+  const parsedPriorityScore = Number(priorityScore || "0");
+  if (!Number.isFinite(parsedPriorityScore) || parsedPriorityScore < 0) {
+    throw new Error("Priority score must be a valid non-negative number.");
+  }
+
+  const supabase = await requireSuperAdmin();
+
+  const { error } = await supabase.rpc("admin_update_business", {
+    p_business_id: businessId,
+    p_business_code: businessCode,
+    p_business_name: businessName,
+    p_legal_name: legalName || null,
+    p_slug: slug || null,
+    p_public_handle: publicHandle || null,
+    p_description: description || null,
+    p_business_type: businessType || null,
+    p_email: email || null,
+    p_phone: phone || null,
+    p_whatsapp_number: whatsappNumber || null,
+    p_website: website || null,
+    p_established_year: parsedEstablishedYear,
+    p_gst_number: gstNumber || null,
+    p_pan_number: panNumber || null,
+    p_business_status: businessStatus || null,
+    p_verification_status: verificationStatus || null,
+    p_is_active: isActive,
+    p_is_featured: isFeatured,
+    p_featured_until: featuredUntil || null,
+    p_priority_score: parsedPriorityScore,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/admin/businesses");
+}
+
+async function deleteBusiness(formData: FormData) {
+  "use server";
+
+  const businessId = String(formData.get("business_id") ?? "").trim();
+
+  if (!businessId) {
+    throw new Error("Business ID is required.");
+  }
+
+  const supabase = await requireSuperAdmin();
+
+  const { error } = await supabase.rpc("admin_delete_business", {
+    p_business_id: businessId,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/admin/businesses");
 }
 
 const BUSINESSES_PER_PAGE = 25;
@@ -249,7 +385,7 @@ export default async function AdminBusinesses({
                         "Featured",
                         "Priority",
                         "Created",
-                        "Action",
+                        "Actions",
                       ].map((heading) => (
                         <th
                           key={heading}
@@ -327,12 +463,19 @@ export default async function AdminBusinesses({
                         </td>
 
                         <td className="px-5 py-4">
-                          <Link
-                            href={`/admin/businesses/${business.id}`}
-                            className="inline-flex rounded-xl border border-[var(--color-border)] px-3 py-2 text-xs font-bold text-[var(--color-text-secondary)] transition-colors hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary-dark)]"
-                          >
-                            Manage
-                          </Link>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Link
+                              href={`/admin/businesses/${business.id}`}
+                              className="inline-flex rounded-xl border border-[var(--color-border)] px-3 py-2 text-xs font-bold text-[var(--color-text-secondary)] transition-colors hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary-dark)]"
+                            >
+                              Manage
+                            </Link>
+                            <BusinessActions
+                              business={business}
+                              onUpdate={updateBusiness}
+                              onDelete={deleteBusiness}
+                            />
+                          </div>
                         </td>
                       </tr>
                     ))}
