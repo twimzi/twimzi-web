@@ -1,6 +1,7 @@
 
 import Link from "next/link";
 
+import { ArrowRight, Flame, Megaphone, Star, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { siteConfig } from "@/config/site";
@@ -47,6 +48,18 @@ const fallbackItems: HeroInterestingItem[] = [
     href: "/community",
   },
 ];
+
+function getInterestingItemIcon(item: HeroInterestingItem) {
+  const label = `${item.type} ${item.title}`.toLowerCase();
+
+  if (label.includes("featured")) return Star;
+  if (label.includes("offer")) return Flame;
+  if (label.includes("update") || label.includes("community")) {
+    return Megaphone;
+  }
+
+  return Store;
+}
 
 export function HeroSection({
   interestingItems = fallbackItems,
@@ -158,35 +171,46 @@ export function HeroSection({
               </div>
 
               <div className="mt-5 space-y-3">
-                {interestingItems.slice(0, 4).map((item) => (
-                  <Link
-                    key={`${item.type}-${item.title}`}
-                    href={item.href}
-                    className="group flex items-center gap-4 rounded-2xl border border-[var(--color-border)] p-4 transition hover:-translate-y-0.5 hover:border-[var(--color-primary)]/30 hover:shadow-[var(--shadow-sm)]"
-                  >
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[var(--color-secondary)] text-xl">
-                      {item.icon}
-                    </div>
+                {interestingItems.slice(0, 4).map((item) => {
+                  const Icon = getInterestingItemIcon(item);
 
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-primary)]">
-                        {item.type}
-                      </p>
+                  return (
+                    <Link
+                      key={`${item.type}-${item.title}`}
+                      href={item.href}
+                      className="group flex items-center gap-4 rounded-2xl border border-[var(--color-border)] p-4 transition hover:-translate-y-0.5 hover:border-[var(--color-primary)]/30 hover:shadow-[var(--shadow-sm)]"
+                    >
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[var(--color-secondary)] text-[var(--color-primary)]">
+                        <Icon
+                          aria-hidden="true"
+                          size={23}
+                          strokeWidth={1.8}
+                        />
+                      </div>
 
-                      <p className="mt-1 truncate text-sm font-semibold">
-                        {item.title}
-                      </p>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-primary)]">
+                          {item.type}
+                        </p>
 
-                      <p className="mt-1 line-clamp-1 text-xs text-[var(--color-text-muted)]">
-                        {item.description}
-                      </p>
-                    </div>
+                        <p className="mt-1 truncate text-sm font-semibold">
+                          {item.title}
+                        </p>
 
-                    <span className="text-sm font-semibold text-[var(--color-primary)] transition-transform group-hover:translate-x-1">
-                      →
-                    </span>
-                  </Link>
-                ))}
+                        <p className="mt-1 line-clamp-1 text-xs text-[var(--color-text-muted)]">
+                          {item.description}
+                        </p>
+                      </div>
+
+                      <ArrowRight
+                        aria-hidden="true"
+                        className="shrink-0 text-[var(--color-primary)] transition-transform group-hover:translate-x-1"
+                        size={18}
+                        strokeWidth={1.8}
+                      />
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           </div>

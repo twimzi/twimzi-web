@@ -306,12 +306,12 @@ export function UserActions({
                 </div>
 
                 <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                  <Toggle
-                    label="Active"
-                    checked={isActive}
-                    onChange={setIsActive}
-                  />
-                </div>
+  <Toggle
+    label="Account Enabled"
+    checked={isActive}
+    onChange={setIsActive}
+  />
+</div>
               </div>
 
               <div className="flex flex-col-reverse gap-3 border-t border-slate-200 px-6 py-5 sm:flex-row sm:justify-end">
