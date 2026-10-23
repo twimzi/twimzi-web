@@ -1,4 +1,4 @@
-import { BusinessSections } from "@/components/home/business-sections";
+﻿import { BusinessSections } from "@/components/home/business-sections";
 import { BusinessCta } from "@/components/home/business-cta";
 import {
   HeroSection,
@@ -130,7 +130,7 @@ export default async function Home() {
 
   if (newestBusiness) {
     interestingItems.push({
-      icon: "🏪",
+      icon: "ðŸª",
       type: "New on Twimzi",
       title: newestBusiness.business_name,
       description:
@@ -146,7 +146,7 @@ export default async function Home() {
 
   if (featuredBusiness) {
     interestingItems.push({
-      icon: "⭐",
+      icon: "â­",
       type: "Featured Business",
       title: featuredBusiness.business_name,
       description:
@@ -164,7 +164,7 @@ export default async function Home() {
     const offerBusiness = businessMap.get(latestOffer.business_id);
 
     interestingItems.push({
-      icon: "🔥",
+      icon: "ðŸ”¥",
       type: "Latest Offer",
       title: latestOffer.title,
       description:
@@ -183,7 +183,7 @@ export default async function Home() {
     const postBusiness = businessMap.get(latestPost.business_id);
 
     interestingItems.push({
-      icon: "📢",
+      icon: "ðŸ“¢",
       type: "Latest Update",
       title: latestPost.title,
       description:
@@ -201,28 +201,28 @@ export default async function Home() {
   while (interestingItems.length < 4) {
     const fallbacks: HeroInterestingItem[] = [
       {
-        icon: "🏪",
+        icon: "ðŸª",
         type: "Discover",
         title: "Local Businesses",
         description: "Find businesses around you.",
         href: "/businesses",
       },
       {
-        icon: "🔥",
+        icon: "ðŸ”¥",
         type: "Explore",
         title: "Local Offers",
         description: "Discover offers from local businesses.",
         href: "/offers",
       },
       {
-        icon: "🛍️",
+        icon: "ðŸ›ï¸",
         type: "Marketplace",
         title: "Products",
         description: "Browse products from local sellers.",
         href: "/products",
       },
       {
-        icon: "🛠️",
+        icon: "ðŸ› ï¸",
         type: "Services",
         title: "Local Services",
         description: "Find professionals and service providers.",
