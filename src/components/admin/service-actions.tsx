@@ -2,9 +2,7 @@
 
 import Link from "next/link";
 import { ExternalLink, Pencil, Trash2, X } from "lucide-react";
-import { useState } from "react";
-
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useState, useTransition } from "react";
 
 type Service = {
   id: string;
@@ -21,11 +19,17 @@ type Service = {
   is_active: boolean | null;
 };
 
-export function ServiceActions({ service }: { service: Service }) {
+type Props = {
+  service: Service;
+  onUpdate: (formData: FormData) => Promise<void>;
+  onDelete: (formData: FormData) => Promise<void>;
+};
+
+export function ServiceActions({ service, onUpdate, onDelete }: Props) {
   const [open, setOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
+  const [isPending, startTransition] = useTransition();
 
   const [name, setName] = useState(service.service_name ?? "");
   const [code, setCode] = useState(service.service_code ?? "");
@@ -49,42 +53,47 @@ export function ServiceActions({ service }: { service: Service }) {
   const [featured, setFeatured] = useState(Boolean(service.is_featured));
   const [active, setActive] = useState(Boolean(service.is_active));
 
-  async function save() {
-    setSaving(true);
+  function handleSave() {
     setError("");
 
-    const supabase = createSupabaseBrowserClient();
-
-    const { error: saveError } = await supabase.rpc(
-      "admin_update_service",
-      {
-        p_service_id: service.id,
-        p_service_name: name,
-        p_service_code: code,
-        p_slug: slug || null,
-        p_short_description: description || null,
-        p_duration_minutes: duration ? Number(duration) : null,
-        p_price: Number(price),
-        p_booking_required: booking,
-        p_home_service_available: homeService,
-        p_service_radius_km: radius ? Number(radius) : null,
-        p_is_featured: featured,
-        p_is_active: active,
-      },
-    );
-
-    if (saveError) {
-      setError(saveError.message);
-      setSaving(false);
+    if (!name.trim()) {
+      setError("Service name is required.");
+      return;
+    }
+    if (!code.trim()) {
+      setError("Service code is required.");
+      return;
+    }
+    if (!price.trim()) {
+      setError("Price is required.");
       return;
     }
 
-    setSaving(false);
-    setOpen(false);
-    window.location.reload();
+    const formData = new FormData();
+    formData.append("service_id", service.id);
+    formData.append("service_name", name.trim());
+    formData.append("service_code", code.trim());
+    formData.append("slug", slug.trim() || "");
+    formData.append("short_description", description.trim() || "");
+    formData.append("duration_minutes", duration.trim() || "0");
+    formData.append("price", price.trim());
+    formData.append("booking_required", String(booking));
+    formData.append("home_service_available", String(homeService));
+    formData.append("service_radius_km", radius.trim() || "0");
+    formData.append("is_featured", String(featured));
+    formData.append("is_active", String(active));
+
+    startTransition(async () => {
+      try {
+        await onUpdate(formData);
+        setOpen(false);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to update service");
+      }
+    });
   }
 
-  async function remove() {
+  function handleDelete() {
     if (!window.confirm(`Delete "${service.service_name ?? "this service"}"?`)) {
       return;
     }
@@ -92,22 +101,17 @@ export function ServiceActions({ service }: { service: Service }) {
     setDeleting(true);
     setError("");
 
-    const supabase = createSupabaseBrowserClient();
+    const formData = new FormData();
+    formData.append("service_id", service.id);
 
-    const { error: deleteError } = await supabase.rpc(
-      "admin_delete_service",
-      {
-        p_service_id: service.id,
-      },
-    );
-
-    if (deleteError) {
-      setError(deleteError.message);
-      setDeleting(false);
-      return;
-    }
-
-    window.location.reload();
+    startTransition(async () => {
+      try {
+        await onDelete(formData);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to delete service");
+        setDeleting(false);
+      }
+    });
   }
 
   return (
@@ -139,7 +143,7 @@ export function ServiceActions({ service }: { service: Service }) {
 
         <button
           type="button"
-          onClick={() => void remove()}
+          onClick={() => void handleDelete()}
           disabled={deleting}
           className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-100 text-red-600 transition hover:bg-red-50 disabled:opacity-50"
           aria-label={`Delete ${service.service_name ?? "service"}`}
@@ -255,11 +259,11 @@ export function ServiceActions({ service }: { service: Service }) {
 
               <button
                 type="button"
-                onClick={() => void save()}
-                disabled={saving}
+                onClick={() => void handleSave()}
+                disabled={isPending}
                 className="rounded-xl bg-[var(--color-primary)] px-5 py-2.5 text-sm font-bold text-white disabled:opacity-50"
               >
-                {saving ? "Saving..." : "Save Changes"}
+                {isPending ? "Saving..." : "Save Changes"}
               </button>
             </div>
           </div>

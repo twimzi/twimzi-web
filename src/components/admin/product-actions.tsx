@@ -2,9 +2,7 @@
 
 import Link from "next/link";
 import { ExternalLink, Pencil, Trash2, X } from "lucide-react";
-import { useState } from "react";
-
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useState, useTransition } from "react";
 
 type Product = {
   id: string;
@@ -21,11 +19,17 @@ type Product = {
   is_active: boolean;
 };
 
-export function ProductActions({ product }: { product: Product }) {
+type Props = {
+  product: Product;
+  onUpdate: (formData: FormData) => Promise<void>;
+  onDelete: (formData: FormData) => Promise<void>;
+};
+
+export function ProductActions({ product, onUpdate, onDelete }: Props) {
   const [open, setOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
+  const [isPending, startTransition] = useTransition();
 
   const [name, setName] = useState(product.product_name ?? "");
   const [code, setCode] = useState(product.product_code ?? "");
@@ -43,39 +47,47 @@ export function ProductActions({ product }: { product: Product }) {
   const [featured, setFeatured] = useState(product.is_featured);
   const [active, setActive] = useState(product.is_active);
 
-  async function save() {
-    setSaving(true);
+  function handleSave() {
     setError("");
 
-    const supabase = createSupabaseBrowserClient();
-
-    const { error: saveError } = await supabase.rpc("admin_update_product", {
-      p_product_id: product.id,
-      p_product_name: name,
-      p_product_code: code,
-      p_sku: sku || null,
-      p_slug: slug || null,
-      p_brand: brand || null,
-      p_model: model || null,
-      p_selling_price: Number(sellingPrice),
-      p_mrp: mrp ? Number(mrp) : null,
-      p_stock_quantity: stock ? Number(stock) : null,
-      p_is_featured: featured,
-      p_is_active: active,
-    });
-
-    if (saveError) {
-      setError(saveError.message);
-      setSaving(false);
+    if (!name.trim()) {
+      setError("Product name is required.");
+      return;
+    }
+    if (!code.trim()) {
+      setError("Product code is required.");
+      return;
+    }
+    if (!sellingPrice.trim()) {
+      setError("Selling price is required.");
       return;
     }
 
-    setSaving(false);
-    setOpen(false);
-    window.location.reload();
+    const formData = new FormData();
+    formData.append("product_id", product.id);
+    formData.append("product_name", name.trim());
+    formData.append("product_code", code.trim());
+    formData.append("sku", sku.trim() || "");
+    formData.append("slug", slug.trim() || "");
+    formData.append("brand", brand.trim() || "");
+    formData.append("model", model.trim() || "");
+    formData.append("selling_price", sellingPrice.trim());
+    formData.append("mrp", mrp.trim() || "0");
+    formData.append("stock_quantity", stock.trim() || "0");
+    formData.append("is_featured", String(featured));
+    formData.append("is_active", String(active));
+
+    startTransition(async () => {
+      try {
+        await onUpdate(formData);
+        setOpen(false);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to update product");
+      }
+    });
   }
 
-  async function remove() {
+  function handleDelete() {
     if (!window.confirm(`Delete "${product.product_name ?? "this product"}"?`)) {
       return;
     }
@@ -83,22 +95,17 @@ export function ProductActions({ product }: { product: Product }) {
     setDeleting(true);
     setError("");
 
-    const supabase = createSupabaseBrowserClient();
+    const formData = new FormData();
+    formData.append("product_id", product.id);
 
-    const { error: deleteError } = await supabase.rpc(
-      "admin_delete_product",
-      {
-        p_product_id: product.id,
-      },
-    );
-
-    if (deleteError) {
-      setError(deleteError.message);
-      setDeleting(false);
-      return;
-    }
-
-    window.location.reload();
+    startTransition(async () => {
+      try {
+        await onDelete(formData);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to delete product");
+        setDeleting(false);
+      }
+    });
   }
 
   return (
@@ -130,7 +137,7 @@ export function ProductActions({ product }: { product: Product }) {
 
         <button
           type="button"
-          onClick={() => void remove()}
+          onClick={() => void handleDelete()}
           disabled={deleting}
           className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-100 text-red-600 transition hover:bg-red-50 disabled:opacity-50"
           aria-label={`Delete ${product.product_name ?? "product"}`}
@@ -222,11 +229,11 @@ export function ProductActions({ product }: { product: Product }) {
 
               <button
                 type="button"
-                onClick={() => void save()}
-                disabled={saving}
+                onClick={() => void handleSave()}
+                disabled={isPending}
                 className="rounded-xl bg-[var(--color-primary)] px-5 py-2.5 text-sm font-bold text-white disabled:opacity-50"
               >
-                {saving ? "Saving..." : "Save Changes"}
+                {isPending ? "Saving..." : "Save Changes"}
               </button>
             </div>
           </div>

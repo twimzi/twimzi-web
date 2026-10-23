@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 import { ServiceActions } from "@/components/admin/service-actions";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -70,6 +72,122 @@ function formatPrice(value: number | null) {
   if (value === null || value === undefined) return "—";
 
   return `₹${formatNumber(value)}`;
+}
+
+async function requireSuperAdmin() {
+  const supabase = await createSupabaseServerClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const { data, error } = await supabase.rpc("is_super_admin");
+
+  if (error || data !== true) {
+    redirect("/");
+  }
+
+  return supabase;
+}
+
+async function updateService(formData: FormData) {
+  "use server";
+
+  const serviceId = String(formData.get("service_id") ?? "").trim();
+  const serviceName = String(formData.get("service_name") ?? "").trim();
+  const serviceCode = String(formData.get("service_code") ?? "").trim();
+  const slug = String(formData.get("slug") ?? "").trim();
+  const description = String(formData.get("short_description") ?? "").trim();
+  const duration = String(formData.get("duration_minutes") ?? "").trim();
+  const price = String(formData.get("price") ?? "").trim();
+  const bookingRequired = formData.get("booking_required") === "true";
+  const homeService = formData.get("home_service_available") === "true";
+  const radius = String(formData.get("service_radius_km") ?? "").trim();
+  const isFeatured = formData.get("is_featured") === "true";
+  const isActive = formData.get("is_active") === "true";
+
+  if (!serviceId) {
+    throw new Error("Service ID is required.");
+  }
+  if (!serviceName) {
+    throw new Error("Service name is required.");
+  }
+  if (!serviceCode) {
+    throw new Error("Service code is required.");
+  }
+  if (!price) {
+    throw new Error("Price is required.");
+  }
+
+  const parsedPrice = Number(price);
+  if (!Number.isFinite(parsedPrice) || parsedPrice < 0) {
+    throw new Error("Price must be a valid non-negative number.");
+  }
+
+  let parsedDuration: number | null = null;
+  if (duration !== "") {
+    parsedDuration = Number(duration);
+    if (!Number.isFinite(parsedDuration) || parsedDuration < 0) {
+      throw new Error("Duration must be a valid non-negative number.");
+    }
+  }
+
+  let parsedRadius: number | null = null;
+  if (radius !== "") {
+    parsedRadius = Number(radius);
+    if (!Number.isFinite(parsedRadius) || parsedRadius < 0) {
+      throw new Error("Service radius must be a valid non-negative number.");
+    }
+  }
+
+  const supabase = await requireSuperAdmin();
+
+  const { error } = await supabase.rpc("admin_update_service", {
+    p_service_id: serviceId,
+    p_service_name: serviceName,
+    p_service_code: serviceCode,
+    p_slug: slug || null,
+    p_short_description: description || null,
+    p_duration_minutes: parsedDuration,
+    p_price: parsedPrice,
+    p_booking_required: bookingRequired,
+    p_home_service_available: homeService,
+    p_service_radius_km: parsedRadius,
+    p_is_featured: isFeatured,
+    p_is_active: isActive,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/admin/services");
+}
+
+async function deleteService(formData: FormData) {
+  "use server";
+
+  const serviceId = String(formData.get("service_id") ?? "").trim();
+
+  if (!serviceId) {
+    throw new Error("Service ID is required.");
+  }
+
+  const supabase = await requireSuperAdmin();
+
+  const { error } = await supabase.rpc("admin_delete_service", {
+    p_service_id: serviceId,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/admin/services");
 }
 
 export default async function AdminServices({
@@ -431,7 +549,11 @@ export default async function AdminServices({
                         </td>
 
                         <td className="px-5 py-4">
-                          <ServiceActions service={service} />
+                          <ServiceActions
+                            service={service}
+                            onUpdate={updateService}
+                            onDelete={deleteService}
+                          />
                         </td>
                       </tr>
                     ))}

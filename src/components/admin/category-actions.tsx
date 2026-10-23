@@ -1,8 +1,6 @@
 "use client";
 
-import { useState } from "react";
-
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { useState, useTransition } from "react";
 
 type Category = {
   id: string;
@@ -24,20 +22,20 @@ type Category = {
 type Props = {
   category: Category;
   categories: Category[];
-  onChanged: () => void;
+  onUpdate: (formData: FormData) => Promise<void>;
+  onDelete: (formData: FormData) => Promise<void>;
 };
 
 export function CategoryActions({
   category,
   categories,
-  onChanged,
+  onUpdate,
+  onDelete,
 }: Props) {
-  const supabase = createSupabaseBrowserClient();
-
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [isPending, startTransition] = useTransition();
 
   const [name, setName] = useState(category.category_name ?? "");
   const [code, setCode] = useState(category.category_code ?? "");
@@ -90,13 +88,13 @@ export function CategoryActions({
   }
 
   function closeEditor() {
-    if (saving) return;
+    if (isPending) return;
 
     resetForm();
     setEditing(false);
   }
 
-  async function saveCategory() {
+  function handleSave() {
     setError("");
 
     if (!name.trim()) {
@@ -119,47 +117,37 @@ export function CategoryActions({
       return;
     }
 
-    setSaving(true);
+    const formData = new FormData();
+    formData.append("category_id", category.id);
+    formData.append("parent_id", parentId || "");
+    formData.append("category_code", code.trim());
+    formData.append("category_name", name.trim());
+    formData.append("slug", slug.trim() || "");
+    formData.append("description", description.trim() || "");
+    formData.append("icon_name", iconName.trim() || "");
+    formData.append("image_media_id", category.image_media_id || "");
+    formData.append("sort_order", String(parsedSortOrder));
+    formData.append("is_featured", String(featured));
+    formData.append("is_searchable", String(searchable));
+    formData.append("seo_title", seoTitle.trim() || "");
+    formData.append("seo_description", seoDescription.trim() || "");
+    formData.append("is_active", String(active));
 
-    try {
-      const { error: updateError } = await supabase.rpc(
-        "admin_update_category",
-        {
-          p_category_id: category.id,
-          p_parent_id: parentId || null,
-          p_category_code: code.trim(),
-          p_category_name: name.trim(),
-          p_slug: slug.trim() || null,
-          p_description: description.trim() || null,
-          p_icon_name: iconName.trim() || null,
-          p_image_media_id: category.image_media_id,
-          p_sort_order: parsedSortOrder,
-          p_is_featured: featured,
-          p_is_searchable: searchable,
-          p_seo_title: seoTitle.trim() || null,
-          p_seo_description: seoDescription.trim() || null,
-          p_is_active: active,
-        },
-      );
-
-      if (updateError) {
-        throw updateError;
+    startTransition(async () => {
+      try {
+        await onUpdate(formData);
+        setEditing(false);
+      } catch (err) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Unable to update category.",
+        );
       }
-
-      setEditing(false);
-      onChanged();
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Unable to update category.",
-      );
-    } finally {
-      setSaving(false);
-    }
+    });
   }
 
-  async function deleteCategory() {
+  function handleDelete() {
     if (deleting) return;
 
     const confirmed = window.confirm(
@@ -171,28 +159,21 @@ export function CategoryActions({
     setDeleting(true);
     setError("");
 
-    try {
-      const { error: deleteError } = await supabase.rpc(
-        "admin_delete_category",
-        {
-          p_category_id: category.id,
-        },
-      );
+    const formData = new FormData();
+    formData.append("category_id", category.id);
 
-      if (deleteError) {
-        throw deleteError;
+    startTransition(async () => {
+      try {
+        await onDelete(formData);
+      } catch (err) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Unable to delete category.",
+        );
+        setDeleting(false);
       }
-
-      onChanged();
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Unable to delete category.",
-      );
-    } finally {
-      setDeleting(false);
-    }
+    });
   }
 
   const availableParents = categories.filter(
@@ -215,7 +196,7 @@ export function CategoryActions({
 
         <button
           type="button"
-          onClick={() => void deleteCategory()}
+          onClick={() => void handleDelete()}
           disabled={deleting}
           className="rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
         >
@@ -252,7 +233,7 @@ export function CategoryActions({
                 <button
                   type="button"
                   onClick={closeEditor}
-                  disabled={saving}
+                  disabled={isPending}
                   className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
                   aria-label="Close"
                 >
@@ -400,7 +381,7 @@ export function CategoryActions({
                 <button
                   type="button"
                   onClick={closeEditor}
-                  disabled={saving}
+                  disabled={isPending}
                   className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                 >
                   Cancel
@@ -408,11 +389,11 @@ export function CategoryActions({
 
                 <button
                   type="button"
-                  onClick={() => void saveCategory()}
-                  disabled={saving}
+                  onClick={() => void handleSave()}
+                  disabled={isPending}
                   className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {saving ? "Saving..." : "Save Changes"}
+                  {isPending ? "Saving..." : "Save Changes"}
                 </button>
               </div>
             </div>

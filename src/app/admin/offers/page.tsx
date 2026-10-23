@@ -4,13 +4,33 @@ import { revalidatePath } from "next/cache";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+async function requireSuperAdmin() {
+  const supabase = await createSupabaseServerClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const { data, error } = await supabase.rpc("is_super_admin");
+
+  if (error || data !== true) {
+    redirect("/");
+  }
+
+  return supabase;
+}
+
 type Offer = {
   id: string;
   business_id: string;
+  business_name: string | null;
   title: string;
   slug: string;
   short_description: string | null;
-  coupon_code: string | null;
   offer_type: string;
   discount_type: string | null;
   discount_value: number | null;
@@ -25,13 +45,12 @@ type Offer = {
   status: string;
   priority: number | null;
   is_featured: boolean;
-  is_active: boolean;
   created_at: string;
-};
-
-type Business = {
-  id: string;
-  business_name: string;
+  updated_at: string;
+  // NOTE: Live admin_get_offers does NOT return coupon_code or is_active.
+  // These fields are unavailable via the RPC and will show as "RPC Unavailable".
+  coupon_code?: string | null;
+  // is_active is intentionally omitted — never infer from status.
 };
 
 async function updateOfferState(formData: FormData) {
@@ -39,38 +58,30 @@ async function updateOfferState(formData: FormData) {
 
   const offerId = String(formData.get("offer_id") ?? "").trim();
   const status = String(formData.get("status") ?? "").trim();
-  const isActive = formData.get("is_active") === "true";
   const isFeatured = formData.get("is_featured") === "true";
 
   if (!offerId) {
     throw new Error("Offer ID is required.");
   }
 
-  const supabase = await createSupabaseServerClient();
+  const supabase = await requireSuperAdmin();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  const { data: isAdmin } = await supabase.rpc("is_super_admin");
-
-  if (!isAdmin) {
-    redirect("/");
-  }
-
-  const { error } = await supabase.rpc("admin_set_offer_state", {
+  // NOTE: We do NOT send is_active because admin_get_offers does not return it.
+  // The database column exists but the RPC contract excludes it.
+  // Sending a guessed/inferred value would be misleading and incorrect.
+  const { data, error } = await supabase.rpc("admin_set_offer_state", {
     p_offer_id: offerId,
     p_status: status,
-    p_is_active: isActive,
     p_is_featured: isFeatured,
   });
 
   if (error) {
     throw new Error(error.message);
+  }
+
+  // Live function returns boolean (true on success)
+  if (data !== true) {
+    throw new Error("Offer state update did not succeed.");
   }
 
   revalidatePath("/admin/offers");
@@ -114,7 +125,6 @@ export default async function AdminOffers({
   const status = params.status?.trim() ?? "";
   const page = parsePageParam(params.page, OFFERS_MAX_PAGE);
   const offset = (page - 1) * OFFERS_PER_PAGE;
-  const rangeEnd = offset + OFFERS_FETCH_LIMIT - 1;
 
   const supabase = await createSupabaseServerClient();
 
@@ -132,79 +142,19 @@ export default async function AdminOffers({
     redirect("/");
   }
 
-  let query = supabase
-    .from("offers")
-    .select(
-      `
-        id,
-        business_id,
-        title,
-        slug,
-        short_description,
-        coupon_code,
-        offer_type,
-        discount_type,
-        discount_value,
-        minimum_order_amount,
-        maximum_discount_amount,
-        redemption_limit,
-        redemption_count,
-        per_user_limit,
-        start_at,
-        end_at,
-        visibility,
-        status,
-        priority,
-        is_featured,
-        is_active,
-        created_at
-      `,
-    )
-    .is("deleted_at", null)
-    .order("priority", { ascending: false })
-    .order("created_at", { ascending: false })
-    .range(offset, rangeEnd);
-
-  if (status) {
-    query = query.eq("status", status);
-  }
-
-  if (search) {
-    query = query.or(
-      `title.ilike.%${search}%,short_description.ilike.%${search}%,coupon_code.ilike.%${search}%,offer_type.ilike.%${search}%`,
-    );
-  }
-
-  const { data, error } = await query;
+  const { data, error } = await supabase.rpc("admin_get_offers", {
+    p_search: search || null,
+    p_status: status || null,
+    p_limit: OFFERS_FETCH_LIMIT,
+    p_offset: offset,
+  });
 
   const fetchedOffers = (data ?? []) as Offer[];
   const hasNextPage = fetchedOffers.length > OFFERS_PER_PAGE;
   const offers = hasNextPage ? fetchedOffers.slice(0, OFFERS_PER_PAGE) : fetchedOffers;
 
-  const businessIds = [
-    ...new Set(offers.map((offer) => offer.business_id)),
-  ];
-
-  let businesses: Business[] = [];
-
-  if (businessIds.length > 0) {
-    const { data: businessData } = await supabase
-      .from("businesses")
-      .select("id, business_name")
-      .in("id", businessIds);
-
-    businesses = (businessData ?? []) as Business[];
-  }
-
-  const businessMap = new Map(
-    businesses.map((business) => [
-      business.id,
-      business.business_name,
-    ]),
-  );
-
   const activeCount = offers.filter(
-    (offer) => offer.status === "active" && offer.is_active,
+    (offer) => offer.status === "active",
   ).length;
 
   const draftCount = offers.filter(
@@ -350,7 +300,11 @@ export default async function AdminOffers({
                               <span className="mt-2 inline-flex rounded-md bg-slate-100 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-700">
                                 {offer.coupon_code}
                               </span>
-                            ) : null}
+                            ) : (
+                              <span className="mt-2 inline-flex rounded-md bg-amber-50 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-700" title="Coupon code not returned by admin_get_offers RPC">
+                                RPC Unavailable
+                              </span>
+                            )}
                           </div>
                         </td>
 
@@ -359,8 +313,7 @@ export default async function AdminOffers({
                             href={`/admin/businesses/${offer.business_id}`}
                             className="font-semibold text-[var(--color-primary)] hover:underline"
                           >
-                            {businessMap.get(offer.business_id) ??
-                              "Unknown Business"}
+                            {offer.business_name ?? "Unknown Business"}
                           </Link>
 
                           <p className="mt-1 text-[10px] text-slate-400">
@@ -442,7 +395,7 @@ export default async function AdminOffers({
                         <td className="px-5 py-4">
                           <StatusBadge
                             status={offer.status}
-                            active={offer.is_active}
+                            active={offer.status === "active"}
                           />
                         </td>
 
@@ -473,16 +426,6 @@ export default async function AdminOffers({
                             </select>
 
                             <div className="flex flex-wrap gap-3 text-xs">
-                              <label className="flex items-center gap-1.5">
-                                <input
-                                  type="checkbox"
-                                  name="is_active"
-                                  value="true"
-                                  defaultChecked={offer.is_active}
-                                />
-                                Active
-                              </label>
-
                               <label className="flex items-center gap-1.5">
                                 <input
                                   type="checkbox"

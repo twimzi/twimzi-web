@@ -65,9 +65,7 @@ export default async function AdminLayout({
     redirect("/login");
   }
 
-  const { data: isSuperAdmin, error } = await supabase.rpc(
-    "is_super_admin",
-  );
+  const { data: isSuperAdmin, error } = await supabase.rpc("is_super_admin");
 
   if (error || isSuperAdmin !== true) {
     redirect("/");
@@ -97,7 +95,7 @@ export default async function AdminLayout({
               </div>
             </Link>
 
-            <nav className="mt-8 space-y-6">
+            <nav className="mt-8 space-y-6" aria-label="Admin navigation">
               {sections.map(([title, items]) => (
                 <div key={title}>
                   <p className="px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--color-text-muted)]">
@@ -109,7 +107,7 @@ export default async function AdminLayout({
                       <Link
                         key={href}
                         href={href}
-                        className="block rounded-xl px-3 py-2.5 text-sm font-medium text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary-dark)]"
+                        className="group block rounded-xl px-3 py-2.5 text-sm font-medium text-[var(--color-text-secondary)] transition-colors hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary-dark)]"
                       >
                         {label}
                       </Link>
@@ -122,8 +120,8 @@ export default async function AdminLayout({
         </aside>
 
         <main className="min-w-0 flex-1">
-          <div className="border-b border-[var(--color-border)] bg-white px-5 py-4 shadow-[var(--shadow-xs)] lg:px-8">
-            <div className="flex items-center justify-between gap-4">
+          <header className="border-b border-[var(--color-border)] bg-white/95 backdrop-blur sticky top-0 z-40">
+            <div className="flex items-center justify-between gap-4 px-5 py-4 lg:px-8">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-primary)]">
                   Twimzi Control Center
@@ -141,7 +139,7 @@ export default async function AdminLayout({
                 View Website
               </Link>
             </div>
-          </div>
+          </header>
 
           <div className="px-5 py-7 lg:px-8">{children}</div>
         </main>

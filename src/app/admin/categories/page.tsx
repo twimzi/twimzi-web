@@ -1,15 +1,9 @@
-"use client";
-
-import {
-  FormEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 import { CategoryActions } from "@/components/admin/category-actions";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type Category = {
   id: string;
@@ -30,6 +24,33 @@ type Category = {
   updated_at: string | null;
 };
 
+type SearchParams = {
+  q?: string;
+  page?: string;
+};
+
+const CATEGORIES_PER_PAGE = 50;
+const CATEGORIES_FETCH_LIMIT = CATEGORIES_PER_PAGE + 1;
+const CATEGORIES_MAX_PAGE = 10000;
+
+function parsePageParam(
+  value: string | undefined,
+  maxPage: number
+): number {
+  const normalized = value?.trim() ?? "";
+
+  if (!/^\d+$/.test(normalized)) return 1;
+
+  const parsed = Number(normalized);
+
+  if (parsed < 1) return 1;
+  if (!Number.isSafeInteger(parsed) || parsed > maxPage) {
+    return maxPage;
+  }
+
+  return parsed;
+}
+
 function formatDate(value: string | null) {
   if (!value) return "—";
 
@@ -47,462 +68,453 @@ function truncateId(value: string | null) {
   return `${value.slice(0, 8)}...${value.slice(-6)}`;
 }
 
-export default function AdminCategoriesPage() {
-  const supabase = createSupabaseBrowserClient();
+async function requireSuperAdmin() {
+  const supabase = await createSupabaseServerClient();
 
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [search, setSearch] = useState("");
-  const [submittedSearch, setSubmittedSearch] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  const loadCategories = useCallback(async () => {
-    setLoading(true);
-    setError("");
-
-    try {
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-
-      if (userError) {
-        throw userError;
-      }
-
-      if (!user) {
-        throw new Error("You must be signed in.");
-      }
-
-      const { data: adminCheck, error: adminError } =
-        await supabase.rpc("is_super_admin");
-
-      if (adminError) {
-        throw adminError;
-      }
-
-      if (!adminCheck) {
-        throw new Error(
-          "You do not have permission to access this page.",
-        );
-      }
-
-      const { data, error: categoryError } =
-        await supabase.rpc("admin_get_categories", {
-          p_search: submittedSearch.trim() || null,
-          p_limit: 100,
-          p_offset: 0,
-        });
-
-      if (categoryError) {
-        throw categoryError;
-      }
-
-      setCategories((data ?? []) as Category[]);
-    } catch (err) {
-      setCategories([]);
-
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Unable to load categories.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, [submittedSearch, supabase]);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      void loadCategories();
-    }, 0);
-
-    return () => {
-      window.clearTimeout(timer);
-    };
-  }, [loadCategories]);
-
-  function handleSearch(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setSubmittedSearch(search);
+  if (!user) {
+    redirect("/login");
   }
 
-  function clearSearch() {
-    setSearch("");
-    setSubmittedSearch("");
+  const { data, error } = await supabase.rpc("is_super_admin");
+
+  if (error || data !== true) {
+    redirect("/");
   }
 
-  const statistics = useMemo(() => {
-    return {
-      total: categories.length,
-      active: categories.filter((category) => category.is_active).length,
-      inactive: categories.filter((category) => !category.is_active).length,
-      featured: categories.filter((category) => category.is_featured).length,
-      searchable: categories.filter(
-        (category) => category.is_searchable,
-      ).length,
-      root: categories.filter((category) => !category.parent_id).length,
-      child: categories.filter((category) => category.parent_id).length,
-    };
-  }, [categories]);
+  return supabase;
+}
 
-  return (
-    <div className="space-y-6">
+async function updateCategory(formData: FormData) {
+  "use server";
+
+  const categoryId = String(formData.get("category_id") ?? "").trim();
+  const parentId = String(formData.get("parent_id") ?? "").trim();
+  const categoryCode = String(formData.get("category_code") ?? "").trim();
+  const categoryName = String(formData.get("category_name") ?? "").trim();
+  const slug = String(formData.get("slug") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim();
+  const iconName = String(formData.get("icon_name") ?? "").trim();
+  const imageMediaId = String(formData.get("image_media_id") ?? "").trim();
+  const sortOrder = String(formData.get("sort_order") ?? "").trim();
+  const isFeatured = formData.get("is_featured") === "true";
+  const isSearchable = formData.get("is_searchable") === "true";
+  const seoTitle = String(formData.get("seo_title") ?? "").trim();
+  const seoDescription = String(formData.get("seo_description") ?? "").trim();
+  const isActive = formData.get("is_active") === "true";
+
+  if (!categoryId) {
+    throw new Error("Category ID is required.");
+  }
+  if (!categoryName) {
+    throw new Error("Category name is required.");
+  }
+  if (!categoryCode) {
+    throw new Error("Category code is required.");
+  }
+
+  const parsedSortOrder = Number(sortOrder || "0");
+  if (!Number.isFinite(parsedSortOrder) || parsedSortOrder < 0) {
+    throw new Error("Sort order must be a valid non-negative number.");
+  }
+
+  const supabase = await requireSuperAdmin();
+
+  const { error } = await supabase.rpc("admin_update_category", {
+    p_category_id: categoryId,
+    p_parent_id: parentId || null,
+    p_category_code: categoryCode,
+    p_category_name: categoryName,
+    p_slug: slug || null,
+    p_description: description || null,
+    p_icon_name: iconName || null,
+    p_image_media_id: imageMediaId || null,
+    p_sort_order: parsedSortOrder,
+    p_is_featured: isFeatured,
+    p_is_searchable: isSearchable,
+    p_seo_title: seoTitle || null,
+    p_seo_description: seoDescription || null,
+    p_is_active: isActive,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/admin/categories");
+}
+
+async function deleteCategory(formData: FormData) {
+  "use server";
+
+  const categoryId = String(formData.get("category_id") ?? "").trim();
+
+  if (!categoryId) {
+    throw new Error("Category ID is required.");
+  }
+
+  const supabase = await requireSuperAdmin();
+
+  const { error } = await supabase.rpc("admin_delete_category", {
+    p_category_id: categoryId,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/admin/categories");
+}
+
+export default async function AdminCategories({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const params = await searchParams;
+  const search = params.q?.trim() ?? "";
+  const page = parsePageParam(params.page, CATEGORIES_MAX_PAGE);
+  const offset = (page - 1) * CATEGORIES_PER_PAGE;
+
+  const supabase = await createSupabaseServerClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return (
       <div>
-        <p className="text-sm font-medium text-slate-500">
+        <p className="text-sm font-semibold text-[var(--color-primary)]">
           Administration
         </p>
 
-        <h1 className="mt-1 text-2xl font-semibold text-slate-900">
-          Categories
-        </h1>
+        <h1 className="mt-1 text-3xl font-extrabold">Categories</h1>
 
-        <p className="mt-1 text-sm text-slate-500">
-          Manage the category structure used across Twimzi.
+        <div className="mt-8 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800">
+          Please sign in to access category administration.
+        </div>
+      </div>
+    );
+  }
+
+  const { data: isSuperAdmin, error: authError } =
+    await supabase.rpc("is_super_admin");
+
+  if (authError || isSuperAdmin !== true) {
+    return (
+      <div>
+        <p className="text-sm font-semibold text-[var(--color-primary)]">
+          Administration
         </p>
-      </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
-        <StatCard label="Total" value={statistics.total} />
-        <StatCard
-          label="Active"
-          value={statistics.active}
-          valueClass="text-emerald-700"
-        />
-        <StatCard
-          label="Inactive"
-          value={statistics.inactive}
-        />
-        <StatCard
-          label="Featured"
-          value={statistics.featured}
-          valueClass="text-amber-700"
-        />
-        <StatCard
-          label="Searchable"
-          value={statistics.searchable}
-          valueClass="text-blue-700"
-        />
-        <StatCard
-          label="Root / Child"
-          value={`${statistics.root} / ${statistics.child}`}
-        />
-      </div>
+        <h1 className="mt-1 text-3xl font-extrabold">Categories</h1>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="mt-8 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
+          You do not have permission to access category administration.
+        </div>
+      </div>
+    );
+  }
+
+  const { data, error } = await supabase.rpc("admin_get_categories", {
+    p_search: search || null,
+    p_limit: CATEGORIES_FETCH_LIMIT,
+    p_offset: offset,
+  });
+
+  const fetchedCategories = (data ?? []) as Category[];
+  const hasNextPage = fetchedCategories.length > CATEGORIES_PER_PAGE;
+  const categories = hasNextPage
+    ? fetchedCategories.slice(0, CATEGORIES_PER_PAGE)
+    : fetchedCategories;
+
+  const activeCount = categories.filter((c) => c.is_active).length;
+  const inactiveCount = categories.filter((c) => !c.is_active).length;
+  const featuredCount = categories.filter((c) => c.is_featured).length;
+  const searchableCount = categories.filter((c) => c.is_searchable).length;
+  const rootCount = categories.filter((c) => !c.parent_id).length;
+  const childCount = categories.filter((c) => c.parent_id).length;
+
+  return (
+    <div className="pb-12">
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <Link
+            href="/admin/businesses"
+            className="text-sm font-semibold text-[var(--color-primary)]"
+          >
+            ← Business Management
+          </Link>
+
+          <p className="mt-5 text-sm font-semibold text-[var(--color-primary)]">
+            Category Management
+          </p>
+
+          <h1 className="mt-1 text-3xl font-extrabold tracking-tight">
+            Categories
+          </h1>
+
+          <p className="mt-2 text-sm text-[var(--color-text-muted)]">
+            Manage the category structure used across Twimzi.
+          </p>
+        </div>
+
         <form
-          onSubmit={handleSearch}
-          className="flex flex-col gap-3 sm:flex-row"
+          method="get"
+          className="flex w-full gap-2 lg:w-auto"
         >
-          <div className="flex-1">
-            <label htmlFor="category-search" className="sr-only">
-              Search categories
-            </label>
-
-            <input
-              id="category-search"
-              type="search"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search category name, code, slug or description..."
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
-            />
-          </div>
+          <input
+            type="search"
+            name="q"
+            defaultValue={search}
+            placeholder="Search category name, code, slug or description..."
+            className="w-full min-w-0 rounded-xl border border-[var(--color-border)] bg-white px-4 py-2.5 text-sm outline-none focus:border-[var(--color-primary)] sm:w-[360px]"
+          />
 
           <button
             type="submit"
-            className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-slate-800"
+            className="rounded-xl bg-[var(--color-primary)] px-5 py-2.5 text-sm font-bold text-white hover:opacity-90"
           >
             Search
           </button>
 
-          {submittedSearch ? (
-            <button
-              type="button"
-              onClick={clearSearch}
-              className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+          {search ? (
+            <Link
+              href="/admin/categories"
+              className="flex items-center rounded-xl border border-[var(--color-border)] bg-white px-4 py-2.5 text-sm font-bold hover:bg-slate-50"
             >
               Clear
-            </button>
+            </Link>
           ) : null}
         </form>
       </div>
 
       {error ? (
-        <div className="flex flex-col gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 sm:flex-row sm:items-center sm:justify-between">
-          <span>{error}</span>
+        <div className="mt-8 rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">
+          <p className="font-bold">Unable to load categories.</p>
 
-          <button
-            type="button"
-            onClick={() => void loadCategories()}
-            className="rounded-lg border border-red-200 bg-white px-3 py-2 font-medium text-red-700 hover:bg-red-100"
-          >
-            Retry
-          </button>
+          <p className="mt-1 text-xs opacity-80">
+            {error.message}
+          </p>
         </div>
-      ) : null}
-
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex flex-col gap-2 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="font-semibold text-slate-900">
-              Category Directory
-            </h2>
-
-            <p className="mt-1 text-xs text-slate-500">
-              Manage existing categories. No duplicate category
-              structures are created.
-            </p>
+      ) : (
+        <>
+          <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-6">
+            <StatCard label="Total" value={categories.length} />
+            <StatCard
+              label="Active"
+              value={activeCount}
+              valueClass="text-emerald-700"
+            />
+            <StatCard
+              label="Inactive"
+              value={inactiveCount}
+            />
+            <StatCard
+              label="Featured"
+              value={featuredCount}
+              valueClass="text-amber-700"
+            />
+            <StatCard
+              label="Searchable"
+              value={searchableCount}
+              valueClass="text-blue-700"
+            />
+            <StatCard
+              label="Root / Child"
+              value={`${rootCount} / ${childCount}`}
+            />
           </div>
 
-          <button
-            type="button"
-            onClick={() => void loadCategories()}
-            disabled={loading}
-            className="self-start rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {loading ? "Refreshing..." : "Refresh"}
-          </button>
-        </div>
+          <div className="mt-8 overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white">
+            <div className="flex items-center justify-between border-b border-[var(--color-border)] px-5 py-4">
+              <div>
+                <h2 className="font-extrabold">
+                  Category Directory
+                </h2>
 
-        {loading ? (
-          <div className="space-y-3 p-5">
-            {[1, 2, 3, 4, 5].map((item) => (
-              <div
-                key={item}
-                className="h-20 animate-pulse rounded-xl bg-slate-100"
-              />
-            ))}
-          </div>
-        ) : categories.length === 0 ? (
-          <div className="px-5 py-16 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-lg text-slate-500">
-              C
+                <p className="mt-1 text-xs text-[var(--color-text-muted)]">
+                  Showing page {page} ({categories.length} categories)
+                  {search ? ` matching "${search}"` : ""}.
+                </p>
+              </div>
+
+              <span className="rounded-full bg-[var(--color-surface)] px-3 py-1 text-xs font-bold">
+                {categories.length}
+              </span>
             </div>
 
-            <h3 className="mt-4 font-semibold text-slate-900">
-              No categories found
-            </h3>
+            {categories.length === 0 ? (
+              <div className="p-10 text-center">
+                <p className="font-bold">No categories found</p>
 
-            <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">
-              {submittedSearch
-                ? "No categories match your search."
-                : "There are currently no categories available."}
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="hidden overflow-x-auto lg:block">
-              <table className="min-w-[1250px] w-full">
-                <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    <th className="px-5 py-3">Category</th>
-                    <th className="px-5 py-3">Code</th>
-                    <th className="px-5 py-3">Parent</th>
-                    <th className="px-5 py-3">Order</th>
-                    <th className="px-5 py-3">Features</th>
-                    <th className="px-5 py-3">Status</th>
-                    <th className="px-5 py-3">Updated</th>
-                    <th className="px-5 py-3">Actions</th>
-                  </tr>
-                </thead>
+                <p className="mt-1 text-sm text-[var(--color-text-muted)]">
+                  {search
+                    ? "Try another search."
+                    : "No categories are currently available."}
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="overflow-x-auto">
+                  <table className="min-w-[1250px] w-full text-left text-sm">
+                    <thead className="border-b bg-[var(--color-surface)]">
+                      <tr>
+                        {[
+                          "Category",
+                          "Code",
+                          "Parent",
+                          "Order",
+                          "Features",
+                          "Status",
+                          "Updated",
+                          "Actions",
+                        ].map((heading) => (
+                          <th key={heading} className="px-5 py-4 font-bold">
+                            {heading}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
 
-                <tbody className="divide-y divide-slate-100">
-                  {categories.map((category) => (
-                    <tr
-                      key={category.id}
-                      className="transition hover:bg-slate-50"
-                    >
-                      <td className="max-w-sm px-5 py-4">
-                        <div className="flex items-start gap-3">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-sm font-semibold text-slate-500">
-                            {category.category_name
-                              ?.charAt(0)
-                              .toUpperCase() || "C"}
-                          </div>
-
-                          <div className="min-w-0">
-                            <p className="truncate font-medium text-slate-900">
+                    <tbody>
+                      {categories.map((category) => (
+                        <tr
+                          key={category.id}
+                          className="border-b last:border-0 hover:bg-slate-50/70"
+                        >
+                          <td className="px-5 py-4">
+                            <p className="font-bold">
                               {category.category_name || "Unnamed"}
                             </p>
 
-                            <p className="mt-1 truncate text-xs text-slate-500">
-                              {category.slug || "No slug"}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
+                            {category.slug ? (
+                              <p className="mt-1 max-w-[230px] truncate text-xs text-slate-400">
+                                /{category.slug}
+                              </p>
+                            ) : null}
+                          </td>
 
-                      <td className="px-5 py-4">
-                        <span className="font-mono text-xs text-slate-500">
-                          {category.category_code || "—"}
-                        </span>
-                      </td>
-
-                      <td className="px-5 py-4">
-                        {category.parent_id ? (
-                          <span className="font-mono text-xs text-slate-500">
-                            {truncateId(category.parent_id)}
-                          </span>
-                        ) : (
-                          <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">
-                            Root
-                          </span>
-                        )}
-                      </td>
-
-                      <td className="px-5 py-4 text-sm text-slate-600">
-                        {category.sort_order ?? 0}
-                      </td>
-
-                      <td className="px-5 py-4">
-                        <div className="flex flex-wrap gap-1.5">
-                          {category.is_featured ? (
-                            <span className="rounded-full bg-amber-50 px-2 py-1 text-[11px] font-medium text-amber-700">
-                              Featured
+                          <td className="px-5 py-4">
+                            <span className="font-mono text-xs text-slate-500">
+                              {category.category_code || "—"}
                             </span>
-                          ) : null}
+                          </td>
 
-                          {category.is_searchable ? (
-                            <span className="rounded-full bg-blue-50 px-2 py-1 text-[11px] font-medium text-blue-700">
-                              Searchable
+                          <td className="px-5 py-4">
+                            {category.parent_id ? (
+                              <span className="font-mono text-xs text-slate-500">
+                                {truncateId(category.parent_id)}
+                              </span>
+                            ) : (
+                              <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700">
+                                Root
+                              </span>
+                            )}
+                          </td>
+
+                          <td className="px-5 py-4 text-sm text-slate-600">
+                            {category.sort_order ?? 0}
+                          </td>
+
+                          <td className="px-5 py-4">
+                            <div className="flex flex-wrap gap-1.5">
+                              {category.is_featured ? (
+                                <span className="rounded-full bg-amber-50 px-2 py-1 text-[11px] font-medium text-amber-700">
+                                  Featured
+                                </span>
+                              ) : null}
+
+                              {category.is_searchable ? (
+                                <span className="rounded-full bg-blue-50 px-2 py-1 text-[11px] font-medium text-blue-700">
+                                  Searchable
+                                </span>
+                              ) : null}
+                            </div>
+                          </td>
+
+                          <td className="px-5 py-4">
+                            <span
+                              className={`rounded-full px-2.5 py-1 text-xs font-bold ${
+                                category.is_active
+                                  ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                                  : "border-slate-200 bg-slate-50 text-slate-600"
+                              }`}
+                            >
+                              {category.is_active ? "Active" : "Inactive"}
                             </span>
-                          ) : null}
-                        </div>
-                      </td>
+                          </td>
 
-                      <td className="px-5 py-4">
-                        <span
-                          className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                            category.is_active
-                              ? "bg-emerald-50 text-emerald-700"
-                              : "bg-slate-100 text-slate-600"
-                          }`}
-                        >
-                          {category.is_active ? "Active" : "Inactive"}
-                        </span>
-                      </td>
+                          <td className="px-5 py-4 text-xs text-slate-500">
+                            {formatDate(category.updated_at)}
+                          </td>
 
-                      <td className="whitespace-nowrap px-5 py-4 text-sm text-slate-500">
-                        {formatDate(category.updated_at)}
-                      </td>
+                          <td className="px-5 py-4">
+                            <CategoryActions
+                              category={category}
+                              categories={categories}
+                              onUpdate={updateCategory}
+                              onDelete={deleteCategory}
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
 
-                      <td className="px-5 py-4">
-                        <CategoryActions
-                          category={category}
-                          categories={categories}
-                          onChanged={() => void loadCategories()}
-                        />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                <div className="border-t border-[var(--color-border)] px-5 py-4 flex items-center justify-between">
+                  <p className="text-xs text-[var(--color-text-muted)]">
+                    Page {page} ({categories.length} categories)
+                  </p>
 
-            <div className="divide-y divide-slate-100 lg:hidden">
-              {categories.map((category) => (
-                <div key={category.id} className="p-5">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex min-w-0 items-start gap-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-sm font-semibold text-slate-500">
-                        {category.category_name
-                          ?.charAt(0)
-                          .toUpperCase() || "C"}
-                      </div>
-
-                      <div className="min-w-0">
-                        <h3 className="truncate font-semibold text-slate-900">
-                          {category.category_name || "Unnamed"}
-                        </h3>
-
-                        <p className="mt-1 truncate text-xs text-slate-500">
-                          {category.slug || "No slug"}
-                        </p>
-                      </div>
-                    </div>
-
-                    <span
-                      className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${
-                        category.is_active
-                          ? "bg-emerald-50 text-emerald-700"
-                          : "bg-slate-100 text-slate-600"
-                      }`}
-                    >
-                      {category.is_active ? "Active" : "Inactive"}
-                    </span>
-                  </div>
-
-                  <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
-                    <div>
-                      <p className="text-slate-400">Code</p>
-                      <p className="mt-1 font-mono text-slate-700">
-                        {category.category_code || "—"}
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-slate-400">Sort Order</p>
-                      <p className="mt-1 font-medium text-slate-700">
-                        {category.sort_order ?? 0}
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-slate-400">Parent</p>
-                      <p className="mt-1 font-mono text-slate-700">
-                        {category.parent_id
-                          ? truncateId(category.parent_id)
-                          : "Root"}
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-slate-400">Updated</p>
-                      <p className="mt-1 text-slate-700">
-                        {formatDate(category.updated_at)}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {category.is_featured ? (
-                      <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">
-                        Featured
+                  <div className="flex items-center gap-2">
+                    {page > 1 ? (
+                      <Link
+                        href={`/admin/categories?${search ? `q=${encodeURIComponent(search)}&` : ""}page=${page - 1}`}
+                        className="rounded-xl border border-[var(--color-border)] bg-white px-3 py-2 text-xs font-bold text-[var(--color-text-secondary)] hover:bg-[var(--color-surface)]"
+                        aria-label="Previous page"
+                      >
+                        Previous
+                      </Link>
+                    ) : (
+                      <span
+                        className="rounded-xl border border-transparent bg-[var(--color-surface)] px-3 py-2 text-xs font-bold text-[var(--color-text-muted)] cursor-not-allowed"
+                        aria-label="Previous page"
+                        aria-disabled="true"
+                      >
+                        Previous
                       </span>
-                    ) : null}
+                    )}
 
-                    {category.is_searchable ? (
-                      <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">
-                        Searchable
+                    {hasNextPage ? (
+                      <Link
+                        href={`/admin/categories?${search ? `q=${encodeURIComponent(search)}&` : ""}page=${page + 1}`}
+                        className="rounded-xl border border-[var(--color-border)] bg-white px-3 py-2 text-xs font-bold text-[var(--color-text-secondary)] hover:bg-[var(--color-surface)]"
+                        aria-label="Next page"
+                      >
+                        Next
+                      </Link>
+                    ) : (
+                      <span
+                        className="rounded-xl border border-transparent bg-[var(--color-surface)] px-3 py-2 text-xs font-bold text-[var(--color-text-muted)] cursor-not-allowed"
+                        aria-label="Next page"
+                        aria-disabled="true"
+                      >
+                        Next
                       </span>
-                    ) : null}
-                  </div>
-
-                  {category.description ? (
-                    <p className="mt-4 text-sm leading-6 text-slate-600">
-                      {category.description}
-                    </p>
-                  ) : null}
-
-                  <div className="mt-5 border-t border-slate-100 pt-4">
-                    <CategoryActions
-                      category={category}
-                      categories={categories}
-                      onChanged={() => void loadCategories()}
-                    />
+                    )}
                   </div>
                 </div>
-              ))}
-            </div>
-
-            <div className="border-t border-slate-200 px-5 py-4 text-xs text-slate-500">
-              Showing {categories.length} categor
-              {categories.length === 1 ? "y" : "ies"}.
-            </div>
-          </>
-        )}
-      </div>
+              </>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -517,10 +529,12 @@ function StatCard({
   valueClass?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <p className="text-sm text-slate-500">{label}</p>
+    <div className="rounded-2xl border border-[var(--color-border)] bg-white p-5">
+      <p className="text-xs font-semibold text-[var(--color-text-muted)]">
+        {label}
+      </p>
 
-      <p className={`mt-2 text-2xl font-semibold ${valueClass}`}>
+      <p className={`mt-1 text-2xl font-extrabold ${valueClass}`}>
         {value}
       </p>
     </div>

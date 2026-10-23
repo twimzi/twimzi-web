@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 import { ProductActions } from "@/components/admin/product-actions";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -70,6 +72,122 @@ function formatPrice(value: number | null) {
   if (value === null || value === undefined) return "—";
 
   return `₹${formatNumber(value)}`;
+}
+
+async function requireSuperAdmin() {
+  const supabase = await createSupabaseServerClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const { data, error } = await supabase.rpc("is_super_admin");
+
+  if (error || data !== true) {
+    redirect("/");
+  }
+
+  return supabase;
+}
+
+async function updateProduct(formData: FormData) {
+  "use server";
+
+  const productId = String(formData.get("product_id") ?? "").trim();
+  const productName = String(formData.get("product_name") ?? "").trim();
+  const productCode = String(formData.get("product_code") ?? "").trim();
+  const sku = String(formData.get("sku") ?? "").trim();
+  const slug = String(formData.get("slug") ?? "").trim();
+  const brand = String(formData.get("brand") ?? "").trim();
+  const model = String(formData.get("model") ?? "").trim();
+  const sellingPrice = String(formData.get("selling_price") ?? "").trim();
+  const mrp = String(formData.get("mrp") ?? "").trim();
+  const stock = String(formData.get("stock_quantity") ?? "").trim();
+  const isFeatured = formData.get("is_featured") === "true";
+  const isActive = formData.get("is_active") === "true";
+
+  if (!productId) {
+    throw new Error("Product ID is required.");
+  }
+  if (!productName) {
+    throw new Error("Product name is required.");
+  }
+  if (!productCode) {
+    throw new Error("Product code is required.");
+  }
+  if (!sellingPrice) {
+    throw new Error("Selling price is required.");
+  }
+
+  const parsedSellingPrice = Number(sellingPrice);
+  if (!Number.isFinite(parsedSellingPrice) || parsedSellingPrice < 0) {
+    throw new Error("Selling price must be a valid non-negative number.");
+  }
+
+  let parsedMrp: number | null = null;
+  if (mrp !== "") {
+    parsedMrp = Number(mrp);
+    if (!Number.isFinite(parsedMrp) || parsedMrp < 0) {
+      throw new Error("MRP must be a valid non-negative number.");
+    }
+  }
+
+  let parsedStock: number | null = null;
+  if (stock !== "") {
+    parsedStock = Number(stock);
+    if (!Number.isFinite(parsedStock) || parsedStock < 0) {
+      throw new Error("Stock quantity must be a valid non-negative number.");
+    }
+  }
+
+  const supabase = await requireSuperAdmin();
+
+  const { error } = await supabase.rpc("admin_update_product", {
+    p_product_id: productId,
+    p_product_name: productName,
+    p_product_code: productCode,
+    p_sku: sku || null,
+    p_slug: slug || null,
+    p_brand: brand || null,
+    p_model: model || null,
+    p_selling_price: parsedSellingPrice,
+    p_mrp: parsedMrp,
+    p_stock_quantity: parsedStock,
+    p_is_featured: isFeatured,
+    p_is_active: isActive,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/admin/products");
+}
+
+async function deleteProduct(formData: FormData) {
+  "use server";
+
+  const productId = String(formData.get("product_id") ?? "").trim();
+
+  if (!productId) {
+    throw new Error("Product ID is required.");
+  }
+
+  const supabase = await requireSuperAdmin();
+
+  const { error } = await supabase.rpc("admin_delete_product", {
+    p_product_id: productId,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/admin/products");
 }
 
 export default async function AdminProducts({
@@ -378,7 +496,11 @@ export default async function AdminProducts({
                         </td>
 
                         <td className="px-5 py-4">
-                          <ProductActions product={product} />
+                          <ProductActions
+                            product={product}
+                            onUpdate={updateProduct}
+                            onDelete={deleteProduct}
+                          />
                         </td>
                       </tr>
                     ))}
