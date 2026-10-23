@@ -54,6 +54,17 @@ type BusinessMedia = {
   cover_height: number | null;
 };
 
+type BusinessGalleryImage = {
+  id: string;
+  bucket_name: string | null;
+  object_path: string | null;
+  mime_type: string | null;
+  alt_text: string | null;
+  is_public: boolean | null;
+  display_order: number;
+  created_at: string;
+};
+
 type Product = {
   id: string;
   business_id: string;
@@ -165,7 +176,7 @@ function formatPrice(value: number | null): string | null {
     return null;
   }
 
-  return `₹${value.toLocaleString("en-IN", {
+  return `â‚¹${value.toLocaleString("en-IN", {
     maximumFractionDigits: 2,
   })}`;
 }
@@ -226,7 +237,7 @@ function formatOfferValue(offer: Offer): string | null {
     discountType === "amount" ||
     discountType === "flat"
   ) {
-    return `₹${discountValue.toLocaleString("en-IN")} OFF`;
+    return `â‚¹${discountValue.toLocaleString("en-IN")} OFF`;
   }
 
   return `${discountValue}`;
@@ -328,6 +339,68 @@ async function getBusinessMedia(
   return data[0] as BusinessMedia;
 }
 
+async function getBusinessGallery(
+  businessId: string,
+): Promise<BusinessGalleryImage[]> {
+  const supabase = await createSupabaseServerClient();
+
+  const { data, error } = await supabase
+    .from("business_media")
+    .select(
+      "media_id, display_order, created_at, media!inner(bucket_name, object_path, mime_type, alt_text, is_public)",
+    )
+    .eq("business_id", businessId)
+    .gte("display_order", 0)
+    .eq("media.is_public", true)
+    .order("display_order", { ascending: true })
+    .order("created_at", { ascending: true });
+
+  if (error || !data) {
+    return [];
+  }
+
+  return (data as unknown as Array<Record<string, unknown>>).flatMap(
+    (row): BusinessGalleryImage[] => {
+      const relatedMedia = row.media;
+      const media = Array.isArray(relatedMedia)
+        ? relatedMedia[0]
+        : relatedMedia;
+
+      if (!media || typeof media !== "object") {
+        return [];
+      }
+
+      const item = media as Record<string, unknown>;
+      const mediaId = asString(row.media_id);
+      const bucketName = asString(item.bucket_name);
+      const objectPath = asString(item.object_path);
+
+      if (
+        !mediaId ||
+        !bucketName ||
+        !objectPath ||
+        item.is_public !== true
+      ) {
+        return [];
+      }
+
+      return [
+        {
+          id: mediaId,
+          bucket_name: bucketName,
+          object_path: objectPath,
+          mime_type: asString(item.mime_type),
+          alt_text: asString(item.alt_text),
+          is_public: true,
+          display_order:
+            typeof row.display_order === "number" ? row.display_order : 0,
+          created_at: asString(row.created_at) ?? "",
+        },
+      ];
+    },
+  );
+}
+
 async function getProducts(businessId: string): Promise<Product[]> {
   const supabase = await createSupabaseServerClient();
 
@@ -412,7 +485,7 @@ export async function generateMetadata({
 
   const description =
     business.description?.trim() ||
-    `${business.business_name} on Twimzi — discover products, services, offers and business information.`;
+    `${business.business_name} on Twimzi â€” discover products, services, offers and business information.`;
 
   const businessPath = `/businesses/${business.slug || business.id}`;
   const canonicalUrl = new URL(businessPath, siteConfig.url).toString();
@@ -445,13 +518,28 @@ export default async function BusinessDetailPage({
     notFound();
   }
 
-  const [media, products, services, offers, posts] = await Promise.all([
+  const [media, gallery, products, services, offers, posts] = await Promise.all([
     getBusinessMedia(business.id),
+    getBusinessGallery(business.id),
     getProducts(business.id),
     getServices(business.id),
     getOffers(business.id),
     getPosts(business.id),
   ]);
+
+  const galleryImages = gallery
+    .map((image) => ({
+      ...image,
+      url: getStoragePublicUrl(
+        image.bucket_name,
+        image.object_path,
+        image.is_public,
+      ),
+    }))
+    .filter(
+      (image): image is BusinessGalleryImage & { url: string } =>
+        image.url !== null,
+    );
 
   const selectedPost =
     selectedPostId && posts.length > 0
@@ -487,7 +575,7 @@ export default async function BusinessDetailPage({
     url: canonicalUrl,
     description:
       business.description?.trim() ||
-      `${business.business_name} on Twimzi — discover products, services, offers and business information.`,
+      `${business.business_name} on Twimzi â€” discover products, services, offers and business information.`,
   };
 
   if (logoUrl) {
@@ -591,7 +679,7 @@ export default async function BusinessDetailPage({
 
                     {business.verification_status === "verified" && (
                       <span className="rounded-full bg-[var(--color-primary-light)] px-3 py-1 text-xs font-semibold text-[var(--color-primary-dark)]">
-                        ✓ Verified
+                        âœ“ Verified
                       </span>
                     )}
                   </div>
@@ -734,7 +822,7 @@ export default async function BusinessDetailPage({
                   ) : (
                     <div className="mt-5 rounded-2xl bg-[var(--color-surface)] px-5 py-8 text-center">
                       <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--color-primary-light)] text-lg">
-                        💬
+                        ðŸ’¬
                       </div>
 
                       <p className="mt-3 text-sm font-semibold text-[var(--color-text)]">
@@ -761,6 +849,52 @@ export default async function BusinessDetailPage({
                   {business.description ||
                     "This business has not added a description yet."}
                 </p>
+              </section>
+            )}
+
+            {/* GALLERY */}
+            {galleryImages.length > 0 && (
+              <section
+                id="gallery"
+                className="scroll-mt-24 rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 shadow-sm"
+              >
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-xl font-bold text-[var(--color-text)]">
+                      Gallery
+                    </h2>
+                    <p className="mt-1 text-sm text-[var(--color-text-muted)]">
+                      Photos from {business.business_name}
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-[var(--color-primary-light)] px-3 py-1 text-xs font-semibold text-[var(--color-primary)]">
+                    {galleryImages.length}
+                  </span>
+                </div>
+
+                <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+                  {galleryImages.map((image, index) => (
+                    <a
+                      key={image.id}
+                      href={image.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group relative block aspect-square overflow-hidden rounded-2xl bg-[var(--color-surface-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2"
+                      aria-label={`Open ${image.alt_text || `${business.business_name} gallery photo ${index + 1}`}`}
+                    >
+                      <Image
+                        src={image.url}
+                        alt={
+                          image.alt_text ||
+                          `${business.business_name} gallery photo ${index + 1}`
+                        }
+                        fill
+                        sizes="(max-width: 640px) 50vw, (max-width: 1280px) 33vw, 25vw"
+                        className="object-cover transition duration-300 group-hover:scale-105"
+                      />
+                    </a>
+                  ))}
+                </div>
               </section>
             )}
 
@@ -887,7 +1021,7 @@ export default async function BusinessDetailPage({
                             <p className="mt-1 text-xs text-[var(--color-text-light)]">
                               {[product.brand, product.model]
                                 .filter(Boolean)
-                                .join(" • ")}
+                                .join(" â€¢ ")}
                             </p>
                           )}
 
@@ -1132,7 +1266,7 @@ export default async function BusinessDetailPage({
               posts.length === 0 && (
                 <section className="rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-10 text-center shadow-sm">
                   <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--color-primary-light)] text-2xl">
-                    ✦
+                    âœ¦
                   </div>
 
                   <h2 className="mt-4 text-lg font-bold text-[var(--color-text)]">
@@ -1179,7 +1313,7 @@ export default async function BusinessDetailPage({
                   <p className="text-2xl font-bold text-[#05CDFC]">
                     {business.average_rating !== null
                       ? Number(business.average_rating).toFixed(1)
-                      : "—"}
+                      : "â€”"}
                   </p>
 
                   <p className="mt-1 text-xs font-medium text-[var(--color-text-muted)]">
