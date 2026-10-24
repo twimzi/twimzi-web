@@ -3,6 +3,8 @@ import type { MetadataRoute } from "next";
 import { createClient } from "@supabase/supabase-js";
 import { siteConfig } from "@/config/site";
 
+export const revalidate = 3600;
+
 const routes = [
   "/", "/about", "/contact", "/explore", "/businesses", "/products",
   "/services", "/offers", "/community", "/blog", "/add-business", "/privacy-policy",
