@@ -77,7 +77,7 @@ async function changePostStatus(formData: FormData) {
   revalidatePath("/admin/blog");
 }
 
-export default async function AdminBlogPage({ searchParams }: { searchParams: Promise<{ created?: string }> }) {
+export default async function AdminBlogPage({ searchParams }: { searchParams: Promise<{ created?: string; saved?: string }> }) {
   const params = await searchParams;
   const { supabase } = await requireSuperAdmin();
   const { data, error } = await supabase.from("blog_posts")
@@ -97,7 +97,7 @@ export default async function AdminBlogPage({ searchParams }: { searchParams: Pr
         <Link href="/blog" target="_blank" className="w-fit rounded-xl border border-[var(--color-border)] bg-white px-4 py-2.5 text-sm font-bold">View public blog ↗</Link>
       </div>
 
-      {params.created === "1" ? <div className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800">Blog post saved successfully.</div> : null}
+      {params.created === "1" || params.saved === "1" ? <div className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800">Blog post saved successfully.</div> : null}
       {error ? <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">Posts could not be loaded. Confirm that the blog database migration has been applied.</div> : null}
 
       <div className="mt-8 grid gap-8 xl:grid-cols-[minmax(0,1.3fr)_minmax(360px,0.7fr)]">
