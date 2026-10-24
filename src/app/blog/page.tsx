@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
-import { siteConfig } from "@/config/site";
 
 export const metadata: Metadata = {
   title: "Small Business Tips, Local Guides & Insights",
@@ -25,6 +24,9 @@ type BlogPost = {
   created_at: string;
 };
 
+const DEFAULT_COVER =
+  "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1400&q=85";
+
 function getPublicClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -35,6 +37,10 @@ function getPublicClient() {
 function formatDate(value: string | null) {
   if (!value) return "Recently published";
   return new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", year: "numeric" }).format(new Date(value));
+}
+
+function readingTime(excerpt: string) {
+  return Math.max(1, Math.ceil(excerpt.trim().split(/\s+/).length / 220));
 }
 
 export default async function BlogPage() {
@@ -51,61 +57,62 @@ export default async function BlogPage() {
     else posts = (data ?? []) as BlogPost[];
   }
 
+  const featured = posts[0];
+  const remaining = posts.slice(1);
+
   return (
-    <div className="min-h-screen bg-[var(--color-background)]">
-      <section className="bg-gradient-to-br from-[var(--color-primary-light)] via-white to-white">
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
-          <p className="text-sm font-bold uppercase tracking-[0.18em] text-[var(--color-primary)]">The Twimzi Blog</p>
-          <h1 className="mt-3 max-w-3xl text-4xl font-extrabold tracking-tight text-[var(--color-text)] sm:text-5xl">Ideas to help local businesses grow</h1>
-          <p className="mt-5 max-w-2xl text-lg leading-8 text-[var(--color-text-secondary)]">Practical business tips, online visibility guides and local discoveries for India’s entrepreneurs, professionals and communities.</p>
-          <div className="mt-7 flex flex-wrap gap-3">
-            <Link href="/add-business" className="rounded-xl bg-[var(--color-primary)] px-5 py-3 text-sm font-bold text-white transition hover:bg-[var(--color-primary-dark)]">List your business</Link>
-            <Link href="/businesses" className="rounded-xl border border-[var(--color-border)] bg-white px-5 py-3 text-sm font-bold text-[var(--color-text)] transition hover:border-[var(--color-primary)]">Explore businesses</Link>
+    <div className="min-h-screen bg-slate-50">
+      <section className="relative isolate overflow-hidden bg-slate-950">
+        <div className="absolute inset-0 -z-20 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-600/50 via-slate-950 to-slate-950" />
+        <div className="absolute -right-20 -top-28 -z-10 h-96 w-96 rounded-full border border-white/10" />
+        <div className="absolute -right-8 -top-16 -z-10 h-72 w-72 rounded-full border border-white/10" />
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
+          <div className="max-w-3xl">
+            <span className="inline-flex items-center gap-2 rounded-full border border-blue-300/30 bg-blue-400/10 px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.18em] text-blue-200"><span className="h-2 w-2 rounded-full bg-blue-400" /> The Twimzi Journal</span>
+            <h1 className="mt-6 text-4xl font-black leading-tight tracking-tight text-white sm:text-6xl">Ideas that help businesses <span className="text-blue-300">move forward.</span></h1>
+            <p className="mt-6 max-w-2xl text-base leading-8 text-slate-300 sm:text-lg">Practical business guides, digital growth tips and useful insights for India’s entrepreneurs, professionals and local communities.</p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link href="/add-business" className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-extrabold text-white shadow-lg shadow-blue-950/30 transition hover:bg-blue-500">List your business <span className="ml-2" aria-hidden="true">→</span></Link>
+              <a href="#latest-articles" className="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/5 px-5 py-3 text-sm font-bold text-white transition hover:bg-white/10">Explore articles</a>
+            </div>
+            <div className="mt-10 flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-400"><span>Business essentials</span><span aria-hidden="true">·</span><span>Digital growth</span><span aria-hidden="true">·</span><span>Local discovery</span></div>
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mb-7 flex items-end justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-extrabold tracking-tight text-[var(--color-text)]">Latest articles</h2>
-            <p className="mt-2 text-sm text-[var(--color-text-muted)]">Useful, actionable ideas for growing and finding businesses.</p>
-          </div>
-          <span className="hidden rounded-full border border-[var(--color-border)] bg-white px-3 py-1.5 text-xs font-semibold text-[var(--color-text-muted)] sm:inline-flex">Guides · Tips · Local stories</span>
+      <section id="latest-articles" className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+        <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+          <div><p className="text-xs font-extrabold uppercase tracking-[0.16em] text-blue-700">Fresh perspectives</p><h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">Latest articles</h2><p className="mt-2 text-sm leading-6 text-slate-600">Actionable information, thoughtfully explained.</p></div>
+          <span className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-500">{posts.length} {posts.length === 1 ? "article" : "articles"}</span>
         </div>
 
-        {posts.length ? (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {posts.map((post) => (
-              <article key={post.id} className="overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white shadow-[var(--shadow-sm)] transition hover:-translate-y-0.5 hover:shadow-md">
-                <Link href={`/blog/${post.slug}`} className="block">
-                  {post.featured_image_url ? (
-                    <div className="relative aspect-[16/9] bg-[var(--color-surface)]">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={post.featured_image_url} alt="" className="h-full w-full object-cover" />
-                    </div>
-                  ) : (
-                    <div className="flex aspect-[16/9] items-center justify-center bg-gradient-to-br from-[var(--color-primary-light)] to-[var(--color-surface)]">
-                      <span className="text-4xl font-extrabold text-[var(--color-primary)]">T.</span>
-                    </div>
-                  )}
-                  <div className="p-6">
-                    <p className="text-xs font-semibold text-[var(--color-primary)]">{formatDate(post.published_at)}</p>
-                    <h3 className="mt-3 text-xl font-bold leading-snug text-[var(--color-text)] hover:text-[var(--color-primary)]">{post.title}</h3>
-                    <p className="mt-3 line-clamp-3 text-sm leading-6 text-[var(--color-text-secondary)]">{post.excerpt}</p>
-                    <span className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[var(--color-primary)]">Read article <span aria-hidden="true">→</span></span>
-                  </div>
-                </Link>
-              </article>
-            ))}
-          </div>
+        {featured ? (
+          <article className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm lg:grid lg:grid-cols-[1.08fr_0.92fr]">
+            <Link href={`/blog/${featured.slug}`} className="group relative block min-h-64 overflow-hidden bg-slate-200 sm:min-h-80 lg:min-h-[420px]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={featured.featured_image_url || DEFAULT_COVER} alt="" className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" fetchPriority="high" />
+              <span className="absolute left-5 top-5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-extrabold text-blue-800 shadow-sm">Featured guide</span>
+            </Link>
+            <div className="flex flex-col justify-center p-6 sm:p-9 lg:p-12">
+              <div className="flex flex-wrap items-center gap-3 text-xs font-bold text-blue-700"><span className="rounded-full bg-blue-50 px-3 py-1.5">Business insights</span><span className="text-slate-400">{formatDate(featured.published_at ?? featured.created_at)}</span></div>
+              <h3 className="mt-5 text-2xl font-black leading-tight tracking-tight text-slate-950 sm:text-3xl"><Link href={`/blog/${featured.slug}`} className="transition hover:text-blue-700">{featured.title}</Link></h3>
+              <p className="mt-4 line-clamp-4 text-base leading-7 text-slate-600">{featured.excerpt}</p>
+              <Link href={`/blog/${featured.slug}`} className="mt-7 inline-flex w-fit items-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-extrabold text-white transition hover:bg-blue-700">Read featured article <span aria-hidden="true">→</span></Link>
+            </div>
+          </article>
         ) : (
-          <div className="rounded-2xl border border-dashed border-[var(--color-border)] bg-white px-6 py-16 text-center">
-            <p className="text-lg font-bold text-[var(--color-text)]">The first articles are coming soon</p>
-            <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-[var(--color-text-secondary)]">We’re preparing practical guides for business owners and local communities. Check back soon for new articles.</p>
+          <div className="rounded-3xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center">
+            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-2xl text-blue-700">✦</span>
+            <p className="mt-5 text-xl font-extrabold text-slate-950">Our first guides are on the way</p>
+            <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-slate-600">We’re preparing useful articles for business owners and local communities. Please check back soon.</p>
           </div>
         )}
+
+        {remaining.length > 0 && <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{remaining.map((post) => <article key={post.id} className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-lg"><Link href={`/blog/${post.slug}`} className="block h-full"><div className="relative aspect-[16/10] overflow-hidden bg-slate-100">{/* eslint-disable-next-line @next/next/no-img-element */}<img src={post.featured_image_url || DEFAULT_COVER} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" /></div><div className="p-6"><p className="text-xs font-bold text-blue-700">{formatDate(post.published_at ?? post.created_at)}</p><h3 className="mt-3 text-xl font-extrabold leading-snug text-slate-950 transition group-hover:text-blue-700">{post.title}</h3><p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-600">{post.excerpt}</p><span className="mt-5 inline-flex items-center gap-2 text-sm font-extrabold text-blue-700">Read article <span aria-hidden="true">→</span></span></div></Link></article>)}</div>}
       </section>
+
+      <section className="border-y border-slate-200 bg-white"><div className="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-10 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8"><div><p className="text-xs font-extrabold uppercase tracking-[0.16em] text-blue-700">Your next step</p><h2 className="mt-2 text-xl font-black text-slate-950 sm:text-2xl">Make your business easier to discover.</h2><p className="mt-2 text-sm leading-6 text-slate-600">Create your free Twimzi listing and help customers find what you offer.</p></div><Link href="/add-business" className="inline-flex shrink-0 items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-extrabold text-white transition hover:bg-blue-700">Get started free →</Link></div></section>
+      <footer className="bg-slate-950 py-8 text-center text-sm text-slate-400"><p>Ideas for local business growth, from <Link href="/" className="font-bold text-white hover:text-blue-300">Twimzi</Link>.</p></footer>
     </div>
   );
 }
