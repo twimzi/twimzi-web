@@ -5,7 +5,7 @@ import { siteConfig } from "@/config/site";
 
 const routes = [
   "/", "/about", "/contact", "/explore", "/businesses", "/products",
-  "/services", "/offers", "/community", "/add-business", "/privacy-policy",
+  "/services", "/offers", "/community", "/blog", "/add-business", "/privacy-policy",
   "/terms-and-conditions", "/acceptable-use", "/community-guidelines",
   "/business-terms", "/marketplace-policy", "/user-content-policy",
   "/intellectual-property-policy", "/messaging-policy", "/data-deletion-policy",
@@ -14,7 +14,7 @@ const routes = [
 ];
 
 const highPriorityRoutes = new Set([
-  "/", "/businesses", "/products", "/services", "/offers", "/community",
+  "/", "/businesses", "/products", "/services", "/offers", "/community", "/blog",
 ]);
 
 type PublicBusiness = {
@@ -74,11 +74,35 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   const businessPages: MetadataRoute.Sitemap = [];
+  const blogPages: MetadataRoute.Sitemap = [];
   const categoryPages: MetadataRoute.Sitemap = [];
   const locationCounts = new Map<string, number>();
 
   try {
     const supabase = createPublicSupabaseClient();
+    const { data: blogPosts, error: blogError } = await supabase
+      .from("blog_posts")
+      .select("slug, updated_at, published_at")
+      .eq("status", "published")
+      .order("published_at", { ascending: false })
+      .limit(1000);
+
+    if (blogError) {
+      console.error("Failed to load published blog posts for sitemap:", blogError);
+    } else {
+      for (const post of blogPosts ?? []) {
+        if (!post.slug) continue;
+        const modifiedValue = post.updated_at ?? post.published_at;
+        const modified = modifiedValue ? new Date(modifiedValue) : now;
+        blogPages.push({
+          url: `${siteConfig.url}/blog/${encodeURIComponent(post.slug)}`,
+          lastModified: Number.isNaN(modified.getTime()) ? now : modified,
+          changeFrequency: "monthly",
+          priority: 0.65,
+        });
+      }
+    }
+
     const pageSize = 100;
     let offset = 0;
 
@@ -164,5 +188,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     }));
 
-  return [...staticPages, ...businessPages, ...categoryPages, ...locationPages];
+  return [...staticPages, ...blogPages, ...businessPages, ...categoryPages, ...locationPages];
 }
