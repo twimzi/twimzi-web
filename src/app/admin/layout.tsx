@@ -30,6 +30,7 @@ const sections = [
       ["Analytics", "/admin/analytics"],
       ["Featured", "/admin/featured"],
       ["Offers", "/admin/offers"],
+      ["Blog", "/admin/blog"],
     ],
   ],
   [
