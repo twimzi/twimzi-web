@@ -344,59 +344,43 @@ async function getBusinessGallery(
 ): Promise<BusinessGalleryImage[]> {
   const supabase = await createSupabaseServerClient();
 
-  const { data, error } = await supabase
-    .from("business_media")
-    .select(
-      "media_id, display_order, created_at, media!inner(bucket_name, object_path, mime_type, alt_text, is_public)",
-    )
-    .eq("business_id", businessId)
-    .gte("display_order", 0)
-    .eq("media.is_public", true)
-    .order("display_order", { ascending: true })
-    .order("created_at", { ascending: true });
+  // Use a narrowly scoped SECURITY DEFINER RPC so public profiles can read
+  // only public gallery images for approved, active businesses.
+  const { data, error } = await supabase.rpc(
+    "get_public_business_gallery",
+    { p_business_id: businessId },
+  );
 
-  if (error || !data) {
+  if (error || !data || !Array.isArray(data)) {
     return [];
   }
 
-  return (data as unknown as Array<Record<string, unknown>>).flatMap(
+  return (data as Array<Record<string, unknown>>).flatMap(
     (row): BusinessGalleryImage[] => {
-      const relatedMedia = row.media;
-      const media = Array.isArray(relatedMedia)
-        ? relatedMedia[0]
-        : relatedMedia;
-
-      if (!media || typeof media !== "object") {
-        return [];
-      }
-
-      const item = media as Record<string, unknown>;
-      const mediaId = asString(row.media_id);
-      const bucketName = asString(item.bucket_name);
-      const objectPath = asString(item.object_path);
+      const id = asString(row.media_id);
+      const bucketName = asString(row.bucket_name);
+      const objectPath = asString(row.object_path);
 
       if (
-        !mediaId ||
+        !id ||
         !bucketName ||
         !objectPath ||
-        item.is_public !== true
+        row.is_public !== true ||
+        typeof row.display_order !== "number"
       ) {
         return [];
       }
 
-      return [
-        {
-          id: mediaId,
-          bucket_name: bucketName,
-          object_path: objectPath,
-          mime_type: asString(item.mime_type),
-          alt_text: asString(item.alt_text),
-          is_public: true,
-          display_order:
-            typeof row.display_order === "number" ? row.display_order : 0,
-          created_at: asString(row.created_at) ?? "",
-        },
-      ];
+      return [{
+        id,
+        bucket_name: bucketName,
+        object_path: objectPath,
+        mime_type: asString(row.mime_type),
+        alt_text: asString(row.alt_text),
+        is_public: true,
+        display_order: row.display_order,
+        created_at: asString(row.created_at) ?? "",
+      }];
     },
   );
 }
