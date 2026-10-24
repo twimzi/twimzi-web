@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import { siteConfig } from "@/config/site";
@@ -82,7 +81,8 @@ export default async function BlogPage() {
                 <Link href={`/blog/${post.slug}`} className="block">
                   {post.featured_image_url ? (
                     <div className="relative aspect-[16/9] bg-[var(--color-surface)]">
-                      <Image src={post.featured_image_url} alt="" fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-cover" />
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={post.featured_image_url} alt="" className="h-full w-full object-cover" />
                     </div>
                   ) : (
                     <div className="flex aspect-[16/9] items-center justify-center bg-gradient-to-br from-[var(--color-primary-light)] to-[var(--color-surface)]">
