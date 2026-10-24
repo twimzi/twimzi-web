@@ -35,7 +35,7 @@ async function createBlogPost(formData: FormData) {
   const metaTitle = String(formData.get("meta_title") ?? "").trim();
   const metaDescription = String(formData.get("meta_description") ?? "").trim();
   const status = String(formData.get("status") ?? "draft");
-  let slug = makeSlug(String(formData.get("slug") ?? "").trim() || title);
+  const slug = makeSlug(String(formData.get("slug") ?? "").trim() || title);
 
   if (title.length < 5 || title.length > 180) throw new Error("Title must be between 5 and 180 characters.");
   if (excerpt.length < 20 || excerpt.length > 500) throw new Error("Excerpt must be between 20 and 500 characters.");
