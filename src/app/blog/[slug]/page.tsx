@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { siteConfig } from "@/config/site";
+import BlogEngagement from "@/components/blog/blog-engagement";
 
 type BlogPost = {
   id: string;
@@ -107,6 +108,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ sl
             return <p key={index} className="mt-5 whitespace-pre-line text-base leading-8 text-[var(--color-text-secondary)]">{trimmed}</p>;
           })}
         </div>
+        <BlogEngagement postId={post.id} postUrl={`${siteConfig.url}/blog/${post.slug}`} postTitle={post.title} />
         <footer className="mt-14 rounded-2xl border border-[var(--color-border)] bg-white p-6 sm:p-8">
           <h2 className="text-xl font-extrabold text-[var(--color-text)]">Discover more with Twimzi</h2>
           <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">Find local businesses, products and services, or create a free business listing to help more people discover your business.</p>
