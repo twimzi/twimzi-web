@@ -62,5 +62,7 @@ create trigger set_blog_posts_updated_at
 before update on public.blog_posts
 for each row execute function public.set_blog_posts_updated_at();
 
+revoke execute on function public.set_blog_posts_updated_at() from public, anon, authenticated;
+
 grant select on public.blog_posts to anon, authenticated;
 grant insert, update, delete on public.blog_posts to authenticated;
