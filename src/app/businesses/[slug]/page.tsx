@@ -1244,6 +1244,7 @@ export default async function BusinessDetailPage({
 
             {/* EMPTY */}
             {!selectedPost &&
+              galleryImages.length === 0 &&
               products.length === 0 &&
               services.length === 0 &&
               offers.length === 0 &&
