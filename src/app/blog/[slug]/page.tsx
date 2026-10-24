@@ -202,7 +202,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ sl
             <h1 className="mt-6 text-3xl font-black leading-tight tracking-tight text-white sm:text-5xl lg:text-6xl">{post.title}</h1>
             <p className="mt-6 max-w-3xl text-base leading-8 text-slate-200 sm:text-xl sm:leading-9">{post.excerpt}</p>
             <div className="mt-8 flex items-center gap-3 text-sm text-slate-300">
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500 text-sm font-black text-white">T.</span>
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/15 bg-white p-1.5 shadow-sm"><img src={siteConfig.brand.mark} alt="Twimzi logo" className="h-full w-full object-contain" /></span>
               <span><strong className="block text-white">Twimzi Editorial Team</strong><span className="text-slate-400">Practical insights for growing businesses</span></span>
             </div>
           </div>
