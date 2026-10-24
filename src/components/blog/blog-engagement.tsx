@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -64,7 +64,7 @@ export default function BlogEngagement({ postId, postUrl, postTitle }: { postId:
     setSaving(false);
   }
 
-  async function submitComment(event: React.FormEvent<HTMLFormElement>) {
+  async function submitComment(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const body = comment.trim();
     if (body.length < 2 || body.length > 2000) {
