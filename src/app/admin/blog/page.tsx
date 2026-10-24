@@ -61,6 +61,19 @@ async function createBlogPost(formData: FormData) {
   redirect("/admin/blog?created=1");
 }
 
+async function deleteBlogPost(formData: FormData) {
+  "use server";
+  const id = String(formData.get("id") ?? "").trim();
+  if (!id) throw new Error("Missing blog post ID.");
+  const { supabase } = await requireSuperAdmin();
+  const { error } = await supabase.from("blog_posts").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+  revalidatePath("/blog");
+  revalidatePath("/sitemap.xml");
+  revalidatePath("/admin/blog");
+  redirect("/admin/blog?deleted=1");
+}
+
 async function changePostStatus(formData: FormData) {
   "use server";
   const id = String(formData.get("id") ?? "").trim();
@@ -77,7 +90,7 @@ async function changePostStatus(formData: FormData) {
   revalidatePath("/admin/blog");
 }
 
-export default async function AdminBlogPage({ searchParams }: { searchParams: Promise<{ created?: string; saved?: string }> }) {
+export default async function AdminBlogPage({ searchParams }: { searchParams: Promise<{ created?: string; saved?: string; deleted?: string }> }) {
   const params = await searchParams;
   const { supabase } = await requireSuperAdmin();
   const { data, error } = await supabase.from("blog_posts")
@@ -94,10 +107,11 @@ export default async function AdminBlogPage({ searchParams }: { searchParams: Pr
           <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-[var(--color-text)]">Blog Manager</h1>
           <p className="mt-2 text-sm text-[var(--color-text-muted)]">Write articles, optimize search snippets and publish updates to the public blog.</p>
         </div>
-        <Link href="/blog" target="_blank" className="w-fit rounded-xl border border-[var(--color-border)] bg-white px-4 py-2.5 text-sm font-bold">View public blog ↗</Link>
+        <div className="flex flex-wrap gap-2"><Link href="/admin/blog/comments" className="w-fit rounded-xl border border-[var(--color-border)] bg-white px-4 py-2.5 text-sm font-bold">Moderate comments</Link><Link href="/blog" target="_blank" className="w-fit rounded-xl border border-[var(--color-border)] bg-white px-4 py-2.5 text-sm font-bold">View public blog ↗</Link></div>
       </div>
 
       {params.created === "1" || params.saved === "1" ? <div className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800">Blog post saved successfully.</div> : null}
+      {params.deleted === "1" ? <div className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800">Blog post deleted successfully.</div> : null}
       {error ? <div className="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">Posts could not be loaded. Confirm that the blog database migration has been applied.</div> : null}
 
       <div className="mt-8 grid gap-8 xl:grid-cols-[minmax(0,1.3fr)_minmax(360px,0.7fr)]">
@@ -170,6 +184,10 @@ export default async function AdminBlogPage({ searchParams }: { searchParams: Pr
                       <input type="hidden" name="id" value={post.id} />
                       <input type="hidden" name="status" value={post.status === "published" ? "draft" : "published"} />
                       <button type="submit" className="rounded-lg border border-[var(--color-border)] px-3 py-2 text-xs font-bold">{post.status === "published" ? "Unpublish" : "Publish"}</button>
+                    </form>
+                    <form action={deleteBlogPost}>
+                      <input type="hidden" name="id" value={post.id} />
+                      <button type="submit" className="rounded-lg border border-red-200 px-3 py-2 text-xs font-bold text-red-700">Delete</button>
                     </form>
                   </div>
                 </article>
