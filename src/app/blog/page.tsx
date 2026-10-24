@@ -39,10 +39,6 @@ function formatDate(value: string | null) {
   return new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", year: "numeric" }).format(new Date(value));
 }
 
-function readingTime(excerpt: string) {
-  return Math.max(1, Math.ceil(excerpt.trim().split(/\s+/).length / 220));
-}
-
 export default async function BlogPage() {
   const supabase = getPublicClient();
   let posts: BlogPost[] = [];
@@ -71,33 +67,38 @@ export default async function BlogPage() {
             <span className="inline-flex items-center gap-2 rounded-full border border-blue-300/30 bg-blue-400/10 px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.18em] text-blue-200"><span className="h-2 w-2 rounded-full bg-blue-400" /> The Twimzi Journal</span>
             <h1 className="mt-6 text-4xl font-black leading-tight tracking-tight text-white sm:text-6xl">Ideas that help businesses <span className="text-blue-300">move forward.</span></h1>
             <p className="mt-6 max-w-2xl text-base leading-8 text-slate-300 sm:text-lg">Practical business guides, digital growth tips and useful insights for India’s entrepreneurs, professionals and local communities.</p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/add-business" className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-extrabold text-white shadow-lg shadow-blue-950/30 transition hover:bg-blue-500">List your business <span className="ml-2" aria-hidden="true">→</span></Link>
-              <a href="#latest-articles" className="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/5 px-5 py-3 text-sm font-bold text-white transition hover:bg-white/10">Explore articles</a>
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <Link href="/add-business" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-extrabold text-white shadow-lg shadow-blue-950/30 transition hover:-translate-y-0.5 hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-300/60">
+                List your business <span aria-hidden="true">→</span>
+              </Link>
+              <a href="#latest-articles" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border-2 border-white/40 bg-white px-5 py-3 text-sm font-extrabold text-slate-950 shadow-md transition hover:-translate-y-0.5 hover:border-white hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-300/60">
+                Explore articles <span aria-hidden="true">↓</span>
+              </a>
             </div>
-            <div className="mt-10 flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-400"><span>Business essentials</span><span aria-hidden="true">·</span><span>Digital growth</span><span aria-hidden="true">·</span><span>Local discovery</span></div>
+            <div className="mt-8 flex flex-wrap gap-x-4 gap-y-2 text-sm font-medium text-slate-300 sm:gap-x-6"><span>Business essentials</span><span className="text-blue-300" aria-hidden="true">•</span><span>Digital growth</span><span className="text-blue-300" aria-hidden="true">•</span><span>Local discovery</span></div>
           </div>
         </div>
       </section>
 
-      <section id="latest-articles" className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+      <section id="latest-articles" className="mx-auto max-w-7xl scroll-mt-6 px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div><p className="text-xs font-extrabold uppercase tracking-[0.16em] text-blue-700">Fresh perspectives</p><h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">Latest articles</h2><p className="mt-2 text-sm leading-6 text-slate-600">Actionable information, thoughtfully explained.</p></div>
-          <span className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-500">{posts.length} {posts.length === 1 ? "article" : "articles"}</span>
+          <span className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600">{posts.length} {posts.length === 1 ? "article" : "articles"}</span>
         </div>
 
         {featured ? (
-          <article className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm lg:grid lg:grid-cols-[1.08fr_0.92fr]">
-            <Link href={`/blog/${featured.slug}`} className="group relative block min-h-64 overflow-hidden bg-slate-200 sm:min-h-80 lg:min-h-[420px]">
+          <article className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-md transition-shadow hover:shadow-xl lg:grid lg:grid-cols-[1.08fr_0.92fr]">
+            <Link href={`/blog/${featured.slug}`} aria-label={`Read ${featured.title}`} className="group relative block min-h-64 overflow-hidden bg-slate-200 sm:min-h-80 lg:min-h-[420px]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={featured.featured_image_url || DEFAULT_COVER} alt="" className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" fetchPriority="high" />
-              <span className="absolute left-5 top-5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-extrabold text-blue-800 shadow-sm">Featured guide</span>
+              <span className="absolute left-5 top-5 rounded-full bg-white px-3 py-1.5 text-xs font-extrabold text-blue-800 shadow-md">Featured guide</span>
+              <span className="absolute bottom-5 left-5 rounded-full bg-slate-950/85 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-sm">Read the guide <span aria-hidden="true">↗</span></span>
             </Link>
-            <div className="flex flex-col justify-center p-6 sm:p-9 lg:p-12">
-              <div className="flex flex-wrap items-center gap-3 text-xs font-bold text-blue-700"><span className="rounded-full bg-blue-50 px-3 py-1.5">Business insights</span><span className="text-slate-400">{formatDate(featured.published_at ?? featured.created_at)}</span></div>
-              <h3 className="mt-5 text-2xl font-black leading-tight tracking-tight text-slate-950 sm:text-3xl"><Link href={`/blog/${featured.slug}`} className="transition hover:text-blue-700">{featured.title}</Link></h3>
-              <p className="mt-4 line-clamp-4 text-base leading-7 text-slate-600">{featured.excerpt}</p>
-              <Link href={`/blog/${featured.slug}`} className="mt-7 inline-flex w-fit items-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-extrabold text-white transition hover:bg-blue-700">Read featured article <span aria-hidden="true">→</span></Link>
+            <div className="flex min-w-0 flex-col items-start justify-center p-6 sm:p-9 lg:p-10 xl:p-12">
+              <div className="flex flex-wrap items-center gap-3 text-xs font-bold text-blue-800"><span className="rounded-full bg-blue-50 px-3 py-1.5">Business insights</span><span className="text-slate-500">{formatDate(featured.published_at ?? featured.created_at)}</span></div>
+              <h3 className="mt-5 text-2xl font-black leading-tight tracking-tight text-slate-950 sm:text-3xl"><Link href={`/blog/${featured.slug}`} className="transition hover:text-blue-700 focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">{featured.title}</Link></h3>
+              <p className="mt-4 text-base leading-7 text-slate-700">{featured.excerpt}</p>
+              <Link href={`/blog/${featured.slug}`} className="mt-7 inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-blue-700 px-5 py-3 text-sm font-extrabold text-white shadow-md transition hover:-translate-y-0.5 hover:bg-blue-800 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-300">Read featured article <span aria-hidden="true">→</span></Link>
             </div>
           </article>
         ) : (
@@ -108,10 +109,10 @@ export default async function BlogPage() {
           </div>
         )}
 
-        {remaining.length > 0 && <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{remaining.map((post) => <article key={post.id} className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-lg"><Link href={`/blog/${post.slug}`} className="block h-full"><div className="relative aspect-[16/10] overflow-hidden bg-slate-100">{/* eslint-disable-next-line @next/next/no-img-element */}<img src={post.featured_image_url || DEFAULT_COVER} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" /></div><div className="p-6"><p className="text-xs font-bold text-blue-700">{formatDate(post.published_at ?? post.created_at)}</p><h3 className="mt-3 text-xl font-extrabold leading-snug text-slate-950 transition group-hover:text-blue-700">{post.title}</h3><p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-600">{post.excerpt}</p><span className="mt-5 inline-flex items-center gap-2 text-sm font-extrabold text-blue-700">Read article <span aria-hidden="true">→</span></span></div></Link></article>)}</div>}
+        {remaining.length > 0 && <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{remaining.map((post) => <article key={post.id} className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-lg"><Link href={`/blog/${post.slug}`} className="block h-full"><div className="relative aspect-[16/10] overflow-hidden bg-slate-100">{/* eslint-disable-next-line @next/next/no-img-element */}<img src={post.featured_image_url || DEFAULT_COVER} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" /></div><div className="p-6"><p className="text-xs font-bold text-blue-800">{formatDate(post.published_at ?? post.created_at)}</p><h3 className="mt-3 text-xl font-extrabold leading-snug text-slate-950 transition group-hover:text-blue-700">{post.title}</h3><p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-700">{post.excerpt}</p><span className="mt-5 inline-flex items-center gap-2 text-sm font-extrabold text-blue-700">Read article <span aria-hidden="true">→</span></span></div></Link></article>)}</div>}
       </section>
 
-      <section className="border-y border-slate-200 bg-white"><div className="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-10 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8"><div><p className="text-xs font-extrabold uppercase tracking-[0.16em] text-blue-700">Your next step</p><h2 className="mt-2 text-xl font-black text-slate-950 sm:text-2xl">Make your business easier to discover.</h2><p className="mt-2 text-sm leading-6 text-slate-600">Create your free Twimzi listing and help customers find what you offer.</p></div><Link href="/add-business" className="inline-flex shrink-0 items-center justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-extrabold text-white transition hover:bg-blue-700">Get started free →</Link></div></section>
+      <section className="border-y border-slate-200 bg-white"><div className="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-10 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8"><div><p className="text-xs font-extrabold uppercase tracking-[0.16em] text-blue-700">Your next step</p><h2 className="mt-2 text-xl font-black text-slate-950 sm:text-2xl">Make your business easier to discover.</h2><p className="mt-2 text-sm leading-6 text-slate-700">Create your free Twimzi listing and help customers find what you offer.</p></div><Link href="/add-business" className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-blue-700 px-5 py-3 text-sm font-extrabold text-white shadow-sm transition hover:bg-blue-800 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-300">Get started free <span aria-hidden="true">→</span></Link></div></section>
       <footer className="bg-slate-950 py-8 text-center text-sm text-slate-400"><p>Ideas for local business growth, from <Link href="/" className="font-bold text-white hover:text-blue-300">Twimzi</Link>.</p></footer>
     </div>
   );
