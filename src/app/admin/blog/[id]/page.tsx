@@ -23,20 +23,45 @@ async function updateBlogPost(formData: FormData) {
   const metaTitle = String(formData.get("meta_title") ?? "").trim();
   const metaDescription = String(formData.get("meta_description") ?? "").trim();
   const status = String(formData.get("status") ?? "draft");
-  if (!id || title.length < 5 || title.length > 180 || !slug || excerpt.length < 20 || excerpt.length > 500 || content.length < 50) throw new Error("Please complete all required fields with valid lengths.");
+
+  if (!id || title.length < 5 || title.length > 180 || !slug || excerpt.length < 20 || excerpt.length > 500 || content.length < 50) {
+    throw new Error("Please complete all required fields with valid lengths.");
+  }
   if (image && !/^https:\/\//i.test(image)) throw new Error("Featured image URL must start with https://.");
   if (status !== "draft" && status !== "published") throw new Error("Invalid publication status.");
+
   const supabase = await requireSuperAdmin();
+  const { data: existingPost, error: lookupError } = await supabase
+    .from("blog_posts")
+    .select("status, published_at, slug")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (lookupError) throw new Error(lookupError.message);
+  if (!existingPost) notFound();
+
+  const publishedAt = status !== "published"
+    ? null
+    : existingPost.status === "published" && existingPost.published_at
+      ? existingPost.published_at
+      : new Date().toISOString();
+
   const { error } = await supabase.from("blog_posts").update({
-    title, slug, excerpt, content,
+    title,
+    slug,
+    excerpt,
+    content,
     featured_image_url: image || null,
     meta_title: metaTitle || null,
     meta_description: metaDescription || null,
     status,
-    published_at: status === "published" ? new Date().toISOString() : null,
+    published_at: publishedAt,
   }).eq("id", id);
+
   if (error) throw new Error(error.code === "23505" ? "That slug is already used by another article." : error.message);
+
   revalidatePath("/blog");
+  revalidatePath(`/blog/${existingPost.slug}`);
   revalidatePath(`/blog/${slug}`);
   revalidatePath("/sitemap.xml");
   revalidatePath("/admin/blog");
@@ -47,6 +72,7 @@ export default async function EditBlogPostPage({ params }: { params: Promise<{ i
   const { id } = await params;
   const supabase = await requireSuperAdmin();
   const { data: post, error } = await supabase.from("blog_posts").select("*").eq("id", id).maybeSingle();
+
   if (error) {
     return <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700">Could not load this article. Confirm the blog migration has been applied.</div>;
   }
