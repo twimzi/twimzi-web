@@ -16,6 +16,7 @@ import {
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { siteConfig } from "@/config/site";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { optimizeImageForUpload } from "@/lib/media/optimize-image";
 
 type Business = {
   id: string;
@@ -363,7 +364,8 @@ export default function BusinessProductsDashboardPage() {
     formData.append("business_id", business.id);
     formData.append("product_id", productId);
     formData.append("kind", "product");
-    formData.append("file", productImage);
+    const optimizedFile = await optimizeImageForUpload(productImage);
+    formData.append("file", optimizedFile);
     formData.append("alt_text", `${form.product_name.trim()} product image`);
 
     const { data, error: functionError } = await supabase.functions.invoke(
