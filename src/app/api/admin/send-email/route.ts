@@ -126,13 +126,17 @@ export async function POST(request: Request) {
     if (roleError || isSuperAdmin !== true) return NextResponse.json({ error: "Super Admin access required." }, { status: 403 });
 
     const payload = await request.json();
-    const to = typeof payload.to === "string" ? payload.to.trim() : "";
+    const rawRecipients: unknown = payload.recipients ?? (typeof payload.to === "string" ? [payload.to] : []);
+    if (!Array.isArray(rawRecipients) || rawRecipients.length < 1 || rawRecipients.length > 25 || !rawRecipients.every((item) => typeof item === "string")) {
+      return NextResponse.json({ error: "Provide between 1 and 25 recipient email addresses per batch." }, { status: 400 });
+    }
+    const recipients = Array.from(new Set((rawRecipients as string[]).map((email) => email.trim().toLowerCase())));
+    if (recipients.some((email) => email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) {
+      return NextResponse.json({ error: "One or more recipient email addresses are invalid." }, { status: 400 });
+    }
     const subject = typeof payload.subject === "string" ? payload.subject.trim() : "";
     const body = typeof payload.body === "string" ? payload.body.trim() : "";
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to) || to.length > 254) {
-      return NextResponse.json({ error: "Enter a valid recipient email address." }, { status: 400 });
-    }
+    const campaignName = typeof payload.campaignName === "string" ? payload.campaignName.trim().slice(0, 120) : "Email campaign";
     if (!subject || subject.length > 200 || /[\r\n]/.test(subject)) {
       return NextResponse.json({ error: "Enter a subject of up to 200 characters." }, { status: 400 });
     }
@@ -140,8 +144,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Enter a message up to 20,000 characters." }, { status: 400 });
     }
 
-    await sendViaHostinger(to, subject, body);
-    return NextResponse.json({ ok: true, message: "Email sent successfully." });
+    let sent = 0;
+    const failed: string[] = [];
+    for (const recipient of recipients) {
+      try {
+        const personalizedBody = body.replace(/\{\{name\}\}/g, "there");
+        await sendViaHostinger(recipient, subject, personalizedBody);
+        sent += 1;
+      } catch {
+        failed.push(recipient);
+      }
+    }
+    if (sent === 0) {
+      return NextResponse.json({ error: "No emails were sent. Check the Hostinger SMTP settings and server logs." }, { status: 502 });
+    }
+    const message = failed.length
+      ? `${sent} of ${recipients.length} emails sent for "${campaignName}". Failed recipients: ${failed.join(", ")}.`
+      : `Campaign "${campaignName}" sent to ${sent} recipient(s).`;
+    return NextResponse.json({ ok: failed.length === 0, sent, failed: failed.length, message }, { status: failed.length ? 207 : 200 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to send email.";
     return NextResponse.json({ error: message }, { status: 500 });
