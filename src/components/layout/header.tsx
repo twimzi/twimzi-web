@@ -14,6 +14,7 @@ const mainNavigation = [
   { label: "Products", href: "/products" },
   { label: "Services", href: "/services" },
   { label: "Offers", href: "/offers" },
+  { label: "Community", href: "/community" },
   { label: "Blog", href: "/blog" },
 ] as const;
 
