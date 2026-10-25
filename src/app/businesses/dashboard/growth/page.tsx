@@ -88,7 +88,7 @@ export default function BusinessGrowthCenterPage() {
         } = await supabase.auth.getUser();
 
         if (authError) throw authError;
-        if (!user) throw new Error("Please sign in to open your Business Growth Center.");
+        if (!user) throw new Error("Please sign in to open your Share My Business.");
 
         const { data, error: businessError } = await supabase
           .from("businesses")
@@ -279,7 +279,7 @@ export default function BusinessGrowthCenterPage() {
       <main className="min-h-screen bg-[var(--color-background)] px-4 py-12 sm:px-6">
         <div className="mx-auto max-w-xl rounded-2xl border border-[var(--color-border)] bg-white p-8 text-center">
           <Building2 className="mx-auto h-10 w-10 text-[var(--color-primary)]" />
-          <h1 className="mt-4 text-2xl font-bold text-[var(--color-text)]">Business Growth Center</h1>
+          <h1 className="mt-4 text-2xl font-bold text-[var(--color-text)]">Share My Business</h1>
           <p className="mt-3 text-sm text-[var(--color-text-secondary)]">{error || "Business profile unavailable."}</p>
           <Link href="/businesses/dashboard" className="mt-6 inline-flex rounded-xl bg-[var(--color-primary)] px-5 py-3 text-sm font-semibold text-white">
             Back to dashboard
@@ -297,9 +297,9 @@ export default function BusinessGrowthCenterPage() {
             <Link href="/businesses/dashboard" className="inline-flex items-center gap-2 text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-primary)]">
               <ArrowLeft className="h-4 w-4" /> Business Dashboard
             </Link>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight text-[var(--color-text)] sm:text-4xl">Business Growth Center</h1>
+            <h1 className="mt-3 text-3xl font-bold tracking-tight text-[var(--color-text)] sm:text-4xl">Share My Business</h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--color-text-secondary)]">
-              Your shareable Twimzi Business Passport, trust status and practical steps to strengthen your profile—without paid AI or QR APIs.
+              Share your public business profile with customers, copy your link, and download a QR code for your shop, packaging, invoices or social media.
             </p>
           </div>
           <Link href="/businesses/dashboard/settings" className="inline-flex items-center gap-2 rounded-xl border border-[var(--color-border)] bg-white px-4 py-3 text-sm font-semibold text-[var(--color-text)]">
