@@ -638,7 +638,7 @@ export default function AddBusiness() {
 
         await uploadImage(
           supabase,
-          business.id,
+          businessId,
           upload.kind,
           upload.selected,
         );
