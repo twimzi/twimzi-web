@@ -133,6 +133,7 @@ export default function BusinessPostsDashboardPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [signedInProfileId, setSignedInProfileId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
   const [form, setForm] = useState<PostForm>(emptyForm);
@@ -159,6 +160,7 @@ export default function BusinessPostsDashboardPage() {
         if (!user) {
           throw new Error("Please sign in to manage your posts.");
         }
+        if (!cancelled) setSignedInProfileId(user.id);
 
         const { data: businessData, error: businessError } = await supabase
           .from("businesses")
@@ -513,14 +515,14 @@ export default function BusinessPostsDashboardPage() {
 
           <p className="mt-2 text-sm text-slate-600">
             {error ??
-              "Create or activate your business profile before managing posts."}
+              `No active business profile is linked to this signed-in account. If you already added a business, sign in with the account that owns it. Signed-in profile ID: ${signedInProfileId ?? "not available"}`}
           </p>
 
           <Link
             href="/add-business"
             className="mt-6 inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
           >
-            Add Business
+            Open Business Dashboard
           </Link>
         </div>
       </main>
