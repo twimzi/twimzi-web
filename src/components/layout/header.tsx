@@ -15,6 +15,7 @@ const mainNavigation = [
   { label: "Services", href: "/services" },
   { label: "Offers", href: "/offers" },
   { label: "Community", href: "/community" },
+  { label: "Blog", href: "/blog" },
 ] as const;
 
 const actionLinkClass =
@@ -130,7 +131,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--color-border)] bg-white/95 backdrop-blur">
-      <div className="mx-auto flex h-[68px] max-w-[1440px] items-center gap-4 px-4 sm:px-6 xl:px-8">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link
           href="/"
           className="flex shrink-0 items-center gap-2"
@@ -148,7 +149,7 @@ export function Header() {
         </Link>
 
         <nav
-          className="hidden min-w-0 flex-1 items-center justify-center gap-0.5 lg:flex"
+          className="hidden items-center gap-1 md:flex"
           aria-label="Main navigation"
         >
           {mainNavigation.map((item) => {
@@ -162,7 +163,7 @@ export function Header() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`whitespace-nowrap rounded-xl px-2.5 py-2 text-[13px] font-medium transition xl:px-3 ${
+                className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
                   isActive
                     ? "bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]"
                     : "text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary-dark)]"
@@ -172,15 +173,6 @@ export function Header() {
               </Link>
             );
           })}
-
-          <details className="group relative shrink-0">
-            <summary className="cursor-pointer list-none whitespace-nowrap rounded-xl px-2.5 py-2 text-[13px] font-medium text-[var(--color-text-secondary)] transition hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary-dark)] xl:px-3">
-              More <span aria-hidden="true" className="ml-1 text-[10px]">▾</span>
-            </summary>
-            <div className="absolute right-0 top-full z-50 mt-2 w-44 rounded-2xl border border-[var(--color-border)] bg-white p-2 shadow-xl">
-              <Link href="/blog" className="block rounded-xl px-3 py-2.5 text-sm text-[var(--color-text-secondary)] transition hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary-dark)]">Blog &amp; insights</Link>
-            </div>
-          </details>
 
           {!isSessionLoading && isAuthenticated && (
             <Link
@@ -196,7 +188,7 @@ export function Header() {
           )}
         </nav>
 
-        <div className="hidden shrink-0 items-center gap-1.5 lg:flex">
+        <div className="hidden items-center gap-2 md:flex">
           {!isSessionLoading && isAuthenticated ? (
             <>
               {isSuperAdmin && (
@@ -233,7 +225,7 @@ export function Header() {
 
         <button
           type="button"
-          className="ml-auto inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[var(--color-border)] text-xl text-[var(--color-text-secondary)] transition hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary-dark)] lg:hidden"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--color-border)] text-xl text-[var(--color-text-secondary)] transition hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary-dark)] md:hidden"
           onClick={() => setIsMobileMenuOpen((open) => !open)}
           aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
           aria-expanded={isMobileMenuOpen}
