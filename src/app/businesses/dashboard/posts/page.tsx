@@ -182,8 +182,10 @@ export default function BusinessPostsDashboardPage() {
           );
         }
 
+        if (!cancelled) setBusiness(businessData);
+
         const { data: postData, error: postsError } = await supabase
-          .from("posts")
+          .from("business_posts")
           .select(
             "id, business_id, category_id, author_profile_id, post_type, title, slug, short_description, description, start_date, end_date, is_featured, is_pinned, is_active, published_at, created_at, updated_at, deleted_at, like_count, comment_count, share_count, save_count",
           )
@@ -200,18 +202,19 @@ export default function BusinessPostsDashboardPage() {
           return;
         }
 
-        setBusiness(businessData);
         setPosts(postData ?? []);
       } catch (caughtError) {
         if (cancelled) {
           return;
         }
 
-        setError(
+        const errorMessage =
           caughtError instanceof Error
             ? caughtError.message
-            : "Unable to load your posts.",
-        );
+            : caughtError && typeof caughtError === "object" && "message" in caughtError
+              ? String(caughtError.message)
+              : "Unable to load your posts.";
+        setError(errorMessage);
       } finally {
         if (!cancelled) {
           setLoading(false);
@@ -230,7 +233,7 @@ export default function BusinessPostsDashboardPage() {
     const supabase = createSupabaseBrowserClient();
 
     const { data, error: postsError } = await supabase
-      .from("posts")
+      .from("business_posts")
       .select(
         "id, business_id, category_id, author_profile_id, post_type, title, slug, short_description, description, start_date, end_date, is_featured, is_pinned, is_active, published_at, created_at, updated_at, deleted_at, like_count, comment_count, share_count, save_count",
       )
@@ -389,7 +392,7 @@ export default function BusinessPostsDashboardPage() {
 
       if (editingPost) {
         const { error: updateError } = await supabase
-          .from("posts")
+          .from("business_posts")
           .update(payload)
           .eq("id", editingPost.id)
           .eq("business_id", business.id);
@@ -401,7 +404,7 @@ export default function BusinessPostsDashboardPage() {
         setSuccess("Post updated successfully.");
       } else {
         const { error: insertError } = await supabase
-          .from("posts")
+          .from("business_posts")
           .insert({
             ...payload,
             created_by: user.id,
@@ -464,7 +467,7 @@ export default function BusinessPostsDashboardPage() {
       }
 
       const { error: deleteError } = await supabase
-        .from("posts")
+        .from("business_posts")
         .update({
           deleted_at: new Date().toISOString(),
           is_active: false,
