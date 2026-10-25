@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { CommunityStory } from "@/components/community/community-stories";
 import Link from "next/link";
 
 import BusinessPostCard from "@/components/business/business-post-card";
@@ -97,7 +98,18 @@ async function getCommunityStories(): Promise<CommunityStory[]> {
 
   if (error || !data) return [];
 
-  return data.flatMap((story) => {
+  const rows = data as Array<{
+    id: string;
+    caption: string | null;
+    media_object_path: string | null;
+    media_mime_type: string | null;
+    business_name: string;
+    business_slug: string | null;
+    business_id: string;
+    created_at: string;
+  }>;
+
+  return rows.flatMap((story) => {
     if (!story.media_object_path || !story.media_mime_type?.startsWith("image/")) {
       return [];
     }
