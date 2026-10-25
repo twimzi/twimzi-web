@@ -44,6 +44,7 @@ const sections = [
     "System",
     [
       ["Notifications", "/admin/notifications"],
+      ["WhatsApp Messages", "/admin/whatsapp-messages"],
       ["Media", "/admin/media"],
       ["Settings", "/admin/settings"],
       ["Audit Logs", "/admin/audit-logs"],
