@@ -142,6 +142,7 @@ export default function AdminMediaPage() {
   const [editIsPublic, setEditIsPublic] = useState(true);
   const [savingMedia, setSavingMedia] = useState(false);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [deletingMediaId, setDeletingMediaId] = useState<string | null>(null);
 
   const loadMedia = useCallback(async () => {
     setLoading(true);
@@ -224,6 +225,24 @@ export default function AdminMediaPage() {
     }
     setEditingMediaId(null);
     setActionMessage("Media details saved.");
+    await loadMedia();
+  };
+
+  const deleteMedia = async (item: MediaItem) => {
+    const displayName = getDisplayName(item);
+    if (!window.confirm(`Permanently delete "${displayName}" from Twimzi and Cloudflare R2? This cannot be undone.`)) return;
+    setDeletingMediaId(item.id);
+    setActionMessage(null);
+    const { data, error } = await supabase.functions.invoke("admin-delete-media", {
+      body: { media_id: item.id },
+    });
+    setDeletingMediaId(null);
+    if (error || !data?.success) {
+      setActionMessage(`Could not delete media: ${data?.error || error?.message || "Unknown error"}`);
+      return;
+    }
+    setEditingMediaId(null);
+    setActionMessage("Media permanently deleted.");
     await loadMedia();
   };
 
@@ -522,6 +541,15 @@ export default function AdminMediaPage() {
                         Open original
                       </a>
                     ) : null}
+
+                    <button
+                      type="button"
+                      onClick={() => void deleteMedia(item)}
+                      disabled={deletingMediaId !== null}
+                      className="mt-3 flex h-10 w-full items-center justify-center rounded-xl border border-red-200 bg-red-50 px-4 text-xs font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {deletingMediaId === item.id ? "Deleting from storage…" : "Delete permanently"}
+                    </button>
 
                     {editingMediaId === item.id ? (
                       <div className="mt-4 space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
