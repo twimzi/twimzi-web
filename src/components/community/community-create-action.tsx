@@ -50,7 +50,7 @@ export default function CommunityCreateAction() {
               <button type="button" onClick={() => setShowStoryForm(true)} className="flex items-center gap-3 rounded-2xl border border-blue-100 bg-blue-50/70 p-4 text-left transition hover:border-blue-300 hover:bg-blue-50">
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#1879FD]"><ImagePlus className="h-5 w-5" /></span>
                 <span><span className="block text-sm font-semibold text-slate-900">Add a story</span><span className="mt-0.5 block text-xs text-slate-600">Visible for 24 hours</span></span>
-              </a>
+              </button>
               <Link href="/businesses/dashboard/posts" onClick={() => setOpen(false)} className="flex items-center gap-3 rounded-2xl border border-slate-200 p-4 transition hover:border-blue-200 hover:bg-slate-50">
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700"><FileText className="h-5 w-5" /></span>
                 <span><span className="block text-sm font-semibold text-slate-900">Create a post</span><span className="mt-0.5 block text-xs text-slate-600">Business update or announcement</span></span>
