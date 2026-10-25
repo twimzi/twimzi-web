@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import BusinessPostCard from "@/components/business/business-post-card";
+import CommunityStories, { type CommunityStory } from "@/components/community/community-stories";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type Business = {
@@ -86,6 +87,60 @@ async function getBusinessPosts(
   return data as BusinessPost[];
 }
 
+async function getCommunityStories(): Promise<CommunityStory[]> {
+  const supabase = await createSupabaseServerClient();
+  const now = new Date().toISOString();
+
+  const { data: storyRows, error: storyError } = await supabase
+    .from("business_stories")
+    .select("id, business_id, media_id, caption, created_at, expires_at")
+    .eq("is_active", true)
+    .is("deleted_at", null)
+    .gt("expires_at", now)
+    .order("created_at", { ascending: false })
+    .limit(24);
+
+  if (storyError || !storyRows?.length) return [];
+
+  const businessIds = [...new Set(storyRows.map((story) => story.business_id))];
+  const mediaIds = [...new Set(storyRows.map((story) => story.media_id))];
+
+  const [{ data: businesses }, { data: mediaRows }] = await Promise.all([
+    supabase
+      .from("businesses")
+      .select("id, business_name, slug, is_active, deleted_at")
+      .in("id", businessIds)
+      .eq("is_active", true)
+      .is("deleted_at", null),
+    supabase
+      .from("media")
+      .select("id, object_path, mime_type, is_public")
+      .in("id", mediaIds)
+      .eq("is_public", true),
+  ]);
+
+  const businessById = new Map((businesses ?? []).map((business) => [business.id, business]));
+  const mediaById = new Map((mediaRows ?? []).map((media) => [media.id, media]));
+
+  return storyRows.flatMap((story) => {
+    const business = businessById.get(story.business_id);
+    const media = mediaById.get(story.media_id);
+
+    if (!business || !media?.object_path || !media.mime_type?.startsWith("image/")) {
+      return [];
+    }
+
+    return [{
+      id: story.id,
+      caption: story.caption,
+      imageUrl: `https://twimzi-media.twimziofficial.workers.dev/media/${media.object_path}`,
+      businessName: business.business_name,
+      businessUrl: business.slug ? `/businesses/${business.slug}` : "/businesses",
+      createdAt: story.created_at,
+    }];
+  });
+}
+
 async function getCommunityPosts(
   search: string,
 ): Promise<BusinessPost[]> {
@@ -144,7 +199,7 @@ export default async function CommunityPage({
   const params = await searchParams;
   const search = params.q?.trim() || "";
 
-  const posts = await getCommunityPosts(search);
+  const [posts, stories] = await Promise.all([getCommunityPosts(search), getCommunityStories()]);
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -198,6 +253,7 @@ export default async function CommunityPage({
       </section>
 
       <section className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+        <CommunityStories stories={stories} />
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
             <h2 className="text-xl font-bold text-[#020D3A]">
