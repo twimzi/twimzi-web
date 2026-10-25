@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import BusinessPostCard from "@/components/business/business-post-card";
 import CommunityStories, { type CommunityStory } from "@/components/community/community-stories";
-import CommunityStoryUploader from "@/components/community/community-story-uploader";
+import CommunityCreateAction from "@/components/community/community-create-action";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type Business = {
@@ -237,9 +237,13 @@ export default async function CommunityPage({
             </p>
           </div>
 
+          <div className="mt-6 flex justify-end">
+            <CommunityCreateAction />
+          </div>
+
           <form
             method="get"
-            className="mt-7 flex flex-col gap-3 sm:flex-row"
+            className="mt-3 flex flex-col gap-3 sm:flex-row"
           >
             <input
               type="search"
@@ -270,7 +274,6 @@ export default async function CommunityPage({
       </section>
 
       <section className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-        <CommunityStoryUploader />
         <CommunityStories stories={stories} />
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
