@@ -45,7 +45,7 @@ const sections = [
     [
       ["Notifications", "/admin/notifications"],
       ["WhatsApp Messages", "/admin/whatsapp-messages"],
-      ["Email Messages", "/admin/email-messages"],
+      ["Email Marketing", "/admin/email-messages"],
       ["Media", "/admin/media"],
       ["Settings", "/admin/settings"],
       ["Audit Logs", "/admin/audit-logs"],
