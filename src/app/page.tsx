@@ -7,6 +7,7 @@ import {
 import { CategorySection } from "@/components/home/category-section";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { AndroidAppSection } from "@/components/home/android-app-section";
+import CommunityStories, { type CommunityStory } from "@/components/community/community-stories";
 
 type Business = {
   id: string;
@@ -54,6 +55,30 @@ type Post = {
   created_at: string;
 };
 
+async function getHomeStories(): Promise<CommunityStory[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc("get_public_business_stories", {
+    p_limit: 12,
+  });
+
+  if (error || !data) return [];
+
+  return data.flatMap((story) => {
+    if (!story.media_object_path || !story.media_mime_type?.startsWith("image/")) {
+      return [];
+    }
+
+    return [{
+      id: story.id,
+      caption: story.caption,
+      imageUrl: `https://twimzi-media.twimziofficial.workers.dev/media/${story.media_object_path}`,
+      businessName: story.business_name,
+      businessUrl: story.business_slug ? `/businesses/${story.business_slug}` : `/businesses/${story.business_id}`,
+      createdAt: story.created_at,
+    }];
+  });
+}
+
 export default async function Home() {
   const supabase = await createSupabaseServerClient();
 
@@ -61,6 +86,7 @@ export default async function Home() {
     { data: businessData },
     { data: categoriesData, error: categoriesError },
     { data: offersData },
+    homeStories,
   ] = await Promise.all([
     supabase.rpc("get_public_businesses", {
       p_search: null,
@@ -78,6 +104,7 @@ export default async function Home() {
       .is("deleted_at", null)
       .order("created_at", { ascending: false })
       .limit(6),
+    getHomeStories(),
   ]);
 
   const businesses = (businessData ?? []) as Business[];
@@ -241,6 +268,10 @@ export default async function Home() {
   return (
     <>
       <HeroSection interestingItems={interestingItems} />
+
+      <div className="mx-auto w-full max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
+        <CommunityStories stories={homeStories} />
+      </div>
 
       <CategorySection
         categories={categories}
