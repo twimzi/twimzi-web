@@ -39,6 +39,18 @@ type Business = {
   updated_at: string;
 };
 
+type BusinessLocation = {
+  address_line_1: string;
+  address_line_2: string | null;
+  landmark: string | null;
+  city: string;
+  state: string;
+  country: string;
+  postal_code: string | null;
+  latitude: number | null;
+  longitude: number | null;
+};
+
 type BusinessMedia = {
   logo_bucket_name: string | null;
   logo_object_path: string | null;
@@ -502,14 +514,19 @@ export default async function BusinessDetailPage({
     notFound();
   }
 
-  const [media, gallery, products, services, offers, posts] = await Promise.all([
+  const [media, gallery, products, services, offers, posts, locationResult] = await Promise.all([
     getBusinessMedia(business.id),
     getBusinessGallery(business.id),
     getProducts(business.id),
     getServices(business.id),
     getOffers(business.id),
     getPosts(business.id),
+    createSupabaseServerClient().then((client) =>
+      client.rpc("get_public_business_location", { p_business_id: business.id }),
+    ),
   ]);
+
+  const businessLocation = (locationResult.data?.[0] ?? null) as BusinessLocation | null;
 
   const galleryImages = gallery
     .map((image) => ({
@@ -569,6 +586,28 @@ export default async function BusinessDetailPage({
 
   if (website) {
     structuredData.sameAs = [website];
+  }
+
+  if (businessLocation) {
+    structuredData.address = {
+      "@type": "PostalAddress",
+      streetAddress: [
+        businessLocation.address_line_1,
+        businessLocation.address_line_2,
+        businessLocation.landmark,
+      ].filter(Boolean).join(", "),
+      addressLocality: businessLocation.city,
+      addressRegion: businessLocation.state,
+      addressCountry: businessLocation.country,
+      postalCode: businessLocation.postal_code ?? undefined,
+    };
+    if (businessLocation.latitude !== null && businessLocation.longitude !== null) {
+      structuredData.geo = {
+        "@type": "GeoCoordinates",
+        latitude: businessLocation.latitude,
+        longitude: businessLocation.longitude,
+      };
+    }
   }
 
   if (business.established_year) {
@@ -681,6 +720,23 @@ export default async function BusinessDetailPage({
                   <p className="mt-1 text-sm text-[var(--color-text-light)]">
                     {business.business_code}
                   </p>
+
+                  {businessLocation && (
+                    <p className="mt-3 flex items-start gap-2 text-sm text-[var(--color-text-muted)]">
+                      <span aria-hidden="true">📍</span>
+                      <span>
+                        {[
+                          businessLocation.address_line_1,
+                          businessLocation.address_line_2,
+                          businessLocation.landmark,
+                          businessLocation.city,
+                          businessLocation.state,
+                          businessLocation.postal_code,
+                          businessLocation.country,
+                        ].filter(Boolean).join(", ")}
+                      </span>
+                    </p>
+                  )}
                 </div>
               </div>
 
