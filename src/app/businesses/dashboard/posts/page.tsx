@@ -390,33 +390,31 @@ export default function BusinessPostsDashboardPage() {
         updated_by: user.id,
       };
 
+      let savedPostId = editingPost?.id ?? "";
       if (editingPost) {
-        const { error: updateError } = await supabase
-          .from("business_posts")
-          .update(payload)
-          .eq("id", editingPost.id)
-          .eq("business_id", business.id);
-
-        if (updateError) {
-          throw updateError;
-        }
-
-        setSuccess("Post updated successfully.");
+        const { error: updateError } = await supabase.from("business_posts").update(payload).eq("id", editingPost.id).eq("business_id", business.id);
+        if (updateError) throw updateError;
       } else {
-        const { error: insertError } = await supabase
-          .from("business_posts")
-          .insert({
-            ...payload,
-            created_by: user.id,
-          });
-
-        if (insertError) {
-          throw insertError;
-        }
-
-        setSuccess("Post created successfully.");
+        const { data: insertedPost, error: insertError } = await supabase.from("business_posts").insert({ ...payload, created_by: user.id }).select("id").single();
+        if (insertError) throw insertError;
+        savedPostId = insertedPost.id;
       }
 
+      if (postImage && savedPostId) {
+        const optimizedImage = await optimizeImageForUpload(postImage);
+        const formData = new FormData();
+        formData.append("business_id", business.id);
+        formData.append("kind", "gallery");
+        formData.append("file", optimizedImage);
+        formData.append("alt_text", form.title.trim() || "Business post image");
+        const { data: uploadData, error: uploadError } = await supabase.functions.invoke("upload-media", { body: formData });
+        if (uploadError) throw new Error(uploadError.message?.trim() || "Unable to upload post image.");
+        if (!uploadData?.success || !uploadData?.media?.id) throw new Error(uploadData?.error || "Unable to upload post image.");
+        const { error: mediaLinkError } = await supabase.from("business_post_media").insert({ post_id: savedPostId, media_id: uploadData.media.id, media_type: "image", title: form.title.trim() || null, sort_order: 0, is_primary: true, is_active: true });
+        if (mediaLinkError) throw mediaLinkError;
+      }
+
+      setSuccess(editingPost ? "Post updated successfully." : "Post created successfully.");
       await loadPosts(business.id);
 
       setModalOpen(false);
@@ -426,7 +424,9 @@ export default function BusinessPostsDashboardPage() {
       setError(
         caughtError instanceof Error
           ? caughtError.message
-          : "Unable to save the post.",
+          : caughtError && typeof caughtError === "object" && "message" in caughtError
+            ? String(caughtError.message)
+            : "Unable to save the post.",
       );
     } finally {
       setSaving(false);
