@@ -57,23 +57,6 @@ function encodeSubject(value: string) {
 }
 
 
-function escapeHtml(value: string) {
-  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-}
-
-function createEmailHtml(body: string) {
-  const paragraphs = escapeHtml(body).split(/\r?\n\r?\n/)
-    .map((paragraph) => paragraph.replace(/\r?\n/g, "<br>"))
-    .map((paragraph) => '<p style="margin:0 0 16px;line-height:1.6;color:#263238;font-size:15px;">' + paragraph + "</p>")
-    .join("");
-  return '<!doctype html><html><body style="margin:0;padding:24px;background:#f5f7fa;font-family:Arial,Helvetica,sans-serif;">' +
-    '<div style="max-width:600px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;">' +
-    '<div style="padding:24px 24px 12px;text-align:center;"><a href="https://www.twimzi.com" style="text-decoration:none;">' +
-    '<img src="https://www.twimzi.com/twimzi-logo.png" alt="Twimzi" width="180" style="display:block;width:180px;max-width:100%;height:auto;margin:0 auto;border:0;"></a></div>' +
-    '<div style="padding:12px 28px 24px;">' + paragraphs +
-    '<p style="margin:24px 0 0;color:#64748b;font-size:12px;">Twimzi · <a href="https://www.twimzi.com" style="color:#2563eb;">www.twimzi.com</a></p>' +
-    '</div></div></body></html>';
-}
 
 async function sendViaHostinger(to: string, subject: string, body: string) {
   const host = process.env.HOSTINGER_SMTP_HOST;
@@ -115,10 +98,10 @@ async function sendViaHostinger(to: string, subject: string, body: string) {
       "To: " + encodeHeader(to),
       "Subject: " + encodeSubject(subject),
       "MIME-Version: 1.0",
-      "Content-Type: text/html; charset=UTF-8",
+      "Content-Type: text/plain; charset=UTF-8",
       "Content-Transfer-Encoding: base64",
       "",
-      Buffer.from(createEmailHtml(body), "utf8").toString("base64").replace(/.{1,76}/g, "$&\r\n").trimEnd(),
+      Buffer.from(body, "utf8").toString("base64").replace(/.{1,76}/g, "$&\r\n").trimEnd(),
       ".",
       "",
     ].join("\r\n");
