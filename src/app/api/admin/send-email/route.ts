@@ -56,10 +56,6 @@ function encodeSubject(value: string) {
   return /^[\x20-\x7E]*$/.test(clean) ? clean : "=?UTF-8?B?" + Buffer.from(clean, "utf8").toString("base64") + "?=";
 }
 
-function encodeBody(value: string) {
-  return value.replace(/\r?\n/g, "\r\n").split("\r\n").map((line) => line.startsWith(".") ? "." + line : line).join("\r\n");
-}
-
 async function sendViaHostinger(to: string, subject: string, body: string) {
   const host = process.env.HOSTINGER_SMTP_HOST;
   const port = Number(process.env.HOSTINGER_SMTP_PORT || "465");
@@ -109,8 +105,9 @@ async function sendViaHostinger(to: string, subject: string, body: string) {
     ].join("\r\n");
     connection.write(message + "\r\n");
     await expect(connection, ["250"]);
+    // A 250 response after DATA means the SMTP server accepted the message.
+    // Do not mark it failed if the server closes during the optional QUIT exchange.
     connection.write("QUIT\r\n");
-    await expect(connection, ["221"]);
   } finally {
     connection.close();
   }
