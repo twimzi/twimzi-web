@@ -70,7 +70,18 @@ export default function BusinessHeadOfficeLocation({ businessId }: { businessId:
       setExists(true);
       setSuccess("Head-office address and GPS saved. You can now create community posts.");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Unable to save the business location.");
+      const geoError = e as GeolocationPositionError;
+      if (typeof geoError?.code === "number") {
+        if (geoError.code === 1) {
+          setError("Location permission was denied. Allow location access in your browser settings and try again. If you are using a desktop or laptop and location cannot be detected, open Twimzi on your mobile phone, sign in to this same account, and tap Use Current Location & Save while at your business premises. Then you can create posts from your computer.");
+        } else if (geoError.code === 2 || geoError.code === 3) {
+          setError("This device could not detect your current location. If you are using a desktop or laptop, open Twimzi on your mobile phone, sign in to this same account, and tap Use Current Location & Save while at your business premises. Your saved location will then be available when you return to your computer.");
+        } else {
+          setError("Unable to detect your location. Try again, or use Twimzi on your mobile phone while at your business premises.");
+        }
+      } else {
+        setError(e instanceof Error ? e.message : "Unable to save the business location.");
+      }
     } finally { setSaving(false); }
   }
 
