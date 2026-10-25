@@ -66,6 +66,9 @@ export default function AddBusiness() {
   const [authenticated, setAuthenticated] = useState(false);
 
   const [loading, setLoading] = useState(false);
+  // Keep the created business ID if a later media upload fails, so retrying
+  // the form resumes the same business instead of creating a duplicate.
+  const [createdBusinessId, setCreatedBusinessId] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState("");
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -562,39 +565,41 @@ export default function AddBusiness() {
         return;
       }
 
-      const { data, error } = await supabase.rpc("create_business", {
-        p_business_name: businessName.trim(),
-        p_business_type: businessType.trim(),
-        p_city: city.trim(),
-        p_description: description.trim() || null,
-        p_phone: phone.trim() || null,
-        p_website: normalizedWebsite || null,
-        p_address_line_1: addressLine1.trim(),
-        p_address_line_2: addressLine2.trim() || null,
-        p_landmark: landmark.trim() || null,
-        p_state: state.trim(),
-        p_country: country.trim(),
-        p_postal_code: postalCode.trim(),
-        p_latitude: latitude,
-        p_longitude: longitude,
-      });
+      let businessId = createdBusinessId;
 
-      if (error) {
-        throw error;
-      }
+      if (!businessId) {
+        const { data, error } = await supabase.rpc("create_business", {
+          p_business_name: businessName.trim(),
+          p_business_type: businessType.trim(),
+          p_city: city.trim(),
+          p_description: description.trim() || null,
+          p_phone: phone.trim() || null,
+          p_website: normalizedWebsite || null,
+          p_address_line_1: addressLine1.trim(),
+          p_address_line_2: addressLine2.trim() || null,
+          p_landmark: landmark.trim() || null,
+          p_state: state.trim(),
+          p_country: country.trim(),
+          p_postal_code: postalCode.trim(),
+          p_latitude: latitude,
+          p_longitude: longitude,
+        });
 
-      const business = Array.isArray(data) ? data[0] : data;
+        if (error) throw error;
 
-      if (!business?.id) {
-        throw new Error(
-          "Business was created but no business ID was returned.",
-        );
+        const business = Array.isArray(data) ? data[0] : data;
+        if (!business?.id) {
+          throw new Error("Business was created but no business ID was returned.");
+        }
+
+        businessId = business.id as string;
+        setCreatedBusinessId(businessId);
       }
 
       const { error: tagsError } = await supabase
         .from("businesses")
         .update({ keywords: parseTagList(keywords), hashtags: parseTagList(hashtags, true) })
-        .eq("id", business.id);
+        .eq("id", businessId);
 
       if (tagsError) throw tagsError;
 
@@ -661,6 +666,7 @@ export default function AddBusiness() {
       setLogo(null);
       setCover(null);
       setGallery([]);
+      setCreatedBusinessId(null);
       setBusinessName("");
       setBusinessType("");
       setAddressLine1("");
