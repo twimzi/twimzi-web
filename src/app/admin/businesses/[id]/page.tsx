@@ -49,6 +49,24 @@ type Business = {
   cover_media_id: string | null;
 };
 
+type BusinessBranch = {
+  id: string;
+  business_id: string;
+  branch_code: string;
+  branch_name: string;
+  branch_type: string | null;
+  address_line_1: string;
+  address_line_2: string | null;
+  landmark: string | null;
+  city: string;
+  state: string;
+  country: string;
+  postal_code: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  is_head_office: boolean;
+};
+
 type Product = {
   id: string;
   product_code: string | null;
@@ -232,6 +250,51 @@ async function boostBusiness(formData: FormData) {
   revalidatePath(`/admin/businesses/${id}`);
 }
 
+async function updateBusinessLocation(formData: FormData) {
+  "use server";
+
+  const id = String(formData.get("id") ?? "");
+  const addressLine1 = String(formData.get("address_line_1") ?? "").trim();
+  const city = String(formData.get("city") ?? "").trim();
+  const state = String(formData.get("state") ?? "").trim();
+  const country = String(formData.get("country") ?? "").trim();
+
+  if (!id || !addressLine1 || !city || !state || !country) return;
+
+  const optionalText = (key: string) => {
+    const value = String(formData.get(key) ?? "").trim();
+    return value || null;
+  };
+  const optionalNumber = (key: string) => {
+    const value = String(formData.get(key) ?? "").trim();
+    if (!value) return null;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  };
+
+  const supabase = await requireSuperAdmin();
+  const { error } = await supabase.rpc("admin_update_business_branch", {
+    p_business_id: id,
+    p_address_line_1: addressLine1,
+    p_address_line_2: optionalText("address_line_2"),
+    p_landmark: optionalText("landmark"),
+    p_city: city,
+    p_state: state,
+    p_country: country,
+    p_postal_code: optionalText("postal_code"),
+    p_latitude: optionalNumber("latitude"),
+    p_longitude: optionalNumber("longitude"),
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/admin/businesses");
+  revalidatePath(`/admin/businesses/${id}`);
+  revalidatePath("/explore");
+}
+
 async function updatePriority(formData: FormData) {
   "use server";
 
@@ -288,6 +351,7 @@ export default async function AdminBusinessDetail({ params }: PageProps) {
     postsResult,
     mediaResult,
     ownerResult,
+    branchResult,
   ] = await Promise.all([
     supabase
       .from("products")
@@ -332,6 +396,8 @@ export default async function AdminBusinessDetail({ params }: PageProps) {
           .eq("id", typedBusiness.owner_profile_id)
           .maybeSingle()
       : Promise.resolve({ data: null }),
+
+    supabase.rpc("admin_get_business_branch", { p_business_id: id }),
   ]);
 
   const products = (productsResult.data ?? []) as Product[];
@@ -339,6 +405,7 @@ export default async function AdminBusinessDetail({ params }: PageProps) {
   const posts = (postsResult.data ?? []) as Post[];
   const media = (mediaResult.data?.[0] ?? null) as Media | null;
   const owner = ownerResult.data;
+  const branch = (branchResult.data?.[0] ?? null) as BusinessBranch | null;
 
   const logoUrl = media
     ? getMediaPublicUrl(media.logo_object_path)
@@ -481,6 +548,56 @@ export default async function AdminBusinessDetail({ params }: PageProps) {
               </p>
             </div>
           ) : null}
+        </section>
+
+        <section className="rounded-2xl border border-[var(--color-border)] bg-white p-6 lg:col-span-2">
+          <h2 className="text-lg font-extrabold">Business Address & Location</h2>
+          <p className="mt-1 text-sm text-[var(--color-text-muted)]">
+            These fields are saved to the business branch and used for public location search.
+          </p>
+
+          <form action={updateBusinessLocation} className="mt-5 grid gap-4 sm:grid-cols-2">
+            <input type="hidden" name="id" value={id} />
+            <div className="sm:col-span-2">
+              <label htmlFor="address_line_1" className="mb-1 block text-xs font-bold uppercase tracking-wide text-[var(--color-text-muted)]">Address Line 1 *</label>
+              <input id="address_line_1" name="address_line_1" required defaultValue={branch?.address_line_1 ?? ""} className="w-full rounded-xl border border-[var(--color-border)] px-3 py-2.5 text-sm outline-none focus:border-[var(--color-primary)]" />
+            </div>
+            <div>
+              <label htmlFor="address_line_2" className="mb-1 block text-xs font-bold uppercase tracking-wide text-[var(--color-text-muted)]">Address Line 2</label>
+              <input id="address_line_2" name="address_line_2" defaultValue={branch?.address_line_2 ?? ""} className="w-full rounded-xl border border-[var(--color-border)] px-3 py-2.5 text-sm outline-none focus:border-[var(--color-primary)]" />
+            </div>
+            <div>
+              <label htmlFor="landmark" className="mb-1 block text-xs font-bold uppercase tracking-wide text-[var(--color-text-muted)]">Landmark</label>
+              <input id="landmark" name="landmark" defaultValue={branch?.landmark ?? ""} className="w-full rounded-xl border border-[var(--color-border)] px-3 py-2.5 text-sm outline-none focus:border-[var(--color-primary)]" />
+            </div>
+            <div>
+              <label htmlFor="city" className="mb-1 block text-xs font-bold uppercase tracking-wide text-[var(--color-text-muted)]">City *</label>
+              <input id="city" name="city" required defaultValue={branch?.city ?? ""} className="w-full rounded-xl border border-[var(--color-border)] px-3 py-2.5 text-sm outline-none focus:border-[var(--color-primary)]" />
+            </div>
+            <div>
+              <label htmlFor="state" className="mb-1 block text-xs font-bold uppercase tracking-wide text-[var(--color-text-muted)]">State *</label>
+              <input id="state" name="state" required defaultValue={branch?.state ?? ""} className="w-full rounded-xl border border-[var(--color-border)] px-3 py-2.5 text-sm outline-none focus:border-[var(--color-primary)]" />
+            </div>
+            <div>
+              <label htmlFor="country" className="mb-1 block text-xs font-bold uppercase tracking-wide text-[var(--color-text-muted)]">Country *</label>
+              <input id="country" name="country" required defaultValue={branch?.country ?? "India"} className="w-full rounded-xl border border-[var(--color-border)] px-3 py-2.5 text-sm outline-none focus:border-[var(--color-primary)]" />
+            </div>
+            <div>
+              <label htmlFor="postal_code" className="mb-1 block text-xs font-bold uppercase tracking-wide text-[var(--color-text-muted)]">Postal Code</label>
+              <input id="postal_code" name="postal_code" defaultValue={branch?.postal_code ?? ""} className="w-full rounded-xl border border-[var(--color-border)] px-3 py-2.5 text-sm outline-none focus:border-[var(--color-primary)]" />
+            </div>
+            <div>
+              <label htmlFor="latitude" className="mb-1 block text-xs font-bold uppercase tracking-wide text-[var(--color-text-muted)]">Latitude</label>
+              <input id="latitude" name="latitude" type="number" step="any" defaultValue={branch?.latitude ?? ""} className="w-full rounded-xl border border-[var(--color-border)] px-3 py-2.5 text-sm outline-none focus:border-[var(--color-primary)]" />
+            </div>
+            <div>
+              <label htmlFor="longitude" className="mb-1 block text-xs font-bold uppercase tracking-wide text-[var(--color-text-muted)]">Longitude</label>
+              <input id="longitude" name="longitude" type="number" step="any" defaultValue={branch?.longitude ?? ""} className="w-full rounded-xl border border-[var(--color-border)] px-3 py-2.5 text-sm outline-none focus:border-[var(--color-primary)]" />
+            </div>
+            <div className="sm:col-span-2">
+              <button type="submit" className="rounded-xl bg-[var(--color-primary)] px-5 py-3 text-sm font-bold text-white hover:opacity-90">Save Address & Location</button>
+            </div>
+          </form>
         </section>
 
         <section className="rounded-2xl border border-[var(--color-border)] bg-white p-6">
