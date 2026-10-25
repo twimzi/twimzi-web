@@ -561,7 +561,7 @@ export default function BusinessPostCard({
               src={post.imageUrl}
               alt={post.title || "Business post"}
               loading="lazy"
-              className="mb-4 max-h-[420px] w-full rounded-2xl bg-slate-100 object-cover"
+              className="mb-4 block h-auto max-h-none w-full rounded-2xl bg-slate-50 object-contain"
             />
           )}
           {post.title && (
