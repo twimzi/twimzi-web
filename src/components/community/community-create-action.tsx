@@ -17,7 +17,7 @@ export default function CommunityCreateAction() {
         className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#1879FD] px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-200"
       >
         <Plus className="h-4 w-4" />
-        Add
+        Add Post / Story
       </button>
 
       {open && (
@@ -57,9 +57,11 @@ export default function CommunityCreateAction() {
               </Link>
             </div>
 
-            <div id="add-community-story" className="mt-5 border-t border-slate-100 pt-5">
-              <CommunityStoryUploader />
-            </div>
+            {showStoryForm && (
+              <div id="add-community-story" className="mt-5 border-t border-slate-100 pt-5">
+                <CommunityStoryUploader />
+              </div>
+            )}
           </div>
         </div>
       )}
