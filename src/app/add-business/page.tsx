@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { PageHero } from "@/components/ui/page-hero";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { optimizeImageForUpload } from "@/lib/media/optimize-image";
 
 type MediaKind = "logo" | "cover" | "gallery";
 
@@ -230,7 +231,8 @@ export default function AddBusiness() {
 
     formData.append("business_id", businessId);
     formData.append("kind", kind);
-    formData.append("file", selected.file);
+    const optimizedFile = await optimizeImageForUpload(selected.file);
+    formData.append("file", optimizedFile);
 
     formData.append(
       "alt_text",
