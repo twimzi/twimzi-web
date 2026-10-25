@@ -535,10 +535,10 @@ export default function BusinessDashboardPage() {
                 <ChevronRight className="h-4 w-4 text-[var(--color-text-light)] transition group-hover:translate-x-0.5" />
               </div>
               <p className="mt-4 font-semibold text-[var(--color-text)]">
-                Business Growth Center
+                Share My Business
               </p>
               <p className="mt-1 text-xs text-[var(--color-text-secondary)]">
-                View your business health score, shareable profile and QR code.
+                Share your profile link and download your business QR code.
               </p>
             </Link>
 
