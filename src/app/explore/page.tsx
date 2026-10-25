@@ -246,8 +246,9 @@ export default async function Explore({
 
   const [categoriesResult, businessesResult] = await Promise.all([
     supabase.rpc("get_public_categories"),
-    supabase.rpc("get_public_businesses", {
+    supabase.rpc("get_public_businesses_with_location", {
       p_search: search || null,
+      p_location: locationSearch || null,
       p_limit: search || locationSearch ? 100 : 12,
       p_offset: 0,
     }),
@@ -255,14 +256,7 @@ export default async function Explore({
 
   const categories = (categoriesResult.data ?? []) as Category[];
   const allBusinesses = (businessesResult.data ?? []) as Business[];
-  const normalizedLocation = locationSearch.toLocaleLowerCase();
-  const businesses = normalizedLocation
-    ? allBusinesses.filter((business) =>
-        [business.city, business.state].some((value) =>
-          value?.toLocaleLowerCase().includes(normalizedLocation),
-        ),
-      )
-    : allBusinesses;
+  const businesses = allBusinesses;
 
   const sortedCategories = [...categories].sort(
     (a, b) => (a.sort_order ?? 9999) - (b.sort_order ?? 9999),
