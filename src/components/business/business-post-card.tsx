@@ -24,6 +24,7 @@ type BusinessPost = {
   comment_count: number;
   share_count: number;
   save_count: number;
+  imageUrl?: string | null;
 };
 
 type BusinessPostCardProps = {
@@ -555,6 +556,14 @@ export default function BusinessPostCard({
               : "Open business post"
           }
         >
+          {post.imageUrl && (
+            <img
+              src={post.imageUrl}
+              alt={post.title || "Business post"}
+              loading="lazy"
+              className="mb-4 max-h-[420px] w-full rounded-2xl bg-slate-100 object-cover"
+            />
+          )}
           {post.title && (
             <h3 className="text-xl font-bold leading-tight text-[#020D3A] transition hover:text-[#1879FD]">
               {post.title}
