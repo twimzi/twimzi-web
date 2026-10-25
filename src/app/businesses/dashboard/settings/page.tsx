@@ -10,6 +10,7 @@ import {
   UploadCloud,
   Mail,
   MapPin,
+  LocateFixed,
   Phone,
   Save,
   X,
@@ -136,6 +137,8 @@ export default function BusinessSettingsPage() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState<"logo" | "cover" | null>(null);
+  const [gps, setGps] = useState<{ latitude: number | null; longitude: number | null; branchExists: boolean }>({ latitude: null, longitude: null, branchExists: false });
+  const [savingGps, setSavingGps] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -182,6 +185,10 @@ export default function BusinessSettingsPage() {
 
         setBusiness(data);
         setForm(createForm(data));
+
+        const { data: branch, error: branchError } = await supabase.from("business_branches").select("latitude,longitude").eq("business_id", data.id).eq("is_head_office", true).is("deleted_at", null).limit(1).maybeSingle();
+        if (branchError) throw branchError;
+        if (!cancelled) setGps({ latitude: branch?.latitude ?? null, longitude: branch?.longitude ?? null, branchExists: Boolean(branch) });
 
         const mediaIds = [data.logo_media_id, data.cover_media_id].filter(
           (id): id is string => Boolean(id),
@@ -301,6 +308,22 @@ export default function BusinessSettingsPage() {
     }
   }
 
+  async function saveCurrentLocation() {
+    if (!business) return;
+    if (!navigator.geolocation) { setError("This browser does not support GPS location."); return; }
+    setSavingGps(true); setError(null); setSuccess(null);
+    try {
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }));
+      const latitude = position.coords.latitude;
+      const longitude = position.coords.longitude;
+      const supabase = createSupabaseBrowserClient();
+      const { error: saveError } = await supabase.rpc("set_my_business_head_office_gps", { p_business_id: business.id, p_latitude: latitude, p_longitude: longitude });
+      if (saveError) throw saveError;
+      setGps({ latitude, longitude, branchExists: true });
+      setSuccess("Business GPS location verified and saved. You can now create community posts.");
+    } catch (caughtError) { setError(caughtError instanceof Error ? caughtError.message : "Unable to save your current location."); }
+    finally { setSavingGps(false); }
+  }
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -938,6 +961,22 @@ export default function BusinessSettingsPage() {
             </div>
           </section>
 
+          <section className="rounded-2xl border border-blue-200 bg-white p-5 shadow-sm sm:p-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex items-start gap-3">
+                <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-blue-600" />
+                <div>
+                  <h2 className="text-base font-bold text-slate-900">Business GPS Location</h2>
+                  <p className="mt-1 text-sm leading-6 text-slate-600">Verify the real location of your head office to enable community posts. Allow browser location access when prompted.</p>
+                  {gps.latitude !== null && gps.longitude !== null ? <p className="mt-2 text-xs font-medium text-emerald-700">Saved coordinates: {gps.latitude.toFixed(6)}, {gps.longitude.toFixed(6)}</p> : <p className="mt-2 text-xs font-medium text-amber-700">{gps.branchExists ? "GPS location not set yet." : "No head-office branch was found for this business."}</p>}
+                </div>
+              </div>
+              <button type="button" onClick={saveCurrentLocation} disabled={savingGps || !gps.branchExists} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#1879FD] px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60">
+                {savingGps ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" /> : <LocateFixed className="h-4 w-4" />}{savingGps ? "Verifying..." : "Use Current Location"}
+              </button>
+            </div>
+            {!gps.branchExists && <p className="mt-3 text-sm text-amber-700">A head-office branch is required first. Add a branch in the business location module, then return here to verify its GPS.</p>}
+          </section>
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
             <div className="flex items-start gap-3">
               <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-slate-500" />
