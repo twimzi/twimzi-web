@@ -24,6 +24,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type SearchParams = {
   q?: string;
+  location?: string;
 };
 
 type Category = {
@@ -239,6 +240,7 @@ export default async function Explore({
 }) {
   const params = await searchParams;
   const search = params.q?.trim() ?? "";
+  const locationSearch = params.location?.trim() ?? "";
 
   const supabase = await createSupabaseServerClient();
 
@@ -246,13 +248,21 @@ export default async function Explore({
     supabase.rpc("get_public_categories"),
     supabase.rpc("get_public_businesses", {
       p_search: search || null,
-      p_limit: search ? 60 : 12,
+      p_limit: search || locationSearch ? 100 : 12,
       p_offset: 0,
     }),
   ]);
 
   const categories = (categoriesResult.data ?? []) as Category[];
-  const businesses = (businessesResult.data ?? []) as Business[];
+  const allBusinesses = (businessesResult.data ?? []) as Business[];
+  const normalizedLocation = locationSearch.toLocaleLowerCase();
+  const businesses = normalizedLocation
+    ? allBusinesses.filter((business) =>
+        [business.city, business.state].some((value) =>
+          value?.toLocaleLowerCase().includes(normalizedLocation),
+        ),
+      )
+    : allBusinesses;
 
   const sortedCategories = [...categories].sort(
     (a, b) => (a.sort_order ?? 9999) - (b.sort_order ?? 9999),
@@ -263,19 +273,27 @@ export default async function Explore({
       <PageHero
         eyebrow="Explore"
         title={
-          search
-            ? `Search results for "${search}"`
-            : "Find what you need, close to you."
+          search && locationSearch
+            ? `Results for "${search}" in ${locationSearch}`
+            : search
+              ? `Search results for "${search}"`
+              : locationSearch
+                ? `Businesses in ${locationSearch}`
+                : "Find what you need, close to you."
         }
         description={
-          search
-            ? "Discover businesses matching your search across the existing Twimzi marketplace."
-            : "Explore real Twimzi categories and discover businesses, products and services from one connected marketplace."
+          search && locationSearch
+            ? `Discover businesses matching "${search}" in ${locationSearch}.`
+            : search
+              ? "Discover businesses matching your search across the existing Twimzi marketplace."
+              : locationSearch
+                ? `Discover public businesses listed in ${locationSearch}.`
+                : "Explore real Twimzi categories and discover businesses, products and services from one connected marketplace."
         }
       />
 
       <Container>
-        {search ? (
+        {search || locationSearch ? (
           <section className="py-12">
             <div className="mb-7 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div>
@@ -284,7 +302,7 @@ export default async function Explore({
                 </p>
 
                 <h2 className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl">
-                  Businesses matching your search
+                  {locationSearch && !search ? `Businesses in ${locationSearch}` : "Businesses matching your search"}
                 </h2>
               </div>
 
@@ -314,8 +332,9 @@ export default async function Explore({
                 </h3>
 
                 <p className="mt-2 text-sm text-[var(--color-text-muted)]">
-                  We could not find businesses matching &quot;{search}&quot;.
-                  Try another search.
+                  {locationSearch && !search
+                    ? `We could not find businesses in ${locationSearch}. Try another location.`
+                    : `We could not find businesses matching "${search}"${locationSearch ? ` in ${locationSearch}` : ""}. Try another search.`}
                 </p>
 
                 <Link
