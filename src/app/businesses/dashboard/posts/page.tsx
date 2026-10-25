@@ -165,9 +165,10 @@ export default function BusinessPostsDashboardPage() {
         const { data: businessData, error: businessError } = await supabase
           .from("businesses")
           .select("id, business_name")
-          .eq("owner_profile_id", user.id)
+          .or(`owner_profile_id.eq.${user.id},created_by.eq.${user.id}`)
           .eq("is_active", true)
           .is("deleted_at", null)
+          .order("created_at", { ascending: true })
           .limit(1)
           .maybeSingle();
 
@@ -519,7 +520,7 @@ export default function BusinessPostsDashboardPage() {
           </p>
 
           <Link
-            href="/add-business"
+            href="/businesses/dashboard"
             className="mt-6 inline-flex items-center justify-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
           >
             Open Business Dashboard
