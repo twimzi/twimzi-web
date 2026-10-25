@@ -151,7 +151,12 @@ export async function POST(request: Request) {
         const personalizedBody = body.replace(/\{\{name\}\}/g, "there");
         await sendViaHostinger(recipient, subject, personalizedBody);
         sent += 1;
-      } catch {
+      } catch (error) {
+        // Log only safe diagnostic details; never log SMTP credentials or message bodies.
+        console.error("[admin/send-email] SMTP send failed", {
+          recipient,
+          error: error instanceof Error ? error.message : "Unknown SMTP error",
+        });
         failed.push(recipient);
       }
     }
