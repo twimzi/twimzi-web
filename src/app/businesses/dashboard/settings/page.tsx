@@ -193,7 +193,7 @@ export default function BusinessSettingsPage() {
           if (mediaError) throw mediaError;
           for (const media of mediaRows ?? []) {
             if (!media.object_path || media.is_public !== true) continue;
-            const url = `${siteConfig.media.publicUrl.replace(/\\/$/, "")}/media/${media.object_path
+            const url = `${siteConfig.media.publicUrl.replace(/\/$/, "")}/media/${media.object_path
               .split("/")
               .map((segment: string) => encodeURIComponent(segment))
               .join("/")}`;
@@ -282,7 +282,7 @@ export default function BusinessSettingsPage() {
         throw new Error(data?.error || "Unable to upload image.");
       }
 
-      const url = `${siteConfig.media.publicUrl.replace(/\\/$/, "")}/media/${String(data.media.object_path)
+      const url = `${siteConfig.media.publicUrl.replace(/\/$/, "")}/media/${String(data.media.object_path)
         .split("/")
         .map((segment: string) => encodeURIComponent(segment))
         .join("/")}`;
