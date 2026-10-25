@@ -40,7 +40,13 @@ export default function BlogEngagement({ postId, postUrl, postTitle }: { postId:
     setLoading(false);
   }, [postId]);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void load();
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, [load]);
 
   async function toggleLike() {
     const supabase = createSupabaseBrowserClient();
