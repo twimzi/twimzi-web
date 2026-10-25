@@ -59,10 +59,11 @@ export default function CommunityStories({ stories }: Props) {
 
   useEffect(() => {
     if (!activeGroup) return;
+    const storyCount = activeGroup.stories.length;
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") setActiveGroup(null);
       if (event.key === "ArrowRight") {
-        setActiveIndex((index) => Math.min(index + 1, activeGroup.stories.length - 1));
+        setActiveIndex((index) => Math.min(index + 1, storyCount - 1));
       }
       if (event.key === "ArrowLeft") {
         setActiveIndex((index) => Math.max(index - 1, 0));
