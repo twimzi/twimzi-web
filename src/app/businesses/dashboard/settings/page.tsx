@@ -18,6 +18,7 @@ import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { siteConfig } from "@/config/site";
+import { optimizeImageForUpload } from "@/lib/media/optimize-image";
 
 type Business = {
   id: string;
@@ -247,11 +248,6 @@ export default function BusinessSettingsPage() {
       setError("Please choose an image file.");
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      setError("Logo and cover images must be 5 MB or smaller.");
-      return;
-    }
-
     setUploadingImage(kind);
     try {
       const supabase = createSupabaseBrowserClient();
@@ -259,10 +255,15 @@ export default function BusinessSettingsPage() {
       if (authError) throw authError;
       if (!user) throw new Error("Your session has expired. Please sign in again.");
 
+      const optimizedFile = await optimizeImageForUpload(file);
+      if (optimizedFile.size > 5 * 1024 * 1024) {
+        throw new Error("Logo and cover images must be 5 MB or smaller, even after optimization.");
+      }
+
       const body = new FormData();
       body.append("business_id", business.id);
       body.append("kind", kind);
-      body.append("file", file);
+      body.append("file", optimizedFile);
       body.append("alt_text", kind === "logo" ? `${business.business_name} logo` : `${business.business_name} cover image`);
 
       const { data, error: uploadError } = await supabase.functions.invoke("upload-media", { body });
