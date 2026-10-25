@@ -182,7 +182,7 @@ async function getCommunityPosts(
         .order("sort_order", { ascending: true })
     : { data: [] };
 
-  const mediaIds = [...new Set((mediaLinks ?? []).map((link) => link.media_id).filter(Boolean))];
+  const mediaIds = [...new Set((mediaLinks ?? []).map((link) => link.media_id).filter((id): id is string => Boolean(id)))];
   const { data: publicMedia } = mediaIds.length
     ? await supabase
         .from("media")
