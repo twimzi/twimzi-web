@@ -6,6 +6,8 @@ import {
   Check,
   ExternalLink,
   Globe,
+  ImagePlus,
+  UploadCloud,
   Mail,
   MapPin,
   Phone,
@@ -15,9 +17,12 @@ import {
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { siteConfig } from "@/config/site";
 
 type Business = {
   id: string;
+  logo_media_id: string | null;
+  cover_media_id: string | null;
   business_code: string | null;
   business_name: string;
   legal_name: string | null;
@@ -58,7 +63,7 @@ type BusinessForm = {
 };
 
 const BUSINESS_SELECT =
-  "id, business_code, business_name, legal_name, slug, description, business_type, email, phone, whatsapp_number, website, established_year, gst_number, pan_number, verification_status, business_status, public_handle, share_url, profile_completion, keywords, hashtags";
+  "id, logo_media_id, cover_media_id, business_code, business_name, legal_name, slug, description, business_type, email, phone, whatsapp_number, website, established_year, gst_number, pan_number, verification_status, business_status, public_handle, share_url, profile_completion, keywords, hashtags";
 
 function createForm(business: Business): BusinessForm {
   return {
@@ -127,6 +132,9 @@ export default function BusinessSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState<"logo" | "cover" | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -173,6 +181,26 @@ export default function BusinessSettingsPage() {
 
         setBusiness(data);
         setForm(createForm(data));
+
+        const mediaIds = [data.logo_media_id, data.cover_media_id].filter(
+          (id): id is string => Boolean(id),
+        );
+        if (mediaIds.length) {
+          const { data: mediaRows, error: mediaError } = await supabase
+            .from("media")
+            .select("id,object_path,is_public")
+            .in("id", mediaIds);
+          if (mediaError) throw mediaError;
+          for (const media of mediaRows ?? []) {
+            if (!media.object_path || media.is_public !== true) continue;
+            const url = `${siteConfig.media.publicUrl.replace(/\\/$/, "")}/media/${media.object_path
+              .split("/")
+              .map((segment: string) => encodeURIComponent(segment))
+              .join("/")}`;
+            if (media.id === data.logo_media_id) setLogoUrl(url);
+            if (media.id === data.cover_media_id) setCoverUrl(url);
+          }
+        }
       } catch (caughtError) {
         if (cancelled) {
           return;
@@ -209,6 +237,67 @@ export default function BusinessSettingsPage() {
           }
         : current,
     );
+  }
+
+  async function uploadBusinessImage(file: File | undefined, kind: "logo" | "cover") {
+    if (!file || !business) return;
+    setError(null);
+    setSuccess(null);
+    if (!file.type.startsWith("image/")) {
+      setError("Please choose an image file.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Logo and cover images must be 5 MB or smaller.");
+      return;
+    }
+
+    setUploadingImage(kind);
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError) throw authError;
+      if (!user) throw new Error("Your session has expired. Please sign in again.");
+
+      const body = new FormData();
+      body.append("business_id", business.id);
+      body.append("kind", kind);
+      body.append("file", file);
+      body.append("alt_text", kind === "logo" ? `${business.business_name} logo` : `${business.business_name} cover image`);
+
+      const { data, error: uploadError } = await supabase.functions.invoke("upload-media", { body });
+      if (uploadError) {
+        const context = (uploadError as { context?: Response }).context;
+        if (context instanceof Response) {
+          try {
+            const detail = await context.clone().json() as { error?: string; message?: string };
+            if (detail.error || detail.message) throw new Error(detail.error || detail.message);
+          } catch (caught) {
+            if (caught instanceof Error && caught.message) throw caught;
+          }
+        }
+        throw new Error(uploadError.message || "Unable to upload image.");
+      }
+      if (!data?.success || !data?.media?.object_path) {
+        throw new Error(data?.error || "Unable to upload image.");
+      }
+
+      const url = `${siteConfig.media.publicUrl.replace(/\\/$/, "")}/media/${String(data.media.object_path)
+        .split("/")
+        .map((segment: string) => encodeURIComponent(segment))
+        .join("/")}`;
+      if (kind === "logo") setLogoUrl(url);
+      else setCoverUrl(url);
+      setBusiness((current) => current ? {
+        ...current,
+        ...(kind === "logo" ? { logo_media_id: data.media.id } : { cover_media_id: data.media.id }),
+      } : current);
+      setSuccess(kind === "logo" ? "Business logo updated successfully." : "Business cover image updated successfully.");
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Unable to upload image.");
+    } finally {
+      setUploadingImage(null);
+    }
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -448,6 +537,35 @@ export default function BusinessSettingsPage() {
               <p className="mt-1 text-sm font-semibold text-slate-900">
                 {business.profile_completion ?? 0}%
               </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="mb-5 flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700"><ImagePlus className="h-5 w-5" /></div>
+            <div><h2 className="text-lg font-bold text-slate-900">Business Logo & Cover</h2><p className="mt-1 text-sm text-slate-500">Upload or replace the images shown on your public business profile. JPG, PNG, WebP, GIF or AVIF; maximum 5 MB each.</p></div>
+          </div>
+          <div className="grid gap-5 md:grid-cols-2">
+            <div className="rounded-xl border border-slate-200 p-4">
+              <p className="mb-3 text-sm font-semibold text-slate-800">Profile logo</p>
+              <div className="flex h-36 items-center justify-center overflow-hidden rounded-lg bg-slate-50 p-3">
+                {logoUrl ? <img src={logoUrl} alt="Current business logo" className="h-full w-full object-contain" /> : <div className="text-center text-sm text-slate-500"><ImagePlus className="mx-auto mb-2 h-7 w-7" />No logo uploaded</div>}
+              </div>
+              <label className="mt-3 inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                <UploadCloud className="h-4 w-4" />{uploadingImage === "logo" ? "Uploading logo…" : logoUrl ? "Change logo" : "Upload logo"}
+                <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" className="sr-only" disabled={uploadingImage !== null} onChange={(event) => { void uploadBusinessImage(event.currentTarget.files?.[0], "logo"); event.currentTarget.value = ""; }} />
+              </label>
+            </div>
+            <div className="rounded-xl border border-slate-200 p-4">
+              <p className="mb-3 text-sm font-semibold text-slate-800">Cover image</p>
+              <div className="flex h-36 items-center justify-center overflow-hidden rounded-lg bg-slate-50">
+                {coverUrl ? <img src={coverUrl} alt="Current business cover" className="h-full w-full object-cover" /> : <div className="text-center text-sm text-slate-500"><ImagePlus className="mx-auto mb-2 h-7 w-7" />No cover image uploaded</div>}
+              </div>
+              <label className="mt-3 inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                <UploadCloud className="h-4 w-4" />{uploadingImage === "cover" ? "Uploading cover…" : coverUrl ? "Change cover" : "Upload cover"}
+                <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" className="sr-only" disabled={uploadingImage !== null} onChange={(event) => { void uploadBusinessImage(event.currentTarget.files?.[0], "cover"); event.currentTarget.value = ""; }} />
+              </label>
             </div>
           </div>
         </section>
