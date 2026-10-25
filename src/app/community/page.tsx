@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import type { CommunityStory } from "@/components/community/community-stories";
 import Link from "next/link";
 
 import BusinessPostCard from "@/components/business/business-post-card";
