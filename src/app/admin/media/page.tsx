@@ -137,6 +137,11 @@ export default function AdminMediaPage() {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [authorized, setAuthorized] = useState(false);
+  const [editingMediaId, setEditingMediaId] = useState<string | null>(null);
+  const [editAltText, setEditAltText] = useState("");
+  const [editIsPublic, setEditIsPublic] = useState(true);
+  const [savingMedia, setSavingMedia] = useState(false);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
 
   const loadMedia = useCallback(async () => {
     setLoading(true);
@@ -196,6 +201,31 @@ export default function AdminMediaPage() {
       window.clearTimeout(timer);
     };
   }, [loadMedia]);
+
+  const startEditing = (item: MediaItem) => {
+    setEditingMediaId(item.id);
+    setEditAltText(item.alt_text ?? "");
+    setEditIsPublic(item.is_public);
+    setActionMessage(null);
+  };
+
+  const saveMedia = async (item: MediaItem) => {
+    setSavingMedia(true);
+    setActionMessage(null);
+    const { error } = await supabase.rpc("admin_update_media", {
+      p_media_id: item.id,
+      p_alt_text: editAltText,
+      p_is_public: editIsPublic,
+    });
+    setSavingMedia(false);
+    if (error) {
+      setActionMessage(`Could not update media: ${error.message}`);
+      return;
+    }
+    setEditingMediaId(null);
+    setActionMessage("Media details saved.");
+    await loadMedia();
+  };
 
   const stats = useMemo(() => {
     const images = media.filter(isImage).length;
@@ -331,6 +361,12 @@ export default function AdminMediaPage() {
             </button>
           </div>
         </section>
+
+        {actionMessage ? (
+          <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700">
+            {actionMessage}
+          </div>
+        ) : null}
 
         {errorMessage ? (
           <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
@@ -486,6 +522,58 @@ export default function AdminMediaPage() {
                         Open original
                       </a>
                     ) : null}
+
+                    {editingMediaId === item.id ? (
+                      <div className="mt-4 space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                        <label className="block text-xs font-semibold text-slate-700" htmlFor={`alt-${item.id}`}>
+                          Alt text
+                        </label>
+                        <textarea
+                          id={`alt-${item.id}`}
+                          value={editAltText}
+                          onChange={(event) => setEditAltText(event.target.value.slice(0, 500))}
+                          maxLength={500}
+                          rows={3}
+                          placeholder="Describe this image for accessibility and SEO"
+                          className="w-full rounded-xl border border-slate-300 bg-white p-3 text-sm text-slate-900 outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
+                        />
+                        <label className="flex items-center gap-2 text-sm text-slate-700">
+                          <input
+                            type="checkbox"
+                            checked={editIsPublic}
+                            onChange={(event) => setEditIsPublic(event.target.checked)}
+                            className="h-4 w-4 rounded border-slate-300"
+                          />
+                          Public media
+                        </label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => void saveMedia(item)}
+                            disabled={savingMedia}
+                            className="h-10 rounded-xl bg-slate-950 px-3 text-xs font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
+                          >
+                            {savingMedia ? "Saving…" : "Save changes"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingMediaId(null)}
+                            disabled={savingMedia}
+                            className="h-10 rounded-xl border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => startEditing(item)}
+                        className="mt-3 flex h-10 w-full items-center justify-center rounded-xl border border-slate-300 bg-white px-4 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
+                      >
+                        Edit media details
+                      </button>
+                    )}
                   </div>
                 </article>
               );
