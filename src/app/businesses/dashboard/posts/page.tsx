@@ -6,6 +6,7 @@ import {
   Check,
   Edit3,
   FileText,
+  ImagePlus,
   Pin,
   Plus,
   Search,
@@ -15,6 +16,7 @@ import {
 import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { optimizeImageForUpload } from "@/lib/media/optimize-image";
 
 type Business = {
   id: string;
@@ -137,6 +139,8 @@ export default function BusinessPostsDashboardPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
   const [form, setForm] = useState<PostForm>(emptyForm);
+  const [postImage, setPostImage] = useState<File | null>(null);
+  const [postImagePreview, setPostImagePreview] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -272,6 +276,8 @@ export default function BusinessPostsDashboardPage() {
   function openCreateModal() {
     setEditingPost(null);
     setForm(emptyForm);
+    setPostImage(null);
+    setPostImagePreview("");
     setError(null);
     setSuccess(null);
     setModalOpen(true);
@@ -286,8 +292,8 @@ export default function BusinessPostsDashboardPage() {
       slug: post.slug ?? "",
       short_description: post.short_description ?? "",
       description: post.description ?? "",
-      start_date: formatDateTimeLocal(post.start_date),
-      end_date: formatDateTimeLocal(post.end_date),
+      start_date: "",
+      end_date: "",
       is_featured: post.is_featured,
       is_pinned: post.is_pinned,
       is_active: post.is_active,
@@ -306,6 +312,8 @@ export default function BusinessPostsDashboardPage() {
     setModalOpen(false);
     setEditingPost(null);
     setForm(emptyForm);
+    setPostImage(null);
+    setPostImagePreview("");
   }
 
   function updateForm<K extends keyof PostForm>(
@@ -336,23 +344,8 @@ export default function BusinessPostsDashboardPage() {
       return;
     }
 
-    if (form.start_date && !toIsoOrNull(form.start_date)) {
-      setError("Please enter a valid start date.");
-      return;
-    }
-
-    if (form.end_date && !toIsoOrNull(form.end_date)) {
-      setError("Please enter a valid end date.");
-      return;
-    }
-
-    const startDate = toIsoOrNull(form.start_date);
-    const endDate = toIsoOrNull(form.end_date);
-
-    if (startDate && endDate && new Date(endDate) < new Date(startDate)) {
-      setError("End date cannot be before the start date.");
-      return;
-    }
+    const startDate = null;
+    const endDate = null;
 
     setSaving(true);
     setError(null);
@@ -994,44 +987,21 @@ export default function BusinessPostsDashboardPage() {
                   />
                 </div>
 
-                <div>
-                  <label
-                    htmlFor="start_date"
-                    className="mb-1.5 block text-sm font-semibold text-slate-700"
-                  >
-                    Start Date
+                <div className="sm:col-span-2">
+                  <label htmlFor="post_image" className="mb-1.5 block text-sm font-semibold text-slate-700">Post Image</label>
+                  <label htmlFor="post_image" className="flex cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-5 py-6 text-center transition hover:border-blue-400 hover:bg-blue-50/50">
+                    {postImagePreview ? <img src={postImagePreview} alt="Post image preview" className="mb-3 max-h-64 w-full rounded-xl object-contain" /> : <ImagePlus className="mb-2 h-8 w-8 text-slate-400" />}
+                    <span className="text-sm font-semibold text-slate-800">{postImage ? postImage.name : "Choose an image"}</span>
+                    <span className="mt-1 text-xs text-slate-500">JPG, PNG, WebP or GIF · up to 10 MB</span>
                   </label>
-
-                  <input
-                    id="start_date"
-                    type="datetime-local"
-                    value={form.start_date}
-                    onChange={(event) =>
-                      updateForm("start_date", event.target.value)
-                    }
-                    className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
-                  />
+                  <input id="post_image" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" className="sr-only" onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    if (!file) return;
+                    if (!file.type.startsWith("image/") || file.size > 10 * 1024 * 1024) { setError("Choose an image file smaller than 10 MB."); event.target.value = ""; return; }
+                    setError(null); setPostImage(file); setPostImagePreview(URL.createObjectURL(file));
+                  }} />
+                  {postImage && <button type="button" onClick={() => { setPostImage(null); setPostImagePreview(""); }} className="mt-2 text-sm font-semibold text-red-600 hover:text-red-700">Remove selected image</button>}
                 </div>
-
-                <div>
-                  <label
-                    htmlFor="end_date"
-                    className="mb-1.5 block text-sm font-semibold text-slate-700"
-                  >
-                    End Date
-                  </label>
-
-                  <input
-                    id="end_date"
-                    type="datetime-local"
-                    value={form.end_date}
-                    onChange={(event) =>
-                      updateForm("end_date", event.target.value)
-                    }
-                    className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
-                  />
-                </div>
-
                 <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-4 transition hover:bg-slate-50">
                   <input
                     type="checkbox"
