@@ -7,12 +7,13 @@ import CommunityStoryUploader from "@/components/community/community-story-uploa
 
 export default function CommunityCreateAction() {
   const [open, setOpen] = useState(false);
+  const [showStoryForm, setShowStoryForm] = useState(false);
 
   return (
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => { setShowStoryForm(false); setOpen(true); }}
         className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#1879FD] px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-200"
       >
         <Plus className="h-4 w-4" />
@@ -46,7 +47,7 @@ export default function CommunityCreateAction() {
             </div>
 
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              <a href="#add-community-story" className="flex items-center gap-3 rounded-2xl border border-blue-100 bg-blue-50/70 p-4 text-left transition hover:border-blue-300 hover:bg-blue-50">
+              <button type="button" onClick={() => setShowStoryForm(true)} className="flex items-center gap-3 rounded-2xl border border-blue-100 bg-blue-50/70 p-4 text-left transition hover:border-blue-300 hover:bg-blue-50">
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#1879FD]"><ImagePlus className="h-5 w-5" /></span>
                 <span><span className="block text-sm font-semibold text-slate-900">Add a story</span><span className="mt-0.5 block text-xs text-slate-600">Visible for 24 hours</span></span>
               </a>
