@@ -145,6 +145,7 @@ async function getCommunityStories(): Promise<CommunityStory[]> {
 async function getCommunityPosts(
   search: string,
 ): Promise<BusinessPost[]> {
+  const supabase = await createSupabaseServerClient();
   const businesses = await getBusinesses(search);
 
   if (businesses.length === 0) {
