@@ -34,6 +34,7 @@ type BusinessPost = {
   comment_count: number;
   share_count: number;
   save_count: number;
+  imageUrl?: string | null;
 };
 
 type SearchParams = {
@@ -170,7 +171,40 @@ async function getCommunityPosts(
     new Map(posts.map((post) => [post.id, post])).values(),
   );
 
+  const postIds = uniquePosts.map((post) => post.id);
+  const { data: mediaLinks } = postIds.length
+    ? await supabase
+        .from("business_post_media")
+        .select("post_id, media_id, sort_order, is_active")
+        .in("post_id", postIds)
+        .eq("is_active", true)
+        .order("sort_order", { ascending: true })
+    : { data: [] };
+
+  const mediaIds = [...new Set((mediaLinks ?? []).map((link) => link.media_id).filter(Boolean))];
+  const { data: publicMedia } = mediaIds.length
+    ? await supabase
+        .from("media")
+        .select("id, object_path, mime_type, is_public")
+        .in("id", mediaIds)
+        .eq("is_public", true)
+    : { data: [] };
+
+  const mediaById = new Map((publicMedia ?? []).map((media) => [media.id, media]));
+  const firstImageByPost = new Map<string, string>();
+
+  for (const link of mediaLinks ?? []) {
+    if (firstImageByPost.has(link.post_id) || !link.media_id) continue;
+    const media = mediaById.get(link.media_id);
+    if (!media?.object_path || !media.mime_type?.startsWith("image/")) continue;
+    firstImageByPost.set(
+      link.post_id,
+      `https://twimzi-media.twimziofficial.workers.dev/media/${media.object_path}`,
+    );
+  }
+
   return uniquePosts
+    .map((post) => ({ ...post, imageUrl: firstImageByPost.get(post.id) ?? null }))
     .sort((a, b) => {
       if (a.is_pinned !== b.is_pinned) {
         return a.is_pinned ? -1 : 1;
