@@ -127,11 +127,11 @@ Deno.serve(async (request) => {
     const file = form.get("file");
 
     if (!businessId) return json({ success: false, error: "Business ID is required." }, 400, origin);
-    if (!["logo", "cover", "gallery", "product"].includes(kind)) return json({ success: false, error: "Invalid media type." }, 400, origin);
+    if (!["logo", "cover", "gallery", "product", "story"].includes(kind)) return json({ success: false, error: "Invalid media type." }, 400, origin);
     if (kind === "product" && !productId) return json({ success: false, error: "Product ID is required." }, 400, origin);
     if (!(file instanceof File)) return json({ success: false, error: "Image file is required." }, 400, origin);
 
-    const maxBytes = kind === "gallery" || kind === "product" ? 10 * 1024 * 1024 : 5 * 1024 * 1024;
+    const maxBytes = kind === "gallery" || kind === "product" || kind === "story" ? 10 * 1024 * 1024 : 5 * 1024 * 1024;
     if (file.size <= 0 || file.size > maxBytes) {
       return json({ success: false, error: "Image exceeds the allowed file size." }, 400, origin);
     }
@@ -255,6 +255,10 @@ Deno.serve(async (request) => {
       }).eq("id", productId).eq("business_id", businessId);
       if (updateProductError) return json({ success: false, error: "Image uploaded but the product image could not be updated." }, 500, origin);
       return json({ success: true, media: { id: media.id, object_path: media.object_path, mime_type: media.mime_type, file_size: media.file_size, is_public: media.is_public, public_url: publicUrl } }, 200, origin);
+    }
+
+    if (kind === "story") {
+      return json({ success: true, media: { id: media.id, object_path: media.object_path, mime_type: media.mime_type, file_size: media.file_size, is_public: media.is_public } }, 200, origin);
     }
 
     const { error: relationError } = await admin.from("business_media").insert({
