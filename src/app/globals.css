@@ -6,29 +6,29 @@
      Quantum Blue + Ice Glass brand system
      ============================================================ */
 
-  --color-primary: #0b5cff;
-  --color-primary-dark: #0848c7;
-  --color-primary-darker: #073b9b;
-  --color-primary-light: #e0f2fe;
-  --color-primary-soft: #f0f8ff;
+  --color-primary: #2459a9;
+  --color-primary-dark: #1d477f;
+  --color-primary-darker: #163760;
+  --color-primary-light: #e6edf5;
+  --color-primary-soft: #f3f5f7;
 
-  --color-secondary: #f5faff;
-  --color-secondary-dark: #eaf5ff;
+  --color-secondary: #f3f4f2;
+  --color-secondary-dark: #e7e9e7;
 
-  --color-accent: #60a5fa;
-  --color-accent-dark: #2563eb;
-  --color-accent-secondary: #93c5fd;
-  --color-accent-light: #e0f2fe;
-  --color-accent-soft: #f0f9ff;
+  --color-accent: #6f879f;
+  --color-accent-dark: #2459a9;
+  --color-accent-secondary: #aab8c6;
+  --color-accent-light: #e6edf5;
+  --color-accent-soft: #f3f5f7;
 
   /* ============================================================
      BACKGROUNDS
      ============================================================ */
 
-  --color-background: #f4f9ff;
-  --color-surface: #ffffff;
-  --color-surface-soft: #eff7ff;
-  --color-surface-muted: #e0f2fe;
+  --color-background: #f5f5f2;
+  --color-surface: #fbfbf8;
+  --color-surface-soft: #f0f1ee;
+  --color-surface-muted: #e6edf5;
 
   /* ============================================================
      TEXT
@@ -38,16 +38,16 @@
   --color-text-secondary: #334155;
   --color-text-muted: #64748b;
   --color-text-light: #94a3b8;
-  --color-text-on-primary: #ffffff;
-  --color-text-on-accent: #ffffff;
+  --color-text-on-primary: #fbfbf8;
+  --color-text-on-accent: #fbfbf8;
 
   /* ============================================================
      BORDERS
      ============================================================ */
 
-  --color-border: #dbeafe;
-  --color-border-light: #eaf4ff;
-  --color-border-strong: #bfdbfe;
+  --color-border: #dfe2df;
+  --color-border-light: #eaebe7;
+  --color-border-strong: #c4cbc9;
 
   /* ============================================================
      STATUS COLORS
@@ -71,21 +71,21 @@
 
   --color-brand-gradient: linear-gradient(
     135deg,
-    #0848c7 0%,
-    #0b5cff 52%,
-    #60a5fa 100%
+    #1d477f 0%,
+    #2459a9 52%,
+    #6f879f 100%
   );
 
   --color-primary-gradient: linear-gradient(
     135deg,
-    #0848c7 0%,
-    #0b5cff 100%
+    #1d477f 0%,
+    #2459a9 100%
   );
 
   --color-accent-gradient: linear-gradient(
     135deg,
-    #2563eb 0%,
-    #60a5fa 100%
+    #2459a9 0%,
+    #6f879f 100%
   );
 
   /* ============================================================
@@ -188,7 +188,7 @@ p {
 
 ::selection {
   background: var(--color-primary);
-  color: #ffffff;
+  color: #fbfbf8;
 }
 
 :focus-visible {
@@ -254,18 +254,13 @@ textarea::placeholder {
 .twimzi-card {
   border: 1px solid var(--color-border);
   background: var(--color-surface);
-  border-radius: var(--radius-2xl);
-  box-shadow: var(--shadow-sm);
-  transition:
-    transform 180ms ease,
-    box-shadow 180ms ease,
-    border-color 180ms ease;
+  border-radius: var(--radius-lg);
+  box-shadow: none;
+  transition: border-color 160ms ease;
 }
 
 .twimzi-card:hover {
-  transform: translateY(-2px);
   border-color: var(--color-border-strong);
-  box-shadow: var(--shadow-lg);
 }
 
 /* ============================================================
@@ -273,31 +268,11 @@ textarea::placeholder {
    ============================================================ */
 
 .twimzi-primary-surface {
-  background:
-    radial-gradient(
-      circle at top right,
-      rgba(96, 165, 250, 0.12),
-      transparent 35%
-    ),
-    linear-gradient(
-      135deg,
-      rgba(11, 92, 255, 0.08),
-      rgba(11, 92, 255, 0.03)
-    );
+  background: #edf1f5;
 }
 
 .twimzi-brand-surface {
-  background:
-    radial-gradient(
-      circle at 85% 15%,
-      rgba(96, 165, 250, 0.18),
-      transparent 28%
-    ),
-    linear-gradient(
-      135deg,
-      rgba(8, 72, 199, 0.12),
-      rgba(11, 92, 255, 0.04)
-    );
+  background: #e9eef4;
 }
 
 /* ============================================================
@@ -345,7 +320,7 @@ a.bg-slate-900,
 button.bg-slate-800,
 a.bg-slate-800 {
   background: var(--color-primary) !important;
-  color: #ffffff !important;
+  color: #fbfbf8 !important;
 }
 
 button.bg-slate-900:hover,
@@ -364,7 +339,7 @@ a.bg-indigo-600,
 button.bg-purple-600,
 a.bg-purple-600 {
   background: var(--color-primary) !important;
-  color: #ffffff !important;
+  color: #fbfbf8 !important;
 }
 
 button.bg-blue-600:hover,
