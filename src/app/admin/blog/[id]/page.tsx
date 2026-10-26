@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import BlogCoverUpload from "@/components/blog/blog-cover-upload";
 
 async function requireSuperAdmin() {
   const supabase = await createSupabaseServerClient();
@@ -27,7 +28,7 @@ async function updateBlogPost(formData: FormData) {
   if (!id || title.length < 5 || title.length > 180 || !slug || excerpt.length < 20 || excerpt.length > 500 || content.length < 50) {
     throw new Error("Please complete all required fields with valid lengths.");
   }
-  if (image && !/^https:\/\//i.test(image)) throw new Error("Featured image URL must start with https://.");
+  if (image && !(/^https:\/\//i.test(image) || (image.startsWith("/") && !image.startsWith("//")))) throw new Error("Featured image must be an HTTPS URL or a local site path.");
   if (status !== "draft" && status !== "published") throw new Error("Invalid publication status.");
 
   const supabase = await requireSuperAdmin();
@@ -92,7 +93,7 @@ export default async function EditBlogPostPage({ params }: { params: Promise<{ i
         <div><label htmlFor="slug" className="text-sm font-bold">Slug *</label><input id="slug" name="slug" required defaultValue={post.slug} className="mt-2 w-full rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm" /></div>
         <div><label htmlFor="excerpt" className="text-sm font-bold">Summary *</label><textarea id="excerpt" name="excerpt" required minLength={20} maxLength={500} rows={3} defaultValue={post.excerpt} className="mt-2 w-full rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm" /></div>
         <div><label htmlFor="content" className="text-sm font-bold">Article content *</label><textarea id="content" name="content" required minLength={50} rows={16} defaultValue={post.content} className="mt-2 w-full rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm leading-6" /><p className="mt-1 text-xs text-[var(--color-text-muted)]">Separate paragraphs with blank lines. Use ## and ### for headings. HTML is not rendered.</p></div>
-        <div><label htmlFor="featured_image_url" className="text-sm font-bold">Featured image URL</label><input id="featured_image_url" name="featured_image_url" type="url" defaultValue={post.featured_image_url ?? ""} className="mt-2 w-full rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm" /></div>
+        <div><label className="text-sm font-bold">Cover photo</label><BlogCoverUpload initialValue={post.featured_image_url ?? ""} /></div>
         <div className="grid gap-5 sm:grid-cols-2"><div><label htmlFor="meta_title" className="text-sm font-bold">SEO title</label><input id="meta_title" name="meta_title" maxLength={180} defaultValue={post.meta_title ?? ""} className="mt-2 w-full rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm" /></div><div><label htmlFor="meta_description" className="text-sm font-bold">SEO description</label><textarea id="meta_description" name="meta_description" maxLength={320} rows={3} defaultValue={post.meta_description ?? ""} className="mt-2 w-full rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm" /></div></div>
         <div><label htmlFor="status" className="text-sm font-bold">Status</label><select id="status" name="status" defaultValue={post.status} className="mt-2 w-full rounded-xl border border-[var(--color-border)] bg-white px-4 py-3 text-sm"><option value="draft">Draft</option><option value="published">Published</option></select></div>
         <div className="flex flex-wrap gap-3"><button type="submit" className="rounded-xl bg-[var(--color-primary)] px-5 py-3 text-sm font-bold text-white">Save changes</button><Link href="/admin/blog" className="rounded-xl border border-[var(--color-border)] px-5 py-3 text-sm font-bold">Cancel</Link></div>
