@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
+import BlogImage from "@/components/blog/blog-image";
 
 export const metadata: Metadata = {
   title: "Small Business Tips, Local Guides & Insights",
@@ -89,8 +90,7 @@ export default async function BlogPage() {
         {featured ? (
           <article className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-md transition-shadow hover:shadow-xl lg:grid lg:grid-cols-[1.08fr_0.92fr]">
             <Link href={`/blog/${featured.slug}`} aria-label={`Read ${featured.title}`} className="group relative block min-h-64 overflow-hidden bg-slate-200 sm:min-h-80 lg:min-h-[420px]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={featured.featured_image_url || DEFAULT_COVER} alt="" className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" fetchPriority="high" />
+              <BlogImage src={featured.featured_image_url || DEFAULT_COVER} alt={featured.title} className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" loading="eager" fetchPriority="high" />
               <span className="absolute left-5 top-5 rounded-full bg-white px-3 py-1.5 text-xs font-extrabold text-blue-800 shadow-md">Featured guide</span>
               <span className="absolute bottom-5 left-5 rounded-full bg-slate-950/85 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-sm">Read the guide <span aria-hidden="true">↗</span></span>
             </Link>
@@ -109,7 +109,7 @@ export default async function BlogPage() {
           </div>
         )}
 
-        {remaining.length > 0 && <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{remaining.map((post) => <article key={post.id} className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-lg"><Link href={`/blog/${post.slug}`} className="block h-full"><div className="relative aspect-[16/10] overflow-hidden bg-slate-100">{/* eslint-disable-next-line @next/next/no-img-element */}<img src={post.featured_image_url || DEFAULT_COVER} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" /></div><div className="p-6"><p className="text-xs font-bold text-blue-800">{formatDate(post.published_at ?? post.created_at)}</p><h3 className="mt-3 text-xl font-extrabold leading-snug text-slate-950 transition group-hover:text-blue-700">{post.title}</h3><p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-700">{post.excerpt}</p><span className="mt-5 inline-flex items-center gap-2 text-sm font-extrabold text-blue-700">Read article <span aria-hidden="true">→</span></span></div></Link></article>)}</div>}
+        {remaining.length > 0 && <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{remaining.map((post) => <article key={post.id} className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-lg"><Link href={`/blog/${post.slug}`} className="block h-full"><div className="relative aspect-[16/10] overflow-hidden bg-slate-100"><BlogImage src={post.featured_image_url || DEFAULT_COVER} alt={post.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" /></div><div className="p-6"><p className="text-xs font-bold text-blue-800">{formatDate(post.published_at ?? post.created_at)}</p><h3 className="mt-3 text-xl font-extrabold leading-snug text-slate-950 transition group-hover:text-blue-700">{post.title}</h3><p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-700">{post.excerpt}</p><span className="mt-5 inline-flex items-center gap-2 text-sm font-extrabold text-blue-700">Read article <span aria-hidden="true">→</span></span></div></Link></article>)}</div>}
       </section>
 
       <section className="border-y border-slate-200 bg-white"><div className="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-10 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8"><div><p className="text-xs font-extrabold uppercase tracking-[0.16em] text-blue-700">Your next step</p><h2 className="mt-2 text-xl font-black text-slate-950 sm:text-2xl">Make your business easier to discover.</h2><p className="mt-2 text-sm leading-6 text-slate-700">Create your free Twimzi listing and help customers find what you offer.</p></div><Link href="/add-business" className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-blue-700 px-5 py-3 text-sm font-extrabold text-white shadow-sm transition hover:bg-blue-800 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-300">Get started free <span aria-hidden="true">→</span></Link></div></section>
