@@ -65,18 +65,7 @@ export function HeroSection({
   interestingItems = fallbackItems,
 }: HeroSectionProps) {
   return (
-    <section className="relative isolate overflow-hidden bg-[#f5f9ff]">
-      {/* Subtle brand artwork: soft aurora, dotted grid and orbital rings. */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -right-24 -top-36 h-[34rem] w-[34rem] rounded-full bg-blue-200/45 blur-[100px]" />
-        <div className="absolute -bottom-48 left-[18%] h-[30rem] w-[30rem] rounded-full bg-cyan-100/70 blur-[100px]" />
-        <div className="absolute inset-0 opacity-[0.28]" style={{ backgroundImage: "radial-gradient(#7da7e8 0.8px, transparent 0.8px)", backgroundSize: "22px 22px", maskImage: "linear-gradient(90deg, black, transparent 72%)" }} />
-        <div className="absolute -right-24 top-16 h-[30rem] w-[30rem] rounded-full border border-blue-300/35" />
-        <div className="absolute -right-8 top-32 h-[22rem] w-[22rem] rounded-full border border-blue-300/30" />
-        <div className="absolute right-20 top-48 h-3 w-3 rounded-full bg-blue-400/70 shadow-[0_0_0_8px_rgba(96,165,250,0.12)]" />
-        <div className="absolute right-[28%] top-28 h-2 w-2 rounded-full bg-cyan-500/60" />
-      </div>
-
+    <section className="relative isolate overflow-hidden bg-[#f5f5f2]">
       <Container>
         <div className="relative grid min-h-[620px] items-center gap-12 py-14 lg:grid-cols-[1.05fr_.95fr] lg:py-16">
           <div>
@@ -100,7 +89,7 @@ export function HeroSection({
               offers and opportunities around you.
             </p>
 
-            <div className="mt-8 rounded-2xl border border-[var(--color-border)] bg-white p-2 shadow-[var(--shadow-lg)]">
+            <div className="mt-8 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-2 shadow-[var(--shadow-sm)]">
               <form
                 action="/explore"
                 method="get"
@@ -147,14 +136,14 @@ export function HeroSection({
             </div>
 
             <div className="mt-7 flex flex-wrap gap-x-5 gap-y-2 text-sm text-[var(--color-text-muted)]">
-              <span>✓ Local businesses</span>
-              <span>✓ Products &amp; services</span>
-              <span>✓ Local offers</span>
+              <span>Local businesses</span>
+              <span>Products &amp; services</span>
+              <span>Local offers</span>
             </div>
           </div>
 
           <div className="hidden lg:block">
-            <div className="ml-auto max-w-[430px] rounded-[2rem] border border-white/80 bg-white/90 p-5 shadow-[0_24px_70px_rgba(30,64,175,0.13)] backdrop-blur-xl">
+            <div className="ml-auto max-w-[430px] rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-[var(--shadow-sm)]">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-[var(--color-text-muted)]">
@@ -179,7 +168,7 @@ export function HeroSection({
                     <Link
                       key={`${item.type}-${item.title}`}
                       href={item.href}
-                      className="group flex items-center gap-4 rounded-2xl border border-[var(--color-border)] p-4 transition hover:-translate-y-0.5 hover:border-[var(--color-primary)]/30 hover:shadow-[var(--shadow-sm)]"
+                      className="group flex items-center gap-4 rounded-lg border border-[var(--color-border)] p-4 transition-colors hover:border-[var(--color-primary)]/40"
                     >
                       <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[var(--color-secondary)] text-[var(--color-primary)]">
                         <Icon
@@ -205,7 +194,7 @@ export function HeroSection({
 
                       <ArrowRight
                         aria-hidden="true"
-                        className="shrink-0 text-[var(--color-primary)] transition-transform group-hover:translate-x-1"
+                        className="shrink-0 text-[var(--color-primary)] "
                         size={18}
                         strokeWidth={1.8}
                       />
