@@ -12,7 +12,7 @@ import {
   Package,
   ShoppingBag,
   ShoppingCart,
-  Sparkles,
+  Scissors,
   Stethoscope,
   Utensils,
   Wheat,
@@ -65,7 +65,7 @@ function getCategoryIcon(category: Category) {
     source.includes("salon") ||
     source.includes("cosmetic")
   ) {
-    return Sparkles;
+    return Scissors;
   }
 
   if (
@@ -168,16 +168,7 @@ function getCategoryHref(category: Category) {
   return `/businesses?category=${encodeURIComponent(category.id)}`;
 }
 
-const iconThemes = [
-  "bg-emerald-50 text-emerald-600",
-  "bg-sky-50 text-sky-600",
-  "bg-rose-50 text-rose-500",
-  "bg-amber-50 text-amber-600",
-  "bg-violet-50 text-violet-600",
-  "bg-blue-50 text-blue-600",
-  "bg-pink-50 text-pink-600",
-  "bg-orange-50 text-orange-600",
-];
+const iconTheme = "bg-[#e8edf2] text-[var(--color-primary-dark)]";
 
 export function CategorySection({
   categories,
@@ -230,23 +221,20 @@ export function CategorySection({
             {sortedCategories.map((category, index) => {
               const Icon = getCategoryIcon(category);
 
-              const iconTheme =
-                iconThemes[index % iconThemes.length];
-
-              return (
+return (
                 <Link
                   key={category.id}
                   href={getCategoryHref(category)}
-                  className="group relative overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white p-5 shadow-[var(--shadow-xs)] transition-all duration-300 hover:-translate-y-1 hover:border-[var(--color-primary)]/30 hover:shadow-[var(--shadow-lg)] sm:p-6"
+                  className="group relative overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 transition-colors hover:border-[var(--color-primary)]/40 sm:p-6"
                 >
                   <div className="flex items-center gap-4">
                     <div
-                      className={`flex h-20 w-20 shrink-0 items-center justify-center rounded-[1.35rem] ${iconTheme} shadow-inner transition-transform duration-300 group-hover:scale-105`}
+                      className={`flex h-20 w-20 shrink-0 items-center justify-center rounded-xl ${iconTheme}`}
                     >
                       <Icon
                         aria-hidden="true"
                         strokeWidth={1.8}
-                        className="h-10 w-10"
+                        className="h-8 w-8"
                       />
                     </div>
 
@@ -262,7 +250,7 @@ export function CategorySection({
                   </div>
 
                   <div className="mt-5 flex items-center justify-between">
-                    <span className="text-xs font-bold text-[var(--color-primary)] transition-all group-hover:tracking-wide">
+                    <span className="text-xs font-bold text-[var(--color-primary)] transition-colors">
                       Explore category →
                     </span>
 
@@ -280,7 +268,7 @@ export function CategorySection({
         <div className="mt-8 text-center">
           <Link
             href="/explore"
-            className="inline-flex items-center rounded-xl border border-[var(--color-border)] bg-white px-5 py-3 text-sm font-bold text-[var(--color-primary)] transition-all hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-light)]"
+            className="inline-flex items-center rounded-xl border border-[var(--color-border)] bg-white px-5 py-3 text-sm font-bold text-[var(--color-primary)] transition-colors hover:border-[var(--color-primary)] hover:bg-[var(--color-secondary)]"
           >
             Explore all categories →
           </Link>
