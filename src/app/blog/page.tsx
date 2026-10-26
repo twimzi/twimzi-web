@@ -59,24 +59,21 @@ export default async function BlogPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <section className="relative isolate overflow-hidden bg-slate-950">
-        <div className="absolute inset-0 -z-20 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-600/50 via-slate-950 to-slate-950" />
-        <div className="absolute -right-20 -top-28 -z-10 h-96 w-96 rounded-full border border-white/10" />
-        <div className="absolute -right-8 -top-16 -z-10 h-72 w-72 rounded-full border border-white/10" />
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
+      <section className="border-b border-slate-200 bg-[#f0f2f2]">
+        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
           <div className="max-w-3xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-blue-300/30 bg-blue-400/10 px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.18em] text-blue-200"><span className="h-2 w-2 rounded-full bg-blue-400" /> The Twimzi Journal</span>
-            <h1 className="mt-6 text-4xl font-black leading-tight tracking-tight text-white sm:text-6xl">Ideas that help businesses <span className="text-blue-300">move forward.</span></h1>
-            <p className="mt-6 max-w-2xl text-base leading-8 text-slate-300 sm:text-lg">Practical business guides, digital growth tips and useful insights for India’s entrepreneurs, professionals and local communities.</p>
+            <span className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-slate-700"><span className="h-2 w-2 rounded-full bg-[var(--color-primary)]" /> The Twimzi Journal</span>
+            <h1 className="mt-6 text-4xl font-bold leading-tight tracking-tight text-slate-950 sm:text-6xl">Ideas that help businesses <span className="text-[#2459a9]">move forward.</span></h1>
+            <p className="mt-6 max-w-2xl text-base leading-8 text-slate-600 sm:text-lg">Practical business guides, digital growth tips and useful insights for India’s entrepreneurs, professionals and local communities.</p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Link href="/add-business" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-extrabold text-white shadow-lg shadow-blue-950/30 transition hover:-translate-y-0.5 hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-300/60">
+              <Link href="/add-business" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-[#2459a9] px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-[#1d477f] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-300/60">
                 List your business <span aria-hidden="true">→</span>
               </Link>
-              <a href="#latest-articles" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border-2 border-white/40 bg-white px-5 py-3 text-sm font-extrabold text-slate-950 shadow-md transition hover:-translate-y-0.5 hover:border-white hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-300/60">
+              <a href="#latest-articles" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-transparent px-5 py-3 text-sm font-bold text-slate-800 transition-colors hover:border-slate-500 hover:bg-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-300/60">
                 Explore articles <span aria-hidden="true">↓</span>
               </a>
             </div>
-            <div className="mt-8 flex flex-wrap gap-x-4 gap-y-2 text-sm font-medium text-slate-300 sm:gap-x-6"><span>Business essentials</span><span className="text-blue-300" aria-hidden="true">•</span><span>Digital growth</span><span className="text-blue-300" aria-hidden="true">•</span><span>Local discovery</span></div>
+            <div className="mt-8 flex flex-wrap gap-x-4 gap-y-2 text-sm font-medium text-slate-300 sm:gap-x-6"><span>Business essentials</span><span className="text-[#2459a9]" aria-hidden="true">•</span><span>Digital growth</span><span className="text-[#2459a9]" aria-hidden="true">•</span><span>Local discovery</span></div>
           </div>
         </div>
       </section>
@@ -88,11 +85,11 @@ export default async function BlogPage() {
         </div>
 
         {featured ? (
-          <article className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-md transition-shadow hover:shadow-xl lg:grid lg:grid-cols-[1.08fr_0.92fr]">
+          <article className="overflow-hidden rounded-xl border border-slate-200 bg-[#fbfbf8] lg:grid lg:grid-cols-[1.08fr_0.92fr]">
             <Link href={`/blog/${featured.slug}`} aria-label={`Read ${featured.title}`} className="group relative block min-h-64 overflow-hidden bg-slate-200 sm:min-h-80 lg:min-h-[420px]">
-              <BlogImage src={featured.featured_image_url || DEFAULT_COVER} alt={featured.title} className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-105" loading="eager" fetchPriority="high" />
-              <span className="absolute left-5 top-5 rounded-full bg-white px-3 py-1.5 text-xs font-extrabold text-blue-800 shadow-md">Featured guide</span>
-              <span className="absolute bottom-5 left-5 rounded-full bg-slate-950/85 px-3 py-1.5 text-xs font-bold text-white backdrop-blur-sm">Read the guide <span aria-hidden="true">↗</span></span>
+              <BlogImage src={featured.featured_image_url || DEFAULT_COVER} alt={featured.title} className="absolute inset-0 h-full w-full object-cover " loading="eager" fetchPriority="high" />
+              <span className="absolute left-5 top-5 rounded-md bg-white px-3 py-1.5 text-xs font-bold text-slate-800">Featured guide</span>
+              <span className="absolute bottom-5 left-5 rounded-md bg-slate-950/85 px-3 py-1.5 text-xs font-bold text-white">Read the guide <span aria-hidden="true">↗</span></span>
             </Link>
             <div className="flex min-w-0 flex-col items-start justify-center p-6 sm:p-9 lg:p-10 xl:p-12">
               <div className="flex flex-wrap items-center gap-3 text-xs font-bold text-blue-800"><span className="rounded-full bg-blue-50 px-3 py-1.5">Business insights</span><span className="text-slate-500">{formatDate(featured.published_at ?? featured.created_at)}</span></div>
@@ -113,7 +110,7 @@ export default async function BlogPage() {
       </section>
 
       <section className="border-y border-slate-200 bg-white"><div className="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-10 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8"><div><p className="text-xs font-extrabold uppercase tracking-[0.16em] text-blue-700">Your next step</p><h2 className="mt-2 text-xl font-black text-slate-950 sm:text-2xl">Make your business easier to discover.</h2><p className="mt-2 text-sm leading-6 text-slate-700">Create your free Twimzi listing and help customers find what you offer.</p></div><Link href="/add-business" className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-blue-700 px-5 py-3 text-sm font-extrabold text-white shadow-sm transition hover:bg-blue-800 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-300">Get started free <span aria-hidden="true">→</span></Link></div></section>
-      <footer className="bg-slate-950 py-8 text-center text-sm text-slate-400"><p>Ideas for local business growth, from <Link href="/" className="font-bold text-white hover:text-blue-300">Twimzi</Link>.</p></footer>
+      <footer className="bg-slate-950 py-8 text-center text-sm text-slate-400"><p>Ideas for local business growth, from <Link href="/" className="font-bold text-white hover:text-[#2459a9]">Twimzi</Link>.</p></footer>
     </div>
   );
 }
