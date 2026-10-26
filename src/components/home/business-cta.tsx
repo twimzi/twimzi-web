@@ -5,7 +5,7 @@ export function BusinessCta() {
   return (
     <section className="py-20">
       <Container>
-        <div className="overflow-hidden rounded-[2rem] bg-[var(--color-primary)] px-7 py-12 text-white sm:px-12 lg:flex lg:items-center lg:justify-between">
+        <div className="overflow-hidden rounded-xl bg-[#1f3e63] px-7 py-12 text-white sm:px-12 lg:flex lg:items-center lg:justify-between">
           <div className="max-w-2xl">
             <p className="text-sm font-semibold uppercase tracking-[.16em] text-[var(--color-primary-light)]">
               For business owners
@@ -23,7 +23,7 @@ export function BusinessCta() {
 
           <Link
             href="/add-business"
-            className="mt-8 inline-flex min-h-11 items-center justify-center rounded-[var(--radius-lg)] bg-white px-5 py-2.5 text-sm font-bold !text-[var(--color-primary-dark)] shadow-sm transition-all hover:bg-[var(--color-primary-light)] hover:!text-[var(--color-primary-dark)] animate-pulse lg:mt-0"
+            className="mt-8 inline-flex min-h-11 items-center justify-center rounded-lg bg-white px-5 py-2.5 text-sm font-bold !text-[#1f3e63] transition-colors hover:bg-slate-100 hover:!text-[#1f3e63] lg:mt-0"
           >
             Register Your Business
           </Link>
