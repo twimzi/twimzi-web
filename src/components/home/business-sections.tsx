@@ -63,22 +63,22 @@ function getInitials(name: string) {
 
 function BusinessCard({ business }: { business: BusinessCardData }) {
   return (
-    <article className="group overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white transition hover:-translate-y-1 hover:border-[var(--color-primary)]/30 hover:shadow-[var(--shadow-lg)]">
+    <article className="group overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] transition-colors hover:border-[var(--color-primary)]/40">
       <Link href={getBusinessUrl(business)} className="block">
-        <div className="relative h-24 overflow-hidden bg-gradient-to-br from-[var(--color-primary-light)] to-[var(--color-accent-light)]">
+        <div className="relative h-24 overflow-hidden bg-[#e8edf2]">
           {business.coverUrl ? (
             <Image
               src={business.coverUrl}
               alt={`${business.business_name} cover`}
               fill
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              className="object-cover transition duration-300 group-hover:scale-[1.03]"
+              className="object-cover "
             />
           ) : null}
         </div>
 
         <div className="relative px-5 pb-5">
-          <div className="-mt-8 flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border-4 border-white bg-[var(--color-primary-light)] text-lg font-bold text-[var(--color-primary)] shadow-md">
+          <div className="-mt-8 flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl border-2 border-[var(--color-surface)] bg-[#e8edf2] text-lg font-bold text-[var(--color-primary)]">
             {business.logoUrl ? (
               <Image
                 src={business.logoUrl}
@@ -118,7 +118,7 @@ function BusinessCard({ business }: { business: BusinessCardData }) {
               <span />
             )}
 
-            <span className="text-sm font-semibold text-[var(--color-primary)] group-hover:underline">
+            <span className="text-sm font-semibold text-[var(--color-primary)] ">
               View business →
             </span>
           </div>
