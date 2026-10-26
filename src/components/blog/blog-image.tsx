@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 
-const FALLBACK_IMAGE =
-  "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1600&q=80";
+const FALLBACK_IMAGE = "/images/blog-image-fallback.svg";
 
 type BlogImageProps = {
   src: string | null | undefined;
