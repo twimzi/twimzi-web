@@ -2,6 +2,7 @@ import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import BlogCoverUpload from "@/components/blog/blog-cover-upload";
 
 type BlogPost = {
   id: string;
@@ -41,7 +42,7 @@ async function createBlogPost(formData: FormData) {
   if (excerpt.length < 20 || excerpt.length > 500) throw new Error("Excerpt must be between 20 and 500 characters.");
   if (content.length < 50) throw new Error("Article content must contain at least 50 characters.");
   if (!slug) throw new Error("Please provide a valid title or slug.");
-  if (featuredImageUrl && !/^https:\/\//i.test(featuredImageUrl)) throw new Error("Featured image URL must start with https://.");
+  if (featuredImageUrl && !(/^https:\/\//i.test(featuredImageUrl) || (featuredImageUrl.startsWith("/") && !featuredImageUrl.startsWith("//")))) throw new Error("Featured image must be an HTTPS URL or a local site path.");
   if (status !== "draft" && status !== "published") throw new Error("Invalid publication status.");
 
   const { supabase, user } = await requireSuperAdmin();
@@ -138,8 +139,8 @@ export default async function AdminBlogPage({ searchParams }: { searchParams: Pr
               <p className="mt-1 text-xs text-[var(--color-text-muted)]">Plain text with paragraph breaks; headings can start with ## or ###. HTML is not rendered.</p>
             </div>
             <div>
-              <label htmlFor="featured_image_url" className="text-sm font-bold">Featured image URL (optional)</label>
-              <input id="featured_image_url" name="featured_image_url" type="url" className="mt-2 w-full rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)]" placeholder="https://..." />
+              <label className="text-sm font-bold">Cover photo (optional)</label>
+              <BlogCoverUpload />
             </div>
             <div className="grid gap-5 sm:grid-cols-2">
               <div>
