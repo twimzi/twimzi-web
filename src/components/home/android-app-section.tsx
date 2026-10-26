@@ -7,13 +7,8 @@ export function AndroidAppSection() {
   return (
     <section className="py-20">
       <Container>
-        <div className="relative overflow-hidden rounded-[2rem] bg-[var(--color-primary)] px-7 py-12 text-white sm:px-12 lg:px-16">
-          <div
-            aria-hidden="true"
-            className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/10 blur-3xl"
-          />
-
-          <div
+        <div className="relative overflow-hidden rounded-xl bg-[#1f3e63] px-7 py-12 text-white sm:px-12 lg:px-16">
+<div
             aria-hidden="true"
             className="absolute -bottom-32 -left-20 h-72 w-72 rounded-full bg-white/10 blur-3xl"
           />
@@ -21,9 +16,9 @@ export function AndroidAppSection() {
           <div className="relative grid items-center gap-10 lg:grid-cols-[1fr_auto]">
             <div className="max-w-2xl">
               {/* Coming Soon */}
-              <div className="inline-flex items-center gap-2 rounded-full border border-lime-300/40 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-lime-300">
-                <span className="h-2 w-2 animate-pulse rounded-full bg-lime-300" />
-                <span className="animate-pulse">Coming Soon</span>
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/5 px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-white">
+                <span className="h-2 w-2 rounded-full bg-white" />
+                <span>Coming Soon</span>
               </div>
 
               <h2 className="mt-5 text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
@@ -38,7 +33,7 @@ export function AndroidAppSection() {
               {/* Android CTA */}
               <Link
                 href="/"
-                className="mt-7 inline-flex items-center gap-3 rounded-2xl bg-white px-6 py-4 shadow-lg transition hover:scale-[1.02] hover:bg-white/95"
+                className="mt-7 inline-flex items-center gap-3 rounded-lg bg-white px-6 py-4 transition-colors hover:bg-slate-100"
               >
                 <span
                   aria-hidden="true"
@@ -77,15 +72,15 @@ export function AndroidAppSection() {
 
             {/* Mobile phone */}
             <div className="mx-auto lg:mr-8">
-              <div className="relative flex h-56 w-36 items-center justify-center rounded-[2.4rem] border-4 border-white/30 bg-white/10 p-2 shadow-2xl backdrop-blur-sm sm:h-64 sm:w-40">
-                <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-[1.8rem] bg-white">
+              <div className="relative flex h-56 w-36 items-center justify-center rounded-[2rem] border-2 border-slate-400 bg-slate-800 p-2 shadow-md sm:h-64 sm:w-40">
+                <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-[1.4rem] bg-[#f8f8f4]">
                   <div
                     aria-hidden="true"
-                    className="absolute inset-0 bg-gradient-to-b from-slate-50 via-white to-emerald-50"
+                    className="absolute inset-0 bg-[#f8f8f4]"
                   />
 
                   {/* Full circular Twimzi logo */}
-                  <div className="relative flex h-[82px] w-[82px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-white p-3 shadow-lg ring-4 ring-[var(--color-primary)]/20">
+                  <div className="relative flex h-[82px] w-[82px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-white p-3">
                     <Image
                       src="/twimzi-logo.png"
                       alt="Twimzi"
