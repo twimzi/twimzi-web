@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-
 const FALLBACK_IMAGE = "/images/blog-image-fallback.svg";
 
 type BlogImageProps = {
@@ -19,11 +17,8 @@ export default function BlogImage({
   loading = "lazy",
   fetchPriority = "auto",
 }: BlogImageProps) {
-  const [useFallback, setUseFallback] = useState(false);
   const safeSource = typeof src === "string" ? src.trim() : "";
-  const imageSource = !useFallback && /^https?:\/\//i.test(safeSource)
-    ? safeSource
-    : FALLBACK_IMAGE;
+  const imageSource = /^https?:\/\//i.test(safeSource) ? safeSource : FALLBACK_IMAGE;
 
   return (
     // eslint-disable-next-line @next/next/no-img-element
@@ -33,9 +28,6 @@ export default function BlogImage({
       className={className}
       loading={loading}
       fetchPriority={fetchPriority}
-      onError={() => {
-        if (!useFallback) setUseFallback(true);
-      }}
     />
   );
 }
