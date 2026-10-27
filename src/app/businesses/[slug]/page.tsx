@@ -588,26 +588,18 @@ export default async function BusinessDetailPage({
     structuredData.sameAs = [website];
   }
 
-  if (businessLocation) {
-    structuredData.address = {
-      "@type": "PostalAddress",
-      streetAddress: [
-        businessLocation.address_line_1,
-        businessLocation.address_line_2,
-        businessLocation.landmark,
-      ].filter(Boolean).join(", "),
-      addressLocality: businessLocation.city,
-      addressRegion: businessLocation.state,
-      addressCountry: businessLocation.country,
-      postalCode: businessLocation.postal_code ?? undefined,
+  // Do not publish the street address in structured data. Public visitors
+  // get a direct Google Maps link only when exact shop coordinates are available.
+  if (
+    businessLocation &&
+    businessLocation.latitude !== null &&
+    businessLocation.longitude !== null
+  ) {
+    structuredData.geo = {
+      "@type": "GeoCoordinates",
+      latitude: businessLocation.latitude,
+      longitude: businessLocation.longitude,
     };
-    if (businessLocation.latitude !== null && businessLocation.longitude !== null) {
-      structuredData.geo = {
-        "@type": "GeoCoordinates",
-        latitude: businessLocation.latitude,
-        longitude: businessLocation.longitude,
-      };
-    }
   }
 
   if (business.established_year) {
@@ -721,22 +713,21 @@ export default async function BusinessDetailPage({
                     {business.business_code}
                   </p>
 
-                  {businessLocation && (
-                    <p className="mt-3 flex items-start gap-2 text-sm text-[var(--color-text-muted)]">
-                      <span aria-hidden="true">📍</span>
-                      <span>
-                        {[
-                          businessLocation.address_line_1,
-                          businessLocation.address_line_2,
-                          businessLocation.landmark,
-                          businessLocation.city,
-                          businessLocation.state,
-                          businessLocation.postal_code,
-                          businessLocation.country,
-                        ].filter(Boolean).join(", ")}
-                      </span>
-                    </p>
-                  )}
+                  {businessLocation &&
+                    businessLocation.latitude !== null &&
+                    businessLocation.longitude !== null && (
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${businessLocation.latitude},${businessLocation.longitude}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-3 inline-flex min-h-10 items-center gap-2 rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm font-semibold text-[var(--color-primary)] transition-colors hover:bg-[var(--color-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
+                        aria-label={`Open ${business.business_name} shop location in Google Maps`}
+                      >
+                        <span aria-hidden="true">📍</span>
+                        <span>View shop location on Google Maps</span>
+                        <span aria-hidden="true">↗</span>
+                      </a>
+                    )}
                 </div>
               </div>
 
