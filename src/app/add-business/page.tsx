@@ -522,12 +522,15 @@ export default function AddBusiness() {
       setErrorMessage("Enter a valid 6-digit PIN code.");
       return;
     }
-    if (phone.trim()) {
-      const digits = phone.replace(/\D/g, "");
-      if (digits.length < 7 || digits.length > 15) {
-        setErrorMessage("Enter a valid mobile number with 7 to 15 digits.");
-        return;
-      }
+    const normalizedPhone = phone.trim();
+    if (!normalizedPhone) {
+      setErrorMessage("Business mobile number is required.");
+      return;
+    }
+    const phoneDigits = normalizedPhone.replace(/\D/g, "");
+    if (phoneDigits.length < 7 || phoneDigits.length > 15) {
+      setErrorMessage("Enter a valid mobile number with 7 to 15 digits.");
+      return;
     }
     const normalizedWebsite = website.trim()
       ? /^https?:\/\//i.test(website.trim())
@@ -989,7 +992,7 @@ export default function AddBusiness() {
                   htmlFor="phone"
                   className="mb-2 block text-sm font-semibold"
                 >
-                  Business phone
+                  Business phone *
                 </label>
 
                 <input
@@ -1000,6 +1003,10 @@ export default function AddBusiness() {
                     setPhone(event.target.value)
                   }
                   placeholder="+91 XXXXX XXXXX"
+                  autoComplete="tel"
+                  inputMode="tel"
+                  required
+                  aria-required="true"
                   className="min-h-12 w-full rounded-xl border border-[var(--color-border)] px-4 text-sm outline-none transition focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/10"
                 />
               </div>
