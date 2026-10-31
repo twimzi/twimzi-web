@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { CampaignLinkBuilder } from "@/components/admin/growth/campaign-link-builder";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -131,21 +133,21 @@ export default async function AdminGrowthPage() {
             Website activity, business onboarding and campaign performance over the last 30 days.
           </p>
         </div>
-        <a
+        <Link
           href="/admin/analytics"
           className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[var(--color-border)] px-4 py-2 text-sm font-semibold text-[var(--color-text-secondary)] hover:bg-[var(--color-secondary)]"
         >
           Platform analytics
-        </a>
+        </Link>
       </header>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Metric label="Unique visitors" value={summary.unique_visitors} note="Tracked browser sessions" />
         <Metric label="Page views" value={summary.page_views} note="Last 30 days" />
         <Metric label="Business registrations" value={summary.registration_submissions} note="Successful submissions" />
-        <Metric label="WhatsApp clicks" value={summary.whatsapp_clicks} note="Outbound WhatsApp link clicks" />
+        <Metric label="WhatsApp outbound clicks" value={summary.whatsapp_clicks} note="Website-to-WhatsApp actions" />
         <Metric label="Registration starts" value={summary.registration_starts} />
-        <Metric label="Sign-ups completed" value={summary.signup_completions} />
+        <Metric label="Accounts created" value={summary.signup_completions} note="Successful sign-up submissions" />
         <Metric label="New businesses" value={summary.new_businesses_30d} note="Created in last 30 days" />
         <Metric label="New user accounts" value={summary.new_users_30d} note="Created in last 30 days" />
       </div>
@@ -203,6 +205,10 @@ export default async function AdminGrowthPage() {
           </div>
         </Section>
       </div>
+
+      <Section title="WhatsApp campaign link builder" description="Create tagged links for outreach messages so registrations can be attributed to each campaign.">
+        <CampaignLinkBuilder />
+      </Section>
 
       <div className="grid gap-6 xl:grid-cols-2">
         <Section title="Daily visitors" description="Unique tracked sessions by day, over the last 14 days.">

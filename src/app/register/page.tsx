@@ -16,7 +16,7 @@ function getSafeNextPath(value: string | null): string {
     !value.startsWith("/") ||
     value.startsWith("//") ||
     value.includes("\\") ||
-    /[\\u0000-\\u001f\\u007f]/.test(value)
+    /[\u0000-\u001f\u007f]/.test(value)
   ) {
     return "/";
   }

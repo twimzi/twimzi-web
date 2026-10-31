@@ -45,8 +45,9 @@ function getSessionId(): string {
 export function captureAnalyticsAttribution(): void {
   if (typeof window === "undefined") return;
 
-  const params = new URLSearchParams(window.location.search);
-  const attribution: Attribution = {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const attribution: Attribution = {
     utm_source: clean(params.get("utm_source"), 100),
     utm_medium: clean(params.get("utm_medium"), 100),
     utm_campaign: clean(params.get("utm_campaign"), 120),
@@ -55,8 +56,11 @@ export function captureAnalyticsAttribution(): void {
   };
 
   const hasCampaign = Object.values(attribution).some(Boolean);
-  if (hasCampaign) {
-    window.sessionStorage.setItem(ATTRIBUTION_KEY, JSON.stringify(attribution));
+    if (hasCampaign) {
+      window.sessionStorage.setItem(ATTRIBUTION_KEY, JSON.stringify(attribution));
+    }
+  } catch {
+    // Analytics attribution is optional and must not interrupt navigation.
   }
 }
 
