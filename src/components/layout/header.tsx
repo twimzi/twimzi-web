@@ -263,10 +263,6 @@ export function Header() {
               );
             })}
 
-            <Link href="/blog" onClick={closeMobileMenu} className="rounded-lg px-3 py-3 text-sm font-medium text-[var(--color-text-secondary)] transition hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary-dark)]">
-              Blog &amp; insights
-            </Link>
-
             <div className="mt-2 border-t border-[var(--color-border-light)] pt-3">
               {!isSessionLoading && isAuthenticated ? (
                 <>
