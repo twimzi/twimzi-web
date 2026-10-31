@@ -5,6 +5,7 @@ import { ArrowRight, Flame, Megaphone, Star, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { siteConfig } from "@/config/site";
+import { GlobalNetworkGlobe } from "@/components/home/global-network-globe";
 
 export type HeroInterestingItem = {
   icon: string;
@@ -65,7 +66,7 @@ export function HeroSection({
   interestingItems = fallbackItems,
 }: HeroSectionProps) {
   return (
-    <section className="relative isolate overflow-hidden bg-[#f5f5f2]">
+    <section className="relative isolate overflow-hidden bg-[var(--color-background)]">
       <Container>
         <div className="relative grid min-h-[620px] items-center gap-12 py-14 lg:grid-cols-[1.05fr_.95fr] lg:py-16">
           <div>
@@ -142,8 +143,9 @@ export function HeroSection({
             </div>
           </div>
 
-          <div className="hidden lg:block">
-            <div className="ml-auto max-w-[430px] rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 shadow-[var(--shadow-sm)]">
+          <div className="relative hidden min-h-[520px] items-center justify-center lg:-mr-8 lg:flex">
+            <GlobalNetworkGlobe />
+            <div className="relative z-10 ml-auto w-full max-w-[430px] rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)]/95 p-5 shadow-[var(--shadow-sm)] backdrop-blur-sm">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-[var(--color-text-muted)]">
