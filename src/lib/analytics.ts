@@ -26,7 +26,10 @@ type EventExtras = {
 const SESSION_KEY = "twimzi:analytics-session:v1";
 const ATTRIBUTION_KEY = "twimzi:analytics-attribution:v1";
 
-function clean(value: string | null | undefined, maxLength: number): string | undefined {
+function clean(
+  value: string | null | undefined,
+  maxLength: number,
+): string | undefined {
   const normalized = value?.trim();
   return normalized ? normalized.slice(0, maxLength) : undefined;
 }
@@ -48,14 +51,14 @@ export function captureAnalyticsAttribution(): void {
   try {
     const params = new URLSearchParams(window.location.search);
     const attribution: Attribution = {
-    utm_source: clean(params.get("utm_source"), 100),
-    utm_medium: clean(params.get("utm_medium"), 100),
-    utm_campaign: clean(params.get("utm_campaign"), 120),
-    utm_content: clean(params.get("utm_content"), 120),
-    utm_term: clean(params.get("utm_term"), 120),
-  };
+      utm_source: clean(params.get("utm_source"), 100),
+      utm_medium: clean(params.get("utm_medium"), 100),
+      utm_campaign: clean(params.get("utm_campaign"), 120),
+      utm_content: clean(params.get("utm_content"), 120),
+      utm_term: clean(params.get("utm_term"), 120),
+    };
 
-  const hasCampaign = Object.values(attribution).some(Boolean);
+    const hasCampaign = Object.values(attribution).some(Boolean);
     if (hasCampaign) {
       window.sessionStorage.setItem(ATTRIBUTION_KEY, JSON.stringify(attribution));
     }
