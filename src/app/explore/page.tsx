@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 
 import { Container } from "@/components/ui/container";
-import { PageHero } from "@/components/ui/page-hero";
+import { GlobalNetworkGlobe } from "@/components/home/global-network-globe";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type SearchParams = {
@@ -264,27 +264,40 @@ export default async function Explore({
 
   return (
     <>
-      <PageHero
-        eyebrow="Explore"
-        title={
-          search && locationSearch
-            ? `Results for "${search}" in ${locationSearch}`
-            : search
-              ? `Search results for "${search}"`
-              : locationSearch
-                ? `Businesses in ${locationSearch}`
-                : "Find what you need, close to you."
-        }
-        description={
-          search && locationSearch
-            ? `Discover businesses matching "${search}" in ${locationSearch}.`
-            : search
-              ? "Discover businesses matching your search across the existing Twimzi marketplace."
-              : locationSearch
-                ? `Discover public businesses listed in ${locationSearch}.`
-                : "Explore real Twimzi categories and discover businesses, products and services from one connected marketplace."
-        }
-      />
+      <section className="relative isolate overflow-hidden border-b border-[var(--color-border)] bg-[var(--color-background)]">
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-blue-50/80 via-transparent to-cyan-50/60" aria-hidden="true" />
+        <Container>
+          <div className="relative grid min-h-[330px] items-center gap-8 py-12 sm:py-14 lg:grid-cols-[1.1fr_.9fr] lg:py-16">
+            <div className="relative z-10 max-w-3xl">
+              <span className="inline-flex items-center gap-2 rounded-full border border-[var(--color-primary)]/20 bg-white/90 px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-[var(--color-primary-dark)]">
+                <span className="h-2 w-2 rounded-full bg-[var(--color-primary)]" aria-hidden="true" />
+                Explore Twimzi
+              </span>
+              <h1 className="mt-5 text-4xl font-extrabold leading-tight tracking-tight text-[var(--color-text)] sm:text-5xl lg:text-[3.4rem]">
+                {search && locationSearch
+                  ? `Results for "${search}" in ${locationSearch}`
+                  : search
+                    ? `Search results for "${search}"`
+                    : locationSearch
+                      ? `Businesses in ${locationSearch}`
+                      : "Discover businesses. Connect worldwide."}
+              </h1>
+              <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--color-text-secondary)] sm:text-lg">
+                {search && locationSearch
+                  ? `Discover businesses matching "${search}" in ${locationSearch}.`
+                  : search
+                    ? "Discover businesses matching your search across the Twimzi marketplace."
+                    : locationSearch
+                      ? `Discover public businesses listed in ${locationSearch}.`
+                      : "Explore businesses, products and services across a connected world of local opportunities."}
+              </p>
+            </div>
+            <div className="relative hidden min-h-[300px] items-center justify-center lg:flex" aria-hidden="true">
+              <GlobalNetworkGlobe />
+            </div>
+          </div>
+        </Container>
+      </section>
 
       <Container>
         {search || locationSearch ? (
