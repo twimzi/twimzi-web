@@ -51,7 +51,7 @@ function dateLabel(value: string): string {
   return new Intl.DateTimeFormat("en-IN", {
     day: "2-digit",
     month: "short",
-  }).format(new Date(\`\${value}T00:00:00\`));
+  }).format(new Date(value + "T00:00:00"));
 }
 
 function Metric({
@@ -157,7 +157,7 @@ export default async function AdminGrowthPage() {
           title="Business registration funnel"
           description="Distinct sessions at each onboarding stage. Funnel tracking begins when this release is deployed."
         >
-          {growth.funnel.length === 0 ? (
+          {growth.funnel.length === 0 || growth.funnel.every((stage) => stage.sessions === 0) ? (
             <p className="py-10 text-center text-sm text-[var(--color-text-muted)]">
               No registration funnel activity recorded yet.
             </p>
@@ -172,7 +172,7 @@ export default async function AdminGrowthPage() {
                   <div className="h-3 overflow-hidden rounded-full bg-[var(--color-secondary)]">
                     <div
                       className="h-full rounded-full bg-[var(--color-primary)] transition-all"
-                      style={{ width: \`\${Math.min(100, (stage.sessions / funnelBase) * 100)}%\` }}
+                      style={{ width: Math.min(100, (stage.sessions / funnelBase) * 100) + "%" }}
                     />
                   </div>
                 </div>
@@ -223,7 +223,7 @@ export default async function AdminGrowthPage() {
                     <span className="font-semibold tabular-nums">{number(item.visitors)} visitors · {number(item.registrations)} registrations</span>
                   </div>
                   <div className="h-2 overflow-hidden rounded-full bg-[var(--color-secondary)]">
-                    <div className="h-full rounded-full bg-[var(--color-primary)]" style={{ width: \`\${Math.max(2, (item.visitors / maxDaily) * 100)}%\` }} />
+                    <div className="h-full rounded-full bg-[var(--color-primary)]" style={{ width: Math.max(2, (item.visitors / maxDaily) * 100) + "%" }} />
                   </div>
                 </div>
               ))}
@@ -248,7 +248,7 @@ export default async function AdminGrowthPage() {
                 </thead>
                 <tbody>
                   {growth.campaigns.map((item) => (
-                    <tr key={\`\${item.source}-\${item.campaign}\`} className="border-b border-[var(--color-border)] last:border-0">
+                    <tr key={item.source + "-" + item.campaign} className="border-b border-[var(--color-border)] last:border-0">
                       <td className="py-3 pr-3">
                         <p className="font-semibold">{item.source}</p>
                         <p className="mt-0.5 text-xs text-[var(--color-text-muted)]">{item.campaign}</p>

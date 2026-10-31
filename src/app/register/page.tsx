@@ -379,6 +379,15 @@ export default function Register() {
             Already have an account?{" "}
             <Link
               href="/login"
+              onClick={(event) => {
+                const nextPath = getSafeNextPath(
+                  new URLSearchParams(window.location.search).get("next"),
+                );
+                if (nextPath !== "/") {
+                  event.preventDefault();
+                  router.push(`/login?next=${encodeURIComponent(nextPath)}`);
+                }
+              }}
               className="font-semibold text-[var(--color-primary)] hover:underline"
             >
               Login
