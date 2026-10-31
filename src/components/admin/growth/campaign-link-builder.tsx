@@ -16,7 +16,7 @@ export function CampaignLinkBuilder() {
       utm_campaign: campaign.trim() || "business_outreach",
     });
 
-    return \`\${siteConfig.url}/add-business?\${params.toString()}\`;
+    return siteConfig.url + "/add-business?" + params.toString();
   }, [campaign, medium, source]);
 
   async function copyLink() {
