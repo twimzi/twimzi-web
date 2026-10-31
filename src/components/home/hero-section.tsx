@@ -5,7 +5,6 @@ import { ArrowRight, Flame, Megaphone, Star, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { siteConfig } from "@/config/site";
-import { GlobalNetworkGlobe } from "@/components/home/global-network-globe";
 
 export type HeroInterestingItem = {
   icon: string;
@@ -67,8 +66,21 @@ export function HeroSection({
 }: HeroSectionProps) {
   return (
     <section className="relative isolate overflow-hidden bg-[var(--color-background)]">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 left-0 hidden w-[48%] bg-[url('/images/twimzi-earth-hero.webp')] bg-cover bg-left-center bg-no-repeat lg:block"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-y-0 left-[30%] hidden w-[24%] bg-gradient-to-r from-transparent via-[var(--color-background)]/55 to-[var(--color-background)] lg:block"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-[260px] bg-[url('/images/twimzi-earth-hero.webp')] bg-cover bg-[left_35%] opacity-[0.13] lg:hidden"
+      />
       <Container>
-        <div className="relative grid min-h-[620px] items-center gap-12 py-14 lg:grid-cols-[1.05fr_.95fr] lg:py-16">
+        <div className="relative grid min-h-[620px] items-center gap-8 py-14 lg:grid-cols-[.8fr_1.05fr_.85fr] lg:gap-7 lg:py-16">
+          <div aria-hidden="true" className="hidden lg:block" />
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-primary-light)] bg-white px-4 py-2 text-sm font-semibold text-[var(--color-primary-dark)] shadow-[var(--shadow-sm)]">
               <span
@@ -143,8 +155,7 @@ export function HeroSection({
             </div>
           </div>
 
-          <div className="relative hidden min-h-[520px] items-center justify-center lg:-mr-8 lg:flex">
-            <GlobalNetworkGlobe />
+          <div className="relative hidden min-h-[520px] items-center justify-center lg:flex">
             <div className="relative z-10 ml-auto w-full max-w-[430px] rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)]/95 p-5 shadow-[var(--shadow-sm)] backdrop-blur-sm">
               <div className="flex items-center justify-between">
                 <div>
