@@ -131,7 +131,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--color-border)] bg-white/95 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-16 w-full max-w-[1600px] items-center gap-6 px-5 sm:px-8 xl:px-10">
         <Link
           href="/"
           className="flex shrink-0 items-center gap-2"
@@ -149,7 +149,7 @@ export function Header() {
         </Link>
 
         <nav
-          className="hidden items-center gap-1 md:flex"
+          className="hidden min-w-0 flex-1 items-center justify-center gap-1.5 lg:flex xl:gap-2"
           aria-label="Main navigation"
         >
           {mainNavigation.map((item) => {
@@ -188,7 +188,7 @@ export function Header() {
           )}
         </nav>
 
-        <div className="hidden items-center gap-2 md:flex">
+        <div className="hidden shrink-0 items-center justify-end gap-2 lg:flex">
           {!isSessionLoading && isAuthenticated ? (
             <>
               {isSuperAdmin && (
@@ -225,7 +225,7 @@ export function Header() {
 
         <button
           type="button"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--color-border)] text-xl text-[var(--color-text-secondary)] transition hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary-dark)] md:hidden"
+          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-[var(--color-border)] text-xl text-[var(--color-text-secondary)] transition hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary-dark)] lg:hidden"
           onClick={() => setIsMobileMenuOpen((open) => !open)}
           aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
           aria-expanded={isMobileMenuOpen}
