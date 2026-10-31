@@ -16,6 +16,7 @@ import { Container } from "@/components/ui/container";
 import { PageHero } from "@/components/ui/page-hero";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { optimizeImageForUpload } from "@/lib/media/optimize-image";
+import { trackAnalyticsEvent } from "@/lib/analytics";
 
 type MediaKind = "logo" | "cover" | "gallery";
 
@@ -657,6 +658,7 @@ export default function AddBusiness() {
           : "Your business has been submitted successfully. It will appear publicly after approval.";
 
       setMessage(successText);
+      await trackAnalyticsEvent("business_registration_submitted");
 
       if (logo) {
         revokePreview(logo.preview);
@@ -779,7 +781,7 @@ export default function AddBusiness() {
               </h2>
 
               <p className="mt-2 text-sm leading-6 text-[var(--color-text-muted)]">
-                Submit your business details and add your brand images.
+                Complete the essential business details first. You can add your website, description, keywords and photos now or later.
               </p>
             </div>
 
@@ -1011,6 +1013,11 @@ export default function AddBusiness() {
                 />
               </div>
 
+              <details className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-secondary)] p-5">
+                <summary className="cursor-pointer text-sm font-bold text-[var(--color-text)]">
+                  Optional profile enhancements — add now or later
+                </summary>
+                <div className="mt-5 grid gap-5">
               <div>
                 <label
                   htmlFor="website"
@@ -1289,6 +1296,8 @@ export default function AddBusiness() {
                       } selected.`}
                 </p>
               </section>
+                </div>
+              </details>
 
               {errorMessage && (
                 <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700">
