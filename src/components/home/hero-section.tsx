@@ -68,7 +68,7 @@ export function HeroSection({
     <section className="relative isolate overflow-hidden bg-[var(--color-background)]">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0 left-0 hidden w-[48%] bg-[url('/images/twimzi-earth-hero.webp')] bg-cover bg-left-center bg-no-repeat lg:block"
+        className="pointer-events-none absolute inset-y-0 left-0 hidden w-[48%] bg-[url('/images/twimzi-earth-hero.jpg')] bg-cover bg-left-center bg-no-repeat lg:block"
       />
       <div
         aria-hidden="true"
@@ -76,7 +76,7 @@ export function HeroSection({
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-[260px] bg-[url('/images/twimzi-earth-hero.webp')] bg-cover bg-[left_35%] opacity-[0.13] lg:hidden"
+        className="pointer-events-none absolute inset-x-0 top-0 h-[260px] bg-[url('/images/twimzi-earth-hero.jpg')] bg-cover bg-[left_35%] opacity-[0.13] lg:hidden"
       />
       <Container>
         <div className="relative grid min-h-[620px] items-center gap-8 py-14 lg:grid-cols-[.8fr_1.05fr_.85fr] lg:gap-7 lg:py-16">
