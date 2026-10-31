@@ -4,6 +4,7 @@ import { Poppins } from "next/font/google";
 import { siteConfig } from "@/config/site";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { AnalyticsTracker } from "@/components/analytics/analytics-tracker";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -98,6 +99,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={poppins.variable} suppressHydrationWarning>
         <Header />
+        <AnalyticsTracker />
         <main>{children}</main>
         <Footer />
       </body>

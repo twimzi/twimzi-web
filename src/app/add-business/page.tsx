@@ -16,6 +16,7 @@ import { Container } from "@/components/ui/container";
 import { PageHero } from "@/components/ui/page-hero";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { optimizeImageForUpload } from "@/lib/media/optimize-image";
+import { trackAnalyticsEvent } from "@/lib/analytics";
 
 type MediaKind = "logo" | "cover" | "gallery";
 
@@ -657,6 +658,7 @@ export default function AddBusiness() {
           : "Your business has been submitted successfully. It will appear publicly after approval.";
 
       setMessage(successText);
+      await trackAnalyticsEvent("business_registration_submitted");
 
       if (logo) {
         revokePreview(logo.preview);

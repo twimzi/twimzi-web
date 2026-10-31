@@ -9,11 +9,26 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 
+function getSafeNextPath(value: string | null): string {
+  if (
+    !value ||
+    !value.startsWith("/") ||
+    value.startsWith("//") ||
+    value.includes("\\") ||
+    /[\\u0000-\\u001f\\u007f]/.test(value)
+  ) {
+    return "/";
+  }
+
+  return value;
+}
+
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createSupabaseBrowserClient();
 
+  const nextPath = getSafeNextPath(searchParams.get("next"));
   const callbackError = searchParams.get("error");
   const resetSuccess = searchParams.get("reset") === "success";
 
@@ -53,7 +68,7 @@ function LoginForm() {
       return;
     }
 
-    router.push("/");
+    router.push(nextPath);
     router.refresh();
   }
 
@@ -65,7 +80,7 @@ function LoginForm() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`,
       },
     });
 
@@ -218,7 +233,7 @@ function LoginForm() {
           <p className="mt-7 text-center text-sm text-[var(--color-text-muted)]">
             Don&apos;t have an account?{" "}
             <Link
-              href="/register"
+              href={nextPath === "/" ? "/register" : `/register?next=${encodeURIComponent(nextPath)}`}
               className="font-semibold text-[var(--color-primary)] hover:underline"
             >
               Create an account

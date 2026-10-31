@@ -8,6 +8,21 @@ import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
+import { trackAnalyticsEvent } from "@/lib/analytics";
+
+function getSafeNextPath(value: string | null): string {
+  if (
+    !value ||
+    !value.startsWith("/") ||
+    value.startsWith("//") ||
+    value.includes("\\") ||
+    /[\\u0000-\\u001f\\u007f]/.test(value)
+  ) {
+    return "/";
+  }
+
+  return value;
+}
 
 export default function Register() {
   const router = useRouter();
@@ -77,6 +92,9 @@ export default function Register() {
     }
 
     setIsLoading(true);
+    const nextPath = getSafeNextPath(
+      new URLSearchParams(window.location.search).get("next"),
+    );
 
     const { data, error } = await supabase.auth.signUp({
       email: trimmedEmail,
@@ -85,7 +103,7 @@ export default function Register() {
         data: {
           full_name: trimmedName,
         },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`,
       },
     });
 
@@ -95,8 +113,10 @@ export default function Register() {
       return;
     }
 
+    await trackAnalyticsEvent("signup_completed");
+
     if (data.session) {
-      router.push("/");
+      router.push(nextPath);
       router.refresh();
       return;
     }
@@ -112,7 +132,11 @@ export default function Register() {
     setSuccessMessage("");
     setIsGoogleLoading(true);
 
-    const redirectTo = `${window.location.origin}/auth/callback`;
+    const nextPath = getSafeNextPath(
+      new URLSearchParams(window.location.search).get("next"),
+    );
+    void trackAnalyticsEvent("signup_started");
+    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`;
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
