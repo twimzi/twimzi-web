@@ -1,7 +1,6 @@
 import Link from "next/link";
 import {
   ArrowUpRight,
-  Instagram,
   Mail,
 } from "lucide-react";
 
@@ -111,7 +110,25 @@ export function Footer() {
                       className="grid h-5 w-5 place-items-center text-[var(--color-primary)]"
                     >
                       {link.platform === "instagram" ? (
-                        <Instagram className="h-4 w-4" />
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="h-4 w-4"
+                        >
+                          <rect x="3" y="3" width="18" height="18" rx="5" />
+                          <circle cx="12" cy="12" r="4" />
+                          <circle
+                            cx="17.5"
+                            cy="6.5"
+                            r="0.75"
+                            fill="currentColor"
+                            stroke="none"
+                          />
+                        </svg>
                       ) : (
                         <span className="text-lg font-bold leading-none">f</span>
                       )}
