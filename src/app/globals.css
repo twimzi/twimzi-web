@@ -34,12 +34,12 @@
      TEXT
      ============================================================ */
 
-  --color-text: #0F172A;
-  --color-text-secondary: #334155;
-  --color-text-muted: #64748B;
-  --color-text-light: #94A3B8;
+  --color-text: #1E3A8A;
+  --color-text-secondary: #355A84;
+  --color-text-muted: #526F94;
+  --color-text-light: #566E8E;
   --color-text-on-primary: #FFFFFF;
-  --color-text-on-accent: #0F172A;
+  --color-text-on-accent: #1E3A8A;
 
   /* ============================================================
      BORDERS
