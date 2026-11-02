@@ -12,8 +12,11 @@ import {
   Download,
   ExternalLink,
   Globe,
+  MessageCircle,
   Package,
+  Printer,
   QrCode,
+  Share2,
   ShieldCheck,
   Sparkles,
   Wrench,
@@ -230,14 +233,45 @@ export default function BusinessGrowthCenterPage() {
         : "This business has no approved Twimzi verification. Not verified does not mean suspicious.";
   const websiteUrl = normalizeWebsite(business?.website ?? null);
 
-  async function copyProfileLink() {
+  async function copyProfileLink(successMessage = "Business profile link copied.") {
     if (!profileUrl) return;
     try {
       await navigator.clipboard.writeText(profileUrl);
-      setNotice("Business profile link copied.");
+      setNotice(successMessage);
     } catch {
       setNotice("Copy was blocked by your browser. Select and copy the profile link below.");
     }
+  }
+
+  async function shareProfileLink() {
+    if (!business || !profileUrl) return;
+
+    if (typeof navigator.share === "function") {
+      try {
+        await navigator.share({
+          title: business.business_name,
+          text: `Discover ${business.business_name} on Twimzi.`,
+          url: profileUrl,
+        });
+        setNotice("Share options opened for your business profile.");
+        return;
+      } catch (caught) {
+        if (caught instanceof Error && caught.name === "AbortError") return;
+      }
+    }
+
+    await copyProfileLink(
+      "Business profile link copied. Paste it into Instagram or another app.",
+    );
+  }
+
+  function printQrCard() {
+    const bodyClass = "print-twimzi-business-qr";
+    const cleanUp = () => document.body.classList.remove(bodyClass);
+
+    document.body.classList.add(bodyClass);
+    window.addEventListener("afterprint", cleanUp, { once: true });
+    window.print();
   }
 
   function downloadQr() {
@@ -342,6 +376,23 @@ export default function BusinessGrowthCenterPage() {
                 <button type="button" onClick={() => void copyProfileLink()} className="inline-flex items-center gap-2 rounded-xl bg-[var(--color-primary)] px-4 py-2.5 text-sm font-semibold text-white">
                   <Copy className="h-4 w-4" /> Copy link
                 </button>
+                <a
+                  href={`https://wa.me/?text=${encodeURIComponent(
+                    `${business.business_name} on Twimzi: ${profileUrl}`,
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-100"
+                >
+                  <MessageCircle className="h-4 w-4" /> WhatsApp
+                </a>
+                <button
+                  type="button"
+                  onClick={() => void shareProfileLink()}
+                  className="inline-flex items-center gap-2 rounded-xl border border-[var(--color-primary)]/20 bg-[var(--color-primary-soft)] px-4 py-2.5 text-sm font-semibold text-[var(--color-primary-dark)] transition hover:bg-[var(--color-primary-light)]"
+                >
+                  <Share2 className="h-4 w-4" /> Instagram / more apps
+                </button>
                 <a href={profileUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-xl border border-[var(--color-border)] bg-white px-4 py-2.5 text-sm font-semibold text-[var(--color-text)]">
                   <ExternalLink className="h-4 w-4" /> Open profile
                 </a>
@@ -351,22 +402,49 @@ export default function BusinessGrowthCenterPage() {
                   </a>
                 )}
               </div>
+              <p className="mt-3 text-xs leading-5 text-[var(--color-text-secondary)]">On phones, Instagram and other apps appear in your device share menu when supported. Otherwise, the profile link is copied for you.</p>
             </div>
           </div>
 
-          <div className="rounded-3xl border border-[var(--color-border)] bg-white p-6 text-center shadow-sm">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]">
-              <QrCode className="h-6 w-6" />
+          <div className="rounded-3xl border border-[var(--color-border)] bg-white p-4 shadow-sm sm:p-5">
+            <div
+              id="twimzi-business-qr-print-card"
+              className="mx-auto max-w-[360px] rounded-[2rem] border border-blue-100 bg-gradient-to-b from-blue-50 via-white to-cyan-50 px-4 py-6 text-center sm:px-5"
+            >
+              <div className="mx-auto inline-flex items-center gap-2 rounded-full border border-[var(--color-primary)]/20 bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-[var(--color-primary-dark)]">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-primary-light)]">
+                  <QrCode className="h-4 w-4" />
+                </span>
+                Twimzi Business Profile
+              </div>
+              <h2 className="mt-4 text-2xl font-extrabold tracking-tight text-[var(--color-text)]">Here&apos;s your Twimzi QR</h2>
+              <p className="mt-1 text-sm text-[var(--color-text-secondary)]">Scan to discover this business on Twimzi.</p>
+              <div className="mx-auto mt-5 w-fit rounded-[1.5rem] bg-gradient-to-br from-blue-600 via-cyan-500 to-blue-400 p-1.5 shadow-[var(--shadow-primary)]">
+                <div className="rounded-[1.25rem] bg-white p-2">
+                  <QRCodeSVG
+                    id="twimzi-business-qr"
+                    value={profileUrl}
+                    size={228}
+                    level="H"
+                    includeMargin
+                    role="img"
+                    aria-label={`QR code for ${business.business_name}`}
+                  />
+                </div>
+              </div>
+              <p className="mt-4 break-words text-lg font-bold text-[var(--color-text)]">{business.business_name}</p>
+              <p className="mt-1 text-xs leading-5 text-[var(--color-text-secondary)]">Scan with your phone camera to open this profile.</p>
+              <p className="mt-3 break-all text-[11px] font-medium text-[var(--color-primary-dark)]">{profileUrl}</p>
             </div>
-            <h2 className="mt-3 text-xl font-bold text-[var(--color-text)]">Your Business QR</h2>
-            <p className="mt-1 text-sm text-[var(--color-text-secondary)]">Print it on cards, packaging, invoices or your shop counter.</p>
-            <div className="mx-auto mt-5 flex max-w-[240px] justify-center rounded-2xl border border-[var(--color-border)] bg-white p-3">
-              <QRCodeSVG id="twimzi-business-qr" value={profileUrl} size={210} level="H" includeMargin />
+            <div id="twimzi-business-qr-print-actions" className="mx-auto mt-4 grid max-w-[360px] gap-2 sm:grid-cols-2">
+              <button type="button" onClick={downloadQr} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-3 py-3 text-sm font-semibold text-white">
+                <Download className="h-4 w-4" /> Download QR (SVG)
+              </button>
+              <button type="button" onClick={printQrCard} className="inline-flex items-center justify-center gap-2 rounded-xl border border-[var(--color-border)] bg-white px-3 py-3 text-sm font-semibold text-[var(--color-text)] transition hover:bg-[var(--color-background)]">
+                <Printer className="h-4 w-4" /> Print / Save as PDF
+              </button>
             </div>
-            <button type="button" onClick={downloadQr} className="mt-5 inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-4 py-3 text-sm font-semibold text-white">
-              <Download className="h-4 w-4" /> Download QR (SVG)
-            </button>
-            <p className="mt-3 text-xs text-[var(--color-text-secondary)]">Generated on your device; no external QR API is called.</p>
+            <p className="mx-auto mt-3 max-w-[360px] text-center text-xs leading-5 text-[var(--color-text-secondary)]">Print it on cards, packaging, invoices or your shop counter. Scan once to test the link before printing in bulk.</p>
           </div>
         </section>
 
