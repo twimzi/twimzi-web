@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   ArrowUpRight,
+  Instagram,
   Mail,
 } from "lucide-react";
 
@@ -23,6 +24,24 @@ const companyLinks = [
   { label: "About Twimzi", href: "/about" },
   { label: "Support", href: "/contact" },
   { label: "Login", href: "/login" },
+];
+
+const socialLinks = [
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/twimzi_official/",
+    platform: "instagram",
+  },
+  {
+    label: "Facebook",
+    href: "https://www.facebook.com/profile.php?id=61595903981246",
+    platform: "facebook",
+  },
+  {
+    label: "Facebook Page",
+    href: "https://www.facebook.com/profile.php?id=61595944959562",
+    platform: "facebook",
+  },
 ];
 
 const legalLinks = [
@@ -71,6 +90,37 @@ export function Footer() {
               <Mail className="h-4 w-4" />
               support@twimzi.com
             </a>
+
+            <div className="mt-6">
+              <p className="text-sm font-semibold text-[var(--color-text)]">
+                Follow Twimzi
+              </p>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                {socialLinks.map((link) => (
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Visit Twimzi on ${link.label}`}
+                    className="inline-flex items-center gap-2 rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm font-medium text-[var(--color-text-secondary)] transition hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary-dark)]"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="grid h-5 w-5 place-items-center text-[var(--color-primary)]"
+                    >
+                      {link.platform === "instagram" ? (
+                        <Instagram className="h-4 w-4" />
+                      ) : (
+                        <span className="text-lg font-bold leading-none">f</span>
+                      )}
+                    </span>
+                    {link.label}
+                  </a>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* Discover */}
