@@ -89,3 +89,19 @@ jobs:
           deno-version: v2.x
       - name: Type-check upload function
         run: deno check --config supabase/functions/upload-media/deno.json supabase/functions/upload-media/index.ts
+
+  build:
+    name: Production build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Build production application
+        run: npm run build
