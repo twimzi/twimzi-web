@@ -3,7 +3,7 @@ import { Globe2 } from "lucide-react";
 export function GlobalNetworkGlobe() {
   return (
     <div
-      className="twimzi-global-globe pointer-events-none absolute -right-20 top-1/2 hidden h-[520px] w-[520px] -translate-y-1/2 lg:block"
+      className="twimzi-global-globe pointer-events-none absolute -right-40 top-12 block h-[320px] w-[320px] opacity-[0.12] sm:-right-32 sm:top-8 sm:h-[400px] sm:w-[400px] lg:-right-32 lg:top-1/2 lg:h-[520px] lg:w-[520px] lg:-translate-y-1/2 lg:opacity-25"
       aria-hidden="true"
     >
       <div className="twimzi-globe-halo absolute inset-0 rounded-full" />
