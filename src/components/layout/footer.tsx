@@ -25,6 +25,24 @@ const companyLinks = [
   { label: "Login", href: "/login" },
 ];
 
+const socialLinks = [
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/twimzi_official/",
+    platform: "instagram",
+  },
+  {
+    label: "Facebook",
+    href: "https://www.facebook.com/profile.php?id=61595903981246",
+    platform: "facebook",
+  },
+  {
+    label: "Facebook Page",
+    href: "https://www.facebook.com/profile.php?id=61595944959562",
+    platform: "facebook",
+  },
+];
+
 const legalLinks = [
   { label: "Privacy Policy", href: "/privacy-policy" },
   { label: "Terms & Conditions", href: "/terms-and-conditions" },
@@ -71,6 +89,55 @@ export function Footer() {
               <Mail className="h-4 w-4" />
               support@twimzi.com
             </a>
+
+            <div className="mt-6">
+              <p className="text-sm font-semibold text-[var(--color-text)]">
+                Follow Twimzi
+              </p>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                {socialLinks.map((link) => (
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Visit Twimzi on ${link.label}`}
+                    className="inline-flex items-center gap-2 rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm font-medium text-[var(--color-text-secondary)] transition hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary-dark)]"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="grid h-5 w-5 place-items-center text-[var(--color-primary)]"
+                    >
+                      {link.platform === "instagram" ? (
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="h-4 w-4"
+                        >
+                          <rect x="3" y="3" width="18" height="18" rx="5" />
+                          <circle cx="12" cy="12" r="4" />
+                          <circle
+                            cx="17.5"
+                            cy="6.5"
+                            r="0.75"
+                            fill="currentColor"
+                            stroke="none"
+                          />
+                        </svg>
+                      ) : (
+                        <span className="text-lg font-bold leading-none">f</span>
+                      )}
+                    </span>
+                    {link.label}
+                  </a>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* Discover */}
