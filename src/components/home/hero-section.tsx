@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import { ArrowRight, Compass, Flame, MapPin, Megaphone, Package, Search, Star, Store, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
-container importimport { siteConfig } from "@/config/site";
+import { siteConfig } from "@/config/site";
 import { GlobalNetworkGlobe } from "@/components/home/global-network-globe";
 
 export type HeroInterestingItem = {
