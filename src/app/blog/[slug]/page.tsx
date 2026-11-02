@@ -63,12 +63,13 @@ async function getRelatedPosts(slug: string): Promise<Pick<BlogPost, "id" | "tit
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const post = await getPost(slug);
-  if (!post) return { title: "Article not found" };
+  if (!post) return { title: "Article not found | Twimzi" };
   const title = post.meta_title?.trim() || post.title;
+  const pageTitle = `${title.replace(/(?:\s*\|\s*Twimzi)+$/i, "")} | Twimzi`;
   const description = post.meta_description?.trim() || post.excerpt;
   const image = post.featured_image_url || DEFAULT_COVER;
   return {
-    title,
+    title: pageTitle,
     description,
     alternates: { canonical: `/blog/${post.slug}` },
     openGraph: {

@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 
   title: {
     default: siteConfig.seo.title,
-    template: "%s | Twimzi",
+    template: "%s",
   },
 
   description: siteConfig.seo.description,
