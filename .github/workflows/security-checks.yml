@@ -104,4 +104,7 @@ jobs:
       - name: Install locked dependencies
         run: npm ci
       - name: Build production application
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: build-placeholder
         run: npm run build
