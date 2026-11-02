@@ -1,9 +1,7 @@
-import { Globe2 } from "lucide-react";
-
 export function GlobalNetworkGlobe() {
   return (
     <div
-      className="twimzi-global-globe pointer-events-none absolute -right-40 top-12 block h-[320px] w-[320px] opacity-[0.12] sm:-right-32 sm:top-8 sm:h-[400px] sm:w-[400px] lg:-right-32 lg:top-1/2 lg:h-[520px] lg:w-[520px] lg:-translate-y-1/2 lg:opacity-25"
+      className="twimzi-global-globe pointer-events-none absolute -right-40 top-12 block h-[320px] w-[320px] opacity-[0.08] sm:-right-32 sm:top-8 sm:h-[400px] sm:w-[400px] lg:left-[57%] lg:right-auto lg:top-1/2 lg:h-[680px] lg:w-[680px] lg:-translate-x-1/2 lg:-translate-y-1/2 lg:opacity-90 xl:h-[760px] xl:w-[760px]"
       aria-hidden="true"
     >
       <div className="twimzi-globe-halo absolute inset-0 rounded-full" />
@@ -71,10 +69,6 @@ export function GlobalNetworkGlobe() {
         <circle cx="445" cy="190" r="4" fill="#2563EB" />
         <circle cx="103" cy="368" r="4" fill="#2563EB" />
       </svg>
-      <div className="absolute bottom-12 left-2 flex items-center gap-2 rounded-full border border-white/80 bg-white/90 px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm backdrop-blur">
-        <Globe2 size={15} className="text-blue-600" />
-        Connected worldwide
-      </div>
     </div>
   );
 }
