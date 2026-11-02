@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import BlogImage from "@/components/blog/blog-image";
 
 export const metadata: Metadata = {
-  title: "Small Business Tips, Local Guides & Insights",
+  title: "Small Business Tips, Local Guides & Insights | Twimzi",
   description: "Practical guides to help Indian businesses grow online and help people discover trusted local businesses with Twimzi.",
   alternates: { canonical: "/blog" },
   openGraph: {
