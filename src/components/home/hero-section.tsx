@@ -65,10 +65,10 @@ export function HeroSection({
 }: HeroSectionProps) {
   return (
     <section className="twimzi-premium-hero relative isolate overflow-hidden bg-[#020D3A] text-white">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_78%_24%,rgba(5,205,252,0.24),transparent_34%),radial-gradient(ellipse_at_58%_78%,rgba(142,7,251,0.30),transparent_42%),linear-gradient(125deg,#020D3A_0%,#071A4B_52%,#10105A_100%)]" />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(2,13,58,0.96)_0%,rgba(4,19,67,0.78)_48%,rgba(6,25,75,0.48)_100%)]" />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_52%_46%,rgba(24,121,253,0.22),transparent_48%)]" />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-[#020D3A]/90 to-transparent" />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_0%_12%,rgba(142,7,251,0.72),transparent_34%),radial-gradient(ellipse_at_100%_82%,rgba(5,205,252,0.64),transparent_36%),radial-gradient(ellipse_at_72%_18%,rgba(24,121,253,0.38),transparent_40%),linear-gradient(118deg,#08052F_0%,#020D3A_42%,#071B64_72%,#07113D_100%)]" />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-80 bg-[radial-gradient(ellipse_at_8%_100%,rgba(142,7,251,0.56),transparent_36%),radial-gradient(ellipse_at_96%_0%,rgba(5,205,252,0.48),transparent_32%),linear-gradient(145deg,transparent_58%,rgba(24,121,253,0.18)_78%,transparent_100%)]" />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_52%_48%,rgba(24,121,253,0.22),transparent_48%)]" />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#08052F]/35 to-transparent" />
       <div className="relative z-10 mx-auto grid min-h-[720px] w-full max-w-[1760px] grid-cols-1 items-center gap-10 px-5 py-14 sm:px-8 lg:min-h-[min(920px,calc(100svh-4rem))] lg:grid-cols-[minmax(0,1.35fr)_minmax(440px,.85fr)] lg:gap-12 lg:px-12 lg:py-16 xl:gap-16">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/40 bg-white/5 px-4 py-2 text-sm font-semibold text-white shadow-sm backdrop-blur-sm">
