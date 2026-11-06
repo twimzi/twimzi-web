@@ -1,26 +1,21 @@
 export const twimziTheme = {
   colors: {
-    primary: "#0D9488",
-    primaryDark: "#0F766E",
-    primaryLight: "#CCFBF1",
-    secondary: "#F0FDFA",
-    accent: "#F97316",
-    accentSecondary: "#FB923C",
-    accentLight: "#FFEDD5",
-    background: "#FFFFFF",
+    primary: "#1879FD",
+    primaryDark: "#1455C7",
+    primaryLight: "#E8F2FF",
+    secondary: "#F4F6FC",
+    accent: "#8E07FB",
+    accentSecondary: "#05CDFC",
+    accentLight: "#F3E8FF",
+    background: "#F7F9FF",
     surface: "#FFFFFF",
-    text: "#0F172A",
-    textSecondary: "#475569",
+    text: "#020D3A",
+    textSecondary: "#344365",
     textMuted: "#64748B",
-    border: "#E2E8F0",
-    gradient:
-      "linear-gradient(135deg, #0D9488 0%, #14B8A6 55%, #F97316 100%)",
+    border: "#E2E8F3",
+    gradient: "linear-gradient(115deg, #8E07FB 0%, #1879FD 52%, #05CDFC 100%)",
   },
-
-  typography: {
-    fontFamily: "Poppins",
-  },
-
+  typography: { fontFamily: "Poppins" },
   radius: {
     sm: "0.5rem",
     md: "0.75rem",
@@ -28,9 +23,5 @@ export const twimziTheme = {
     xl: "1.25rem",
     full: "9999px",
   },
-
-  layout: {
-    maxWidth: "1280px",
-    contentPadding: "1.25rem",
-  },
+  layout: { maxWidth: "1280px", contentPadding: "1.25rem" },
 } as const;
