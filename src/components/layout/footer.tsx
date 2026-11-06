@@ -66,32 +66,32 @@ const legalLinks = [
 
 export function Footer() {
   return (
-    <footer className="border-t border-[var(--color-border)] bg-[var(--color-secondary)]">
+    <footer className="border-t border-white/10 bg-[#020D3A] text-white">
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
         <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-[1.25fr_.85fr_.85fr_1.15fr] lg:gap-10">
           {/* Brand */}
           <div>
             <Link
               href="/"
-              className="inline-flex items-center rounded-lg text-2xl font-bold tracking-tight text-[var(--color-text)] transition hover:text-[var(--color-primary)]"
+              className="inline-flex items-center rounded-lg text-2xl font-bold tracking-tight text-white transition hover:text-cyan-300"
             >
               Twimzi
             </Link>
 
-            <p className="mt-4 max-w-xs text-sm leading-7 text-[var(--color-text-secondary)]">
+            <p className="mt-4 max-w-xs text-sm leading-7 text-slate-300">
               Digital Operating System for Every Local Business.
             </p>
 
             <a
               href="mailto:support@twimzi.com"
-              className="mt-5 inline-flex items-center gap-2 rounded-lg px-2 py-1 -ml-2 text-sm font-semibold text-[var(--color-primary)] transition hover:bg-white hover:text-[var(--color-primary-dark)]"
+              className="mt-5 inline-flex items-center gap-2 rounded-lg px-2 py-1 -ml-2 text-sm font-semibold text-cyan-300 transition hover:bg-white hover:text-cyan-200"
             >
               <Mail className="h-4 w-4" />
               support@twimzi.com
             </a>
 
             <div className="mt-6">
-              <p className="text-sm font-semibold text-[var(--color-text)]">
+              <p className="text-sm font-semibold text-white">
                 Follow Twimzi
               </p>
 
@@ -103,11 +103,11 @@ export function Footer() {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={`Visit Twimzi on ${link.label}`}
-                    className="inline-flex items-center gap-2 rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm font-medium text-[var(--color-text-secondary)] transition hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary-dark)]"
+                    className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-3 py-2 text-sm font-medium text-slate-300 transition hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-light)] hover:text-cyan-200"
                   >
                     <span
                       aria-hidden="true"
-                      className="grid h-5 w-5 place-items-center text-[var(--color-primary)]"
+                      className="grid h-5 w-5 place-items-center text-cyan-300"
                     >
                       {link.platform === "instagram" ? (
                         <svg
@@ -142,7 +142,7 @@ export function Footer() {
 
           {/* Discover */}
           <div>
-            <h2 className="text-sm font-bold text-[var(--color-text)]">
+            <h2 className="text-sm font-bold text-white">
               Discover
             </h2>
 
@@ -151,7 +151,7 @@ export function Footer() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="inline-flex text-sm text-[var(--color-text-secondary)] transition hover:translate-x-0.5 hover:text-[var(--color-primary-dark)]"
+                    className="inline-flex text-sm text-slate-300 transition hover:translate-x-0.5 hover:text-cyan-200"
                   >
                     {link.label}
                   </Link>
@@ -162,7 +162,7 @@ export function Footer() {
 
           {/* Business / Company */}
           <div>
-            <h2 className="text-sm font-bold text-[var(--color-text)]">
+            <h2 className="text-sm font-bold text-white">
               For Business
             </h2>
 
@@ -171,7 +171,7 @@ export function Footer() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="inline-flex text-sm text-[var(--color-text-secondary)] transition hover:translate-x-0.5 hover:text-[var(--color-primary-dark)]"
+                    className="inline-flex text-sm text-slate-300 transition hover:translate-x-0.5 hover:text-cyan-200"
                   >
                     {link.label}
                   </Link>
@@ -179,7 +179,7 @@ export function Footer() {
               ))}
             </ul>
 
-            <h2 className="mt-9 text-sm font-bold text-[var(--color-text)]">
+            <h2 className="mt-9 text-sm font-bold text-white">
               Company
             </h2>
 
@@ -188,7 +188,7 @@ export function Footer() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="inline-flex text-sm text-[var(--color-text-secondary)] transition hover:translate-x-0.5 hover:text-[var(--color-primary-dark)]"
+                    className="inline-flex text-sm text-slate-300 transition hover:translate-x-0.5 hover:text-cyan-200"
                   >
                     {link.label}
                   </Link>
@@ -199,7 +199,7 @@ export function Footer() {
 
           {/* Legal */}
           <div>
-            <h2 className="text-sm font-bold text-[var(--color-text)]">
+            <h2 className="text-sm font-bold text-white">
               Legal & Policies
             </h2>
 
@@ -208,7 +208,7 @@ export function Footer() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="inline-flex items-center text-sm text-[var(--color-text-secondary)] transition hover:text-[var(--color-primary-dark)]"
+                    className="inline-flex items-center text-sm text-slate-300 transition hover:text-cyan-200"
                   >
                     {link.label}
                   </Link>
@@ -219,14 +219,14 @@ export function Footer() {
         </div>
 
         {/* Bottom */}
-        <div className="mt-14 flex flex-col gap-4 border-t border-[var(--color-border)] pt-6 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-[var(--color-text-muted)]">
+        <div className="mt-14 flex flex-col gap-4 border-t border-white/15 pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-slate-400">
             © {new Date().getFullYear()} Twimzi. All rights reserved.
           </p>
 
           <Link
             href="/"
-            className="inline-flex items-center gap-1 text-sm font-semibold text-[var(--color-text-secondary)] transition hover:text-[var(--color-primary)]"
+            className="inline-flex items-center gap-1 text-sm font-semibold text-slate-300 transition hover:text-cyan-300"
           >
             Back to top
             <ArrowUpRight className="h-4 w-4" />
