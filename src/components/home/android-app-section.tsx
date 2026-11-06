@@ -7,10 +7,10 @@ export function AndroidAppSection() {
   return (
     <section className="py-20">
       <Container>
-        <div className="relative overflow-hidden rounded-xl bg-[#1f3e63] px-7 py-12 text-white sm:px-12 lg:px-16">
+        <div className="relative overflow-hidden rounded-xl bg-[linear-gradient(115deg,#020D3A_0%,#11165B_48%,#3D16A5_100%)] px-7 py-12 text-white sm:px-12 lg:px-16">
 <div
             aria-hidden="true"
-            className="absolute -bottom-32 -left-20 h-72 w-72 rounded-full bg-white/10 blur-3xl"
+            className="absolute -bottom-32 -left-20 h-72 w-72 rounded-full bg-[rgba(5,205,252,0.20)] blur-3xl"
           />
 
           <div className="relative grid items-center gap-10 lg:grid-cols-[1fr_auto]">
@@ -73,7 +73,7 @@ export function AndroidAppSection() {
             {/* Mobile phone */}
             <div className="mx-auto lg:mr-8">
               <div className="relative flex h-56 w-36 items-center justify-center rounded-[2rem] border-2 border-slate-400 bg-slate-800 p-2 shadow-md sm:h-64 sm:w-40">
-                <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-[1.4rem] bg-[#f8f8f4]">
+                <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-[1.4rem] bg-[#F5F7FF]">
                   <div
                     aria-hidden="true"
                     className="absolute inset-0 bg-[#f8f8f4]"
