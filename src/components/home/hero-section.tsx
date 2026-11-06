@@ -65,32 +65,32 @@ export function HeroSection({
   interestingItems = fallbackItems,
 }: HeroSectionProps) {
   return (
-    <section className="relative isolate overflow-hidden bg-[#041A39] text-white">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[url('/images/twimzi-hero-skyline.png')] bg-cover bg-center bg-no-repeat" />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(3,17,43,0.94)_0%,rgba(5,25,58,0.76)_46%,rgba(5,23,55,0.56)_100%)]" />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_54%_48%,rgba(37,99,235,0.20),transparent_46%)]" />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-[#03152f]/80 to-transparent" />
+    <section className="twimzi-premium-hero relative isolate overflow-hidden bg-[#020D3A] text-white">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_78%_24%,rgba(5,205,252,0.24),transparent_34%),radial-gradient(ellipse_at_58%_78%,rgba(142,7,251,0.30),transparent_42%),linear-gradient(125deg,#020D3A_0%,#071A4B_52%,#10105A_100%)]" />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(2,13,58,0.96)_0%,rgba(4,19,67,0.78)_48%,rgba(6,25,75,0.48)_100%)]" />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_52%_46%,rgba(24,121,253,0.22),transparent_48%)]" />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-[#020D3A]/90 to-transparent" />
       <GlobalNetworkGlobe />
       <div className="relative z-10 mx-auto grid min-h-[720px] w-full max-w-[1760px] grid-cols-1 items-center gap-10 px-5 py-14 sm:px-8 lg:min-h-[min(920px,calc(100svh-4rem))] lg:grid-cols-[minmax(0,1.35fr)_minmax(440px,.85fr)] lg:gap-12 lg:px-12 lg:py-16 xl:gap-16">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-blue-300/50 bg-blue-400/15 px-4 py-2 text-sm font-semibold text-white shadow-sm backdrop-blur-sm">
+            <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/40 bg-white/5 px-4 py-2 text-sm font-semibold text-white shadow-sm backdrop-blur-sm">
               <MapPin aria-hidden="true" size={18} strokeWidth={2.3} />
               Discover local. Grow local.
             </div>
 
             <h1 className="mt-7 max-w-[15ch] text-5xl font-bold leading-[1.03] tracking-tight sm:text-6xl lg:text-7xl xl:text-[5.5rem]">
               Your local world,
-              <span className="block bg-gradient-to-r from-sky-300 via-blue-300 to-white bg-clip-text text-transparent">
+              <span className="block bg-gradient-to-r from-[#B77BFF] via-[#5AA5FF] to-[#63E7FF] bg-clip-text text-transparent">
                 all in one place.
               </span>
             </h1>
 
-            <p className="mt-6 max-w-3xl text-lg leading-8 text-blue-50/90 sm:text-xl">
+            <p className="mt-6 max-w-3xl text-lg leading-8 text-slate-100/90 sm:text-xl">
               {siteConfig.tagline}. Discover businesses, products, services,
               offers and opportunities around you.
             </p>
 
-            <div className="mt-8 max-w-[960px] rounded-full border border-blue-400 bg-white p-2 text-slate-900 shadow-[0_0_0_4px_rgba(37,99,235,0.16)]">
+            <div className="mt-8 max-w-[960px] rounded-full border border-white/30 bg-white p-2 text-slate-900 shadow-[0_0_0_4px_rgba(142,7,251,0.18),0_18px_60px_rgba(2,13,58,0.28)]">
               <form action="/explore" method="get" className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <div className="relative min-w-0 flex-1">
                   <label className="sr-only" htmlFor="hero-search">Search businesses, products or services</label>
@@ -124,7 +124,7 @@ export function HeroSection({
           </div>
 
           <div className="relative hidden min-h-[600px] items-center justify-center lg:flex">
-            <div className="relative z-10 ml-auto w-full max-w-[570px] rounded-[28px] border border-blue-100/80 bg-white p-5 text-slate-900 shadow-[0_32px_90px_rgba(1,14,40,0.35)] sm:p-6">
+            <div className="relative z-10 ml-auto w-full max-w-[570px] rounded-[28px] border border-white/80 bg-white/95 p-5 text-slate-900 shadow-[0_32px_90px_rgba(1,14,40,0.35)] sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-[var(--color-text-muted)]">
@@ -149,9 +149,9 @@ export function HeroSection({
                     <Link
                       key={`${item.type}-${item.title}`}
                       href={item.href}
-                      className="group flex items-center gap-4 rounded-lg border border-[var(--color-border)] p-4 transition-colors hover:border-[var(--color-primary)]/40"
+                      className="group flex items-center gap-4 rounded-lg border border-[var(--color-border)] bg-white/80 p-4 transition-colors hover:border-[var(--color-primary)]/40"
                     >
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[var(--color-secondary)] text-[var(--color-primary)]">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-purple-50 via-blue-50 to-cyan-50 text-[var(--color-primary)]">
                         <Icon
                           aria-hidden="true"
                           size={23}
