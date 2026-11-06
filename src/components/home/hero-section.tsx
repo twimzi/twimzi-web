@@ -69,7 +69,7 @@ export function HeroSection({
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-80 bg-[radial-gradient(ellipse_at_8%_100%,rgba(142,7,251,0.56),transparent_36%),radial-gradient(ellipse_at_96%_0%,rgba(5,205,252,0.48),transparent_32%),linear-gradient(145deg,transparent_58%,rgba(24,121,253,0.18)_78%,transparent_100%)]" />
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_52%_48%,rgba(24,121,253,0.22),transparent_48%)]" />
       <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#08052F]/35 to-transparent" />
-      <div aria-hidden="true" className="pointer-events-none absolute right-[8%] top-1/2 z-0 hidden h-[min(76vw,660px)] w-[min(76vw,660px)] -translate-y-1/2 lg:block xl:right-[10%]">
+      <div aria-hidden="true" className="pointer-events-none absolute right-[25%] top-1/2 z-0 hidden h-[min(76vw,660px)] w-[min(76vw,660px)] -translate-y-1/2 lg:block xl:right-[23%]">
         <svg viewBox="0 0 640 640" className="h-full w-full overflow-visible" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <radialGradient id="twimzi-earth-fill" cx="34%" cy="28%" r="76%">
