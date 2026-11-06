@@ -1,98 +1,44 @@
 @import "tailwindcss";
 
 :root {
-  /* ============================================================
-     TWIMZI BRAND COLORS
-     Enhanced Classic Blue: confident, clean and business-first
-     ============================================================ */
-
-  --color-primary: #2563EB;
-  --color-primary-dark: #1D4ED8;
-  --color-primary-darker: #1E40AF;
-  --color-primary-light: #DBEAFE;
-  --color-primary-soft: #EFF6FF;
-
-  --color-secondary: #F1F5F9;
-  --color-secondary-dark: #E2E8F0;
-
-  --color-accent: #06B6D4;
-  --color-accent-dark: #0891B2;
-  --color-accent-secondary: #10B981;
-  --color-accent-light: #CFFAFE;
-  --color-accent-soft: #ECFEFF;
-
-  /* ============================================================
-     BACKGROUNDS
-     ============================================================ */
-
-  --color-background: #F8FAFC;
+  /* Twimzi logo palette: midnight navy + purple / electric blue / cyan */
+  --color-primary: #1879FD;
+  --color-primary-dark: #1455C7;
+  --color-primary-darker: #020D3A;
+  --color-primary-light: #E8F2FF;
+  --color-primary-soft: #F2F7FF;
+  --color-secondary: #F4F6FC;
+  --color-secondary-dark: #E7ECF7;
+  --color-accent: #8E07FB;
+  --color-accent-dark: #7000D6;
+  --color-accent-secondary: #05CDFC;
+  --color-accent-light: #F3E8FF;
+  --color-accent-soft: #E8FAFF;
+  --color-background: #F7F9FF;
   --color-surface: #FFFFFF;
-  --color-surface-soft: #F1F5F9;
-  --color-surface-muted: #E2E8F0;
-
-  /* ============================================================
-     TEXT
-     ============================================================ */
-
-  --color-text: #1E3A8A;
-  --color-text-secondary: #355A84;
-  --color-text-muted: #526F94;
-  --color-text-light: #566E8E;
+  --color-surface-soft: #F1F4FC;
+  --color-surface-muted: #E8EDF7;
+  --color-text: #020D3A;
+  --color-text-secondary: #344365;
+  --color-text-muted: #64748B;
+  --color-text-light: #71809D;
   --color-text-on-primary: #FFFFFF;
-  --color-text-on-accent: #1E3A8A;
-
-  /* ============================================================
-     BORDERS
-     ============================================================ */
-
-  --color-border: #E2E8F0;
-  --color-border-light: #F1F5F9;
-  --color-border-strong: #CBD5E1;
-
-  /* ============================================================
-     STATUS COLORS
-     ============================================================ */
-
-  --color-success: #10B981;
+  --color-text-on-accent: #FFFFFF;
+  --color-border: #E2E8F3;
+  --color-border-light: #EEF1F8;
+  --color-border-strong: #C9D3E5;
+  --color-success: #059669;
   --color-success-light: #D1FAE5;
-
-  --color-warning: #F59E0B;
+  --color-warning: #D97706;
   --color-warning-light: #FEF3C7;
-
-  --color-error: #EF4444;
+  --color-error: #DC2626;
   --color-error-light: #FEE2E2;
-
-  --color-info: #06B6D4;
+  --color-info: #0891B2;
   --color-info-light: #CFFAFE;
-
-  /* ============================================================
-     BRAND GRADIENTS
-     Keep gradients subtle and within the blue brand family.
-     ============================================================ */
-
-  --color-brand-gradient: linear-gradient(
-    135deg,
-    #1D4ED8 0%,
-    #2563EB 58%,
-    #3B82F6 100%
-  );
-
-  --color-primary-gradient: linear-gradient(
-    135deg,
-    #1D4ED8 0%,
-    #2563EB 100%
-  );
-
-  --color-accent-gradient: linear-gradient(
-    135deg,
-    #06B6D4 0%,
-    #10B981 100%
-  );
-
-  /* ============================================================
-     RADIUS
-     ============================================================ */
-
+  --color-brand-gradient: linear-gradient(115deg, #8E07FB 0%, #1879FD 52%, #05CDFC 100%);
+  --color-primary-gradient: linear-gradient(115deg, #8E07FB 0%, #1879FD 52%, #05CDFC 100%);
+  --color-accent-gradient: linear-gradient(115deg, #8E07FB 0%, #1879FD 55%, #05CDFC 100%);
+  --color-hero-background: #020D3A;
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
@@ -100,39 +46,13 @@
   --radius-2xl: 1.5rem;
   --radius-3xl: 2rem;
   --radius-full: 9999px;
-
-  /* ============================================================
-     SHADOWS
-     ============================================================ */
-
-  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
-
-  --shadow-sm:
-    0 1px 3px rgba(15, 23, 42, 0.05),
-    0 1px 2px rgba(15, 23, 42, 0.03);
-
-  --shadow-md:
-    0 5px 15px rgba(15, 23, 42, 0.07),
-    0 2px 5px rgba(15, 23, 42, 0.04);
-
-  --shadow-lg:
-    0 12px 32px rgba(15, 23, 42, 0.09),
-    0 4px 10px rgba(15, 23, 42, 0.04);
-
-  --shadow-xl:
-    0 20px 45px rgba(15, 23, 42, 0.12),
-    0 6px 14px rgba(15, 23, 42, 0.05);
-
-  --shadow-primary:
-    0 10px 25px rgba(37, 99, 235, 0.16);
-
-  --shadow-accent:
-    0 10px 25px rgba(6, 182, 212, 0.16);
-
-  /* ============================================================
-     LAYOUT
-     ============================================================ */
-
+  --shadow-xs: 0 1px 2px rgba(2, 13, 58, 0.04);
+  --shadow-sm: 0 2px 8px rgba(2, 13, 58, 0.05);
+  --shadow-md: 0 8px 22px rgba(2, 13, 58, 0.08);
+  --shadow-lg: 0 16px 38px rgba(2, 13, 58, 0.11);
+  --shadow-xl: 0 24px 55px rgba(2, 13, 58, 0.14);
+  --shadow-primary: 0 10px 28px rgba(24, 121, 253, 0.22);
+  --shadow-accent: 0 10px 28px rgba(142, 7, 251, 0.18);
   --container-max-width: 1280px;
   --container-padding: 1.25rem;
 }
@@ -268,13 +188,13 @@ textarea::placeholder {
    BRAND BACKGROUNDS
    ============================================================ */
 
-.twimzi-primary-surface {
-  background: #EFF6FF;
-}
+.twimzi-primary-surface { background: linear-gradient(135deg, #F2E9FF 0%, #E8F2FF 55%, #E8FAFF 100%); }
 
-.twimzi-brand-surface {
-  background: #DBEAFE;
-}
+.twimzi-brand-surface { background: linear-gradient(135deg, #EDE1FF 0%, #DCEBFF 55%, #DDF8FF 100%); }
+
+.twimzi-gradient-text { background: var(--color-brand-gradient); background-clip: text; -webkit-background-clip: text; color: transparent; }
+.twimzi-gradient-button { background: var(--color-primary-gradient); color: #fff; box-shadow: 0 10px 28px rgba(24,121,253,.22); }
+.twimzi-gradient-button:hover { filter: brightness(1.08); }
 
 
 /* ============================================================
