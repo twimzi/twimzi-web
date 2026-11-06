@@ -69,6 +69,73 @@ export function HeroSection({
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-80 bg-[radial-gradient(ellipse_at_8%_100%,rgba(142,7,251,0.56),transparent_36%),radial-gradient(ellipse_at_96%_0%,rgba(5,205,252,0.48),transparent_32%),linear-gradient(145deg,transparent_58%,rgba(24,121,253,0.18)_78%,transparent_100%)]" />
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_52%_48%,rgba(24,121,253,0.22),transparent_48%)]" />
       <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#08052F]/35 to-transparent" />
+      <div aria-hidden="true" className="pointer-events-none absolute right-[8%] top-1/2 z-0 hidden h-[min(76vw,660px)] w-[min(76vw,660px)] -translate-y-1/2 lg:block xl:right-[10%]">
+        <svg viewBox="0 0 640 640" className="h-full w-full overflow-visible" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="twimzi-earth-fill" cx="34%" cy="28%" r="76%">
+              <stop offset="0" stopColor="#4CB9FF" stopOpacity=".98"/>
+              <stop offset=".48" stopColor="#1267D9" stopOpacity=".96"/>
+              <stop offset=".82" stopColor="#073B9D" stopOpacity=".98"/>
+              <stop offset="1" stopColor="#031A55"/>
+            </radialGradient>
+            <radialGradient id="twimzi-earth-glow" cx="50%" cy="50%" r="50%">
+              <stop offset=".68" stopColor="#05CDFC" stopOpacity="0"/>
+              <stop offset=".88" stopColor="#1879FD" stopOpacity=".18"/>
+              <stop offset="1" stopColor="#8E07FB" stopOpacity="0"/>
+            </radialGradient>
+            <linearGradient id="twimzi-land" x1="160" y1="140" x2="470" y2="500" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#B8F2FF" stopOpacity=".94"/>
+              <stop offset="1" stopColor="#39A8FF" stopOpacity=".38"/>
+            </linearGradient>
+            <linearGradient id="twimzi-arc" x1="120" y1="180" x2="520" y2="470" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#8E07FB"/>
+              <stop offset=".5" stopColor="#05CDFC"/>
+              <stop offset="1" stopColor="#1879FD"/>
+            </linearGradient>
+            <clipPath id="twimzi-earth-clip"><circle cx="320" cy="320" r="270"/></clipPath>
+            <filter id="twimzi-earth-blur" x="-40%" y="-40%" width="180%" height="180%">
+              <feGaussianBlur stdDeviation="16"/>
+            </filter>
+            <filter id="twimzi-node-glow" x="-200%" y="-200%" width="500%" height="500%">
+              <feGaussianBlur stdDeviation="5" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <circle cx="320" cy="320" r="302" fill="url(#twimzi-earth-glow)"/>
+          <circle cx="320" cy="320" r="278" fill="#1879FD" opacity=".22" filter="url(#twimzi-earth-blur)"/>
+          <circle cx="320" cy="320" r="270" fill="url(#twimzi-earth-fill)" stroke="#55CFFF" strokeWidth="4"/>
+          <g clipPath="url(#twimzi-earth-clip)">
+            <ellipse cx="320" cy="320" rx="116" ry="270" stroke="#9DEBFF" strokeOpacity=".3" strokeWidth="2"/>
+            <ellipse cx="320" cy="320" rx="205" ry="270" stroke="#9DEBFF" strokeOpacity=".22" strokeWidth="2"/>
+            <ellipse cx="320" cy="320" rx="270" ry="100" stroke="#9DEBFF" strokeOpacity=".26" strokeWidth="2"/>
+            <ellipse cx="320" cy="320" rx="270" ry="184" stroke="#9DEBFF" strokeOpacity=".2" strokeWidth="2"/>
+            <path d="M72 220 Q320 95 568 220M55 320H585M72 420Q320 545 568 420" stroke="#9DEBFF" strokeOpacity=".22" strokeWidth="2"/>
+            <g fill="url(#twimzi-land)" stroke="#B5F4FF" strokeOpacity=".3" strokeWidth="2">
+              <path d="M135 170 164 139 205 126 232 143 260 137 283 163 272 187 244 196 229 221 205 228 189 257 162 247 149 219 124 205Z"/>
+              <path d="m242 254 35 8 24 34-10 44-18 26-8 53-22 38-20-25-4-52-20-35 9-47Z"/>
+              <path d="m303 155 35-23 54 7 34 24 53 7 33 36-19 26-47-5-28 24-42-8-23 26-30-19-33 4-25-34 19-28Z"/>
+              <path d="m365 265 34-23 39 11 19 31-15 29-35 6-21 29-28-15-15-34Z"/>
+              <path d="m410 375 38-17 39 21 19 43-26 37-47-9-25-34Z"/>
+              <path d="m495 270 27-8 22 20-11 25-29 4-17-19Z"/>
+            </g>
+            <g stroke="url(#twimzi-arc)" strokeWidth="3" strokeLinecap="round" opacity=".95">
+              <path d="M155 286Q285 70 455 245"/>
+              <path d="M176 410Q320 180 508 370"/>
+              <path d="M205 190Q360 490 500 260"/>
+              <path d="M110 340Q320 550 535 320"/>
+            </g>
+            <g fill="#B8F7FF" filter="url(#twimzi-node-glow)">
+              <circle cx="155" cy="286" r="7"/><circle cx="455" cy="245" r="8"/>
+              <circle cx="176" cy="410" r="6"/><circle cx="508" cy="370" r="8"/>
+              <circle cx="205" cy="190" r="6"/><circle cx="500" cy="260" r="7"/>
+              <circle cx="320" cy="320" r="9"/>
+            </g>
+            <circle cx="320" cy="320" r="270" fill="url(#twimzi-earth-glow)"/>
+          </g>
+          <circle cx="320" cy="320" r="270" stroke="#7FE8FF" strokeOpacity=".85" strokeWidth="2"/>
+          <circle cx="320" cy="320" r="288" stroke="#1879FD" strokeOpacity=".28" strokeWidth="1.5" strokeDasharray="5 12"/>
+        </svg>
+      </div>
       <div className="relative z-10 mx-auto grid min-h-[720px] w-full max-w-[1760px] grid-cols-1 items-center gap-10 px-5 py-14 sm:px-8 lg:min-h-[min(920px,calc(100svh-4rem))] lg:grid-cols-[minmax(0,1.35fr)_minmax(440px,.85fr)] lg:gap-12 lg:px-12 lg:py-16 xl:gap-16">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/40 bg-white/5 px-4 py-2 text-sm font-semibold text-white shadow-sm backdrop-blur-sm">
