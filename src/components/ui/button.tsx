@@ -17,13 +17,13 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const styles: Record<ButtonVariant, string> = {
   primary:
-    "bg-[var(--color-primary)] text-white shadow-[var(--shadow-primary)] hover:bg-[var(--color-primary-dark)] hover:shadow-[var(--shadow-primary)]",
+    "bg-[image:var(--color-primary-gradient)] text-white shadow-[var(--shadow-primary)] hover:brightness-110 hover:shadow-[var(--shadow-primary)]",
 
   secondary:
     "bg-[var(--color-secondary)] text-[var(--color-text)] hover:bg-[var(--color-secondary-dark)]",
 
   accent:
-    "bg-[var(--color-accent)] text-white shadow-[var(--shadow-accent)] hover:bg-[var(--color-accent-dark)] hover:shadow-[var(--shadow-accent)]",
+    "bg-[image:var(--color-accent-gradient)] text-white shadow-[var(--shadow-accent)] hover:brightness-110 hover:shadow-[var(--shadow-accent)]",
 
   outline:
     "border border-[var(--color-border)] bg-white text-[var(--color-text)] hover:border-[var(--color-primary)] hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary-dark)]",
