@@ -1,9 +1,9 @@
 export const twimziTheme = {
   colors: {
     primary: "#1879FD",
-    primaryDark: "#020D3A",
+    primaryDark: "#1455C7",
     primaryLight: "#E8F2FF",
-    secondary: "#F8FAFC",
+    secondary: "#F4F6FC",
     accent: "#8E07FB",
     accentSecondary: "#05CDFC",
     accentLight: "#F3E8FF",
