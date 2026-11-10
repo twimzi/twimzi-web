@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
@@ -96,7 +97,7 @@ function readingTime(content: string) {
 
 function renderContent(content: string) {
   const lines = content.replace(/\\r\\n?/g, "\\n").split("\\n");
-  const elements: React.ReactNode[] = [];
+  const elements: ReactNode[] = [];
   let index = 0;
 
   const isBlockStart = (line: string) =>
