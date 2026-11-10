@@ -94,49 +94,79 @@ function readingTime(content: string) {
   return Math.max(1, Math.ceil(content.trim().split(/\s+/).length / 220));
 }
 
-function renderParagraph(text: string, key: string) {
-  const parts = text.split(/(\*\*[^*]+\*\*|https?:\/\/[^\s)]+)/g);
-  return (
-    <p key={key} className="mt-4 text-[16px] leading-8 text-slate-700 sm:text-[17px]">
-      {parts.map((part, index) => {
-        if (part.startsWith("**") && part.endsWith("**")) {
-          return <strong key={index} className="font-bold text-slate-900">{part.slice(2, -2)}</strong>;
-        }
-        if (/^https?:\/\//.test(part)) {
-          const cleanUrl = part.replace(/[.,;!?]+$/, "");
-          const trailing = part.slice(cleanUrl.length);
-          return <span key={index}><a href={cleanUrl} target="_blank" rel="noopener noreferrer" className="break-words font-semibold text-blue-700 underline decoration-blue-200 underline-offset-4 hover:text-blue-900">{cleanUrl}</a>{trailing}</span>;
-        }
-        return part;
-      })}
-    </p>
-  );
-}
-
 function renderContent(content: string) {
-  const blocks = content.split(/\r?\n\s*\r?\n/);
-  return blocks.map((block, index) => {
-    const trimmed = block.trim();
-    if (!trimmed) return null;
-    if (trimmed.startsWith("### ")) {
-      return <h3 id={`section-${index}`} key={index} className="scroll-mt-24 mt-9 text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">{trimmed.slice(4)}</h3>;
+  const lines = content.replace(/\\r\\n?/g, "\\n").split("\\n");
+  const elements: React.ReactNode[] = [];
+  let index = 0;
+
+  const isBlockStart = (line: string) =>
+    /^(#{1,3})\\s+/.test(line.trim()) ||
+    /^[-*]\\s+/.test(line.trim()) ||
+    /^\\d+[.)]\\s+/.test(line.trim()) ||
+    /^>\\s?/.test(line.trim()) ||
+    /^---+$/.test(line.trim());
+
+  while (index < lines.length) {
+    const current = lines[index].trim();
+    if (!current) { index += 1; continue; }
+    const key = index;
+    const heading = current.match(/^(#{1,3})\\s+(.+)$/);
+    if (heading) {
+      const title = heading[2].trim();
+      if (heading[1].length <= 2) {
+        elements.push(<h2 id={`section-${key}`} key={key} className="scroll-mt-24 mt-12 border-b border-slate-200 pb-3 text-2xl font-extrabold tracking-tight text-slate-950 sm:text-3xl">{title}</h2>);
+      } else {
+        elements.push(<h3 id={`section-${key}`} key={key} className="scroll-mt-24 mt-8 text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">{title}</h3>);
+      }
+      index += 1;
+      continue;
     }
-    if (trimmed.startsWith("## ")) {
-      return <h2 id={`section-${index}`} key={index} className="scroll-mt-24 mt-12 border-b border-slate-200 pb-3 text-2xl font-extrabold tracking-tight text-slate-950 sm:text-3xl">{trimmed.slice(3)}</h2>;
+    if (/^---+$/.test(current)) {
+      elements.push(<hr key={key} className="my-8 border-slate-200" />);
+      index += 1;
+      continue;
     }
-    if (/^[-*] /.test(trimmed)) {
-      const items = trimmed.split(/\r?\n/).filter((line) => /^[-*] /.test(line.trim()));
-      return <ul key={index} className="mt-5 space-y-3 pl-1">{items.map((item, itemIndex) => <li key={itemIndex} className="flex gap-3 text-[16px] leading-7 text-slate-700 sm:text-[17px]"><span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-blue-600" /><span>{renderInline(item.trim().slice(2), `${index}-${itemIndex}`)}</span></li>)}</ul>;
+    if (/^>\\s?/.test(current)) {
+      const quote: string[] = [];
+      while (index < lines.length && /^>\\s?/.test(lines[index].trim())) {
+        quote.push(lines[index].trim().replace(/^>\\s?/, ""));
+        index += 1;
+      }
+      elements.push(<blockquote key={key} className="my-7 rounded-r-xl border-l-4 border-blue-600 bg-blue-50 px-5 py-4 text-base leading-8 text-slate-800">{renderInline(quote.join(" "), String(key))}</blockquote>);
+      continue;
     }
-    if (/^\d+[.)] /.test(trimmed)) {
-      const items = trimmed.split(/\r?\n/).filter((line) => /^\d+[.)] /.test(line.trim()));
-      return <ol key={index} className="mt-5 space-y-3 pl-1">{items.map((item, itemIndex) => <li key={itemIndex} className="flex gap-3 text-[16px] leading-7 text-slate-700 sm:text-[17px]"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs font-extrabold text-blue-700">{itemIndex + 1}</span><span>{renderInline(item.trim().replace(/^\d+[.)] /, ""), `${index}-${itemIndex}`)}</span></li>)}</ol>;
+    if (/^[-*]\\s+/.test(current)) {
+      const items: string[] = [];
+      while (index < lines.length && /^[-*]\\s+/.test(lines[index].trim())) {
+        items.push(lines[index].trim().replace(/^[-*]\\s+/, ""));
+        index += 1;
+      }
+      elements.push(<ul key={key} className="my-5 space-y-3 pl-1">{items.map((item, itemIndex) => <li key={itemIndex} className="flex gap-3 text-[16px] leading-8 text-slate-700 sm:text-[17px]"><span className="mt-3 h-2 w-2 shrink-0 rounded-full bg-blue-600" /><span>{renderInline(item, `${key}-${itemIndex}`)}</span></li>)}</ul>);
+      continue;
     }
-    if (trimmed.startsWith("> ")) {
-      return <blockquote key={index} className="mt-7 rounded-r-xl border-l-4 border-blue-600 bg-blue-50 px-5 py-4 text-base font-medium leading-7 text-slate-800">{renderInline(trimmed.slice(2), String(index))}</blockquote>;
+    if (/^\\d+[.)]\\s+/.test(current)) {
+      const items: string[] = [];
+      while (index < lines.length && /^\\d+[.)]\\s+/.test(lines[index].trim())) {
+        items.push(lines[index].trim().replace(/^\\d+[.)]\\s+/, ""));
+        index += 1;
+      }
+      elements.push(<ol key={key} className="my-5 space-y-3 pl-1">{items.map((item, itemIndex) => <li key={itemIndex} className="flex gap-3 text-[16px] leading-8 text-slate-700 sm:text-[17px]"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs font-extrabold text-blue-700">{itemIndex + 1}</span><span>{renderInline(item, `${key}-${itemIndex}`)}</span></li>)}</ol>);
+      continue;
     }
-    return renderParagraph(trimmed, String(index));
-  });
+    const paragraph: string[] = [];
+    while (index < lines.length) {
+      const line = lines[index].trim();
+      if (!line || isBlockStart(line)) break;
+      paragraph.push(line);
+      index += 1;
+    }
+    if (paragraph.length) {
+      elements.push(<p key={key} className="my-5 text-[16px] leading-8 text-slate-700 sm:text-[17px]">{renderInline(paragraph.join(" "), String(key))}</p>);
+    } else {
+      index += 1;
+    }
+  }
+  return elements;
 }
 
 function renderInline(text: string, key: string) {
@@ -159,11 +189,9 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ sl
   const cover = post.featured_image_url || DEFAULT_COVER;
   const date = formatDate(post.published_at ?? post.created_at);
   const minutes = readingTime(post.content);
-  const sections = post.content.split(/\r?\n\s*\r?\n/).map((block, index) => {
-    const text = block.trim();
-    if (text.startsWith("## ")) return { id: `section-${index}`, title: text.slice(3) };
-    if (text.startsWith("### ")) return { id: `section-${index}`, title: text.slice(4) };
-    return null;
+  const sections = post.content.replace(/\\r\\n?/g, "\\n").split("\\n").map((line, index) => {
+    const heading = line.trim().match(/^#{1,3}\\s+(.+)$/);
+    return heading ? { id: `section-${index}`, title: heading[1].trim() } : null;
   }).filter((section): section is { id: string; title: string } => section !== null);
 
   const structuredData = {
