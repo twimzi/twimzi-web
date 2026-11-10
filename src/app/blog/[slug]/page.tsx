@@ -115,9 +115,9 @@ function renderContent(content: string) {
     if (heading) {
       const title = heading[2].trim();
       if (heading[1].length <= 2) {
-        elements.push(<h2 id={`section-${key}`} key={key} className="scroll-mt-24 mt-12 border-b border-slate-200 pb-3 text-2xl font-extrabold tracking-tight text-slate-950 sm:text-3xl">{title}</h2>);
+        elements.push(<h2 id={`section-${key}`} key={key} className="scroll-mt-24 mt-12 border-b border-purple-200 pb-3 text-2xl font-extrabold tracking-tight bg-gradient-to-r from-[#8E07FB] via-[#1879FD] to-[#05CDFC] bg-clip-text text-transparent sm:text-3xl">{title}</h2>);
       } else {
-        elements.push(<h3 id={`section-${key}`} key={key} className="scroll-mt-24 mt-8 text-xl font-extrabold tracking-tight text-slate-900 sm:text-2xl">{title}</h3>);
+        elements.push(<h3 id={`section-${key}`} key={key} className="scroll-mt-24 mt-8 text-xl font-extrabold tracking-tight text-[#7000D6] sm:text-2xl">{title}</h3>);
       }
       index += 1;
       continue;
@@ -133,7 +133,7 @@ function renderContent(content: string) {
         quote.push(lines[index].trim().replace(/^>\\s?/, ""));
         index += 1;
       }
-      elements.push(<blockquote key={key} className="my-7 rounded-r-xl border-l-4 border-blue-600 bg-blue-50 px-5 py-4 text-base leading-8 text-slate-800">{renderInline(quote.join(" "), String(key))}</blockquote>);
+      elements.push(<blockquote key={key} className="my-7 rounded-r-xl border-l-4 border-[#8E07FB] bg-gradient-to-r from-[#F5ECFF] via-[#EFF5FF] to-[#EAFBFF] px-5 py-4 text-base leading-8 text-[#020D3A]">{renderInline(quote.join(" "), String(key))}</blockquote>);
       continue;
     }
     if (/^[-*]\\s+/.test(current)) {
@@ -155,7 +155,7 @@ function renderContent(content: string) {
         }
         break;
       }
-      elements.push(<ul key={key} className="my-5 space-y-3 pl-1">{items.map((item, itemIndex) => <li key={itemIndex} className="flex gap-3 text-[16px] leading-8 text-slate-700 sm:text-[17px]"><span className="mt-3 h-2 w-2 shrink-0 rounded-full bg-blue-600" /><span>{renderInline(item, `${key}-${itemIndex}`)}</span></li>)}</ul>);
+      elements.push(<ul key={key} className="my-5 space-y-3 pl-1">{items.map((item, itemIndex) => <li key={itemIndex} className="flex gap-3 text-[16px] leading-8 text-[#344365] sm:text-[17px]"><span className="mt-3 h-2 w-2 shrink-0 rounded-full bg-gradient-to-br from-[#8E07FB] via-[#1879FD] to-[#05CDFC]" /><span>{renderInline(item, `${key}-${itemIndex}`)}</span></li>)}</ul>);
       continue;
     }
     if (/^\\d+[.)]\\s+/.test(current)) {
@@ -177,7 +177,7 @@ function renderContent(content: string) {
         }
         break;
       }
-      elements.push(<ol key={key} className="my-5 space-y-3 pl-1">{items.map((item, itemIndex) => <li key={itemIndex} className="flex gap-3 text-[16px] leading-8 text-slate-700 sm:text-[17px]"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs font-extrabold text-blue-700">{itemIndex + 1}</span><span>{renderInline(item, `${key}-${itemIndex}`)}</span></li>)}</ol>);
+      elements.push(<ol key={key} className="my-5 space-y-3 pl-1">{items.map((item, itemIndex) => <li key={itemIndex} className="flex gap-3 text-[16px] leading-8 text-[#344365] sm:text-[17px]"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#8E07FB] to-[#1879FD] text-xs font-extrabold text-white shadow-sm">{itemIndex + 1}</span><span>{renderInline(item, `${key}-${itemIndex}`)}</span></li>)}</ol>);
       continue;
     }
     const paragraph: string[] = [];
@@ -188,7 +188,7 @@ function renderContent(content: string) {
       index += 1;
     }
     if (paragraph.length) {
-      elements.push(<p key={key} className="my-5 text-[16px] leading-8 text-slate-700 sm:text-[17px]">{renderInline(paragraph.join(" "), String(key))}</p>);
+      elements.push(<p key={key} className="my-5 text-[16px] leading-8 text-[#344365] sm:text-[17px]">{renderInline(paragraph.join(" "), String(key))}</p>);
     } else {
       index += 1;
     }
@@ -199,10 +199,10 @@ function renderContent(content: string) {
 function renderInline(text: string, key: string) {
   const parts = text.split(/(\*\*[^*]+\*\*|https?:\/\/[^\s)]+)/g);
   return parts.map((part, index) => {
-    if (part.startsWith("**") && part.endsWith("**")) return <strong key={`${key}-${index}`} className="font-bold text-slate-900">{part.slice(2, -2)}</strong>;
+    if (part.startsWith("**") && part.endsWith("**")) return <strong key={`${key}-${index}`} className="bg-gradient-to-r from-[#8E07FB] via-[#1879FD] to-[#05CDFC] bg-clip-text font-extrabold text-transparent">{part.slice(2, -2)}</strong>;
     if (/^https?:\/\//.test(part)) {
       const cleanUrl = part.replace(/[.,;!?]+$/, "");
-      return <a key={`${key}-${index}`} href={cleanUrl} target="_blank" rel="noopener noreferrer" className="break-words font-semibold text-blue-700 underline decoration-blue-200 underline-offset-4 hover:text-blue-900">{cleanUrl}{part.slice(cleanUrl.length)}</a>;
+      return <a key={`${key}-${index}`} href={cleanUrl} target="_blank" rel="noopener noreferrer" className="break-words font-bold text-[#1879FD] underline decoration-[#05CDFC] underline-offset-4 hover:text-[#8E07FB]">{cleanUrl}{part.slice(cleanUrl.length)}</a>;
     }
     return part;
   });
