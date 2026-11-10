@@ -138,18 +138,44 @@ function renderContent(content: string) {
     }
     if (/^[-*]\\s+/.test(current)) {
       const items: string[] = [];
-      while (index < lines.length && /^[-*]\\s+/.test(lines[index].trim())) {
-        items.push(lines[index].trim().replace(/^[-*]\\s+/, ""));
-        index += 1;
+      while (index < lines.length) {
+        const line = lines[index].trim();
+        if (/^[-*]\\s+/.test(line)) {
+          items.push(line.replace(/^[-*]\\s+/, ""));
+          index += 1;
+          continue;
+        }
+        if (!line) {
+          let next = index;
+          while (next < lines.length && !lines[next].trim()) next += 1;
+          if (next < lines.length && /^[-*]\\s+/.test(lines[next].trim())) {
+            index = next;
+            continue;
+          }
+        }
+        break;
       }
       elements.push(<ul key={key} className="my-5 space-y-3 pl-1">{items.map((item, itemIndex) => <li key={itemIndex} className="flex gap-3 text-[16px] leading-8 text-slate-700 sm:text-[17px]"><span className="mt-3 h-2 w-2 shrink-0 rounded-full bg-blue-600" /><span>{renderInline(item, `${key}-${itemIndex}`)}</span></li>)}</ul>);
       continue;
     }
     if (/^\\d+[.)]\\s+/.test(current)) {
       const items: string[] = [];
-      while (index < lines.length && /^\\d+[.)]\\s+/.test(lines[index].trim())) {
-        items.push(lines[index].trim().replace(/^\\d+[.)]\\s+/, ""));
-        index += 1;
+      while (index < lines.length) {
+        const line = lines[index].trim();
+        if (/^\\d+[.)]\\s+/.test(line)) {
+          items.push(line.replace(/^\\d+[.)]\\s+/, ""));
+          index += 1;
+          continue;
+        }
+        if (!line) {
+          let next = index;
+          while (next < lines.length && !lines[next].trim()) next += 1;
+          if (next < lines.length && /^\\d+[.)]\\s+/.test(lines[next].trim())) {
+            index = next;
+            continue;
+          }
+        }
+        break;
       }
       elements.push(<ol key={key} className="my-5 space-y-3 pl-1">{items.map((item, itemIndex) => <li key={itemIndex} className="flex gap-3 text-[16px] leading-8 text-slate-700 sm:text-[17px]"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs font-extrabold text-blue-700">{itemIndex + 1}</span><span>{renderInline(item, `${key}-${itemIndex}`)}</span></li>)}</ol>);
       continue;
