@@ -179,7 +179,7 @@ export async function POST(request: Request) {
     const preferenceByEmail = new Map((preferences ?? []).map((row) => [String(row.email).toLowerCase(), row]));
     const eligibleRecipients = recipients.filter((email) => {
       const preference = preferenceByEmail.get(email);
-      return !preference?.unsubscribed_at && (campaignType === "transactional" || preference?.marketing_consent === true || payload.consentConfirmed === true);
+      return campaignType === "transactional" || (!preference?.unsubscribed_at && (preference?.marketing_consent === true || payload.consentConfirmed === true));
     });
     const suppressedRecipients = recipients.filter((email) => !eligibleRecipients.includes(email));
     if (campaignType === "marketing" && payload.consentConfirmed === true && eligibleRecipients.length) {
