@@ -37,6 +37,12 @@ type PublicCategory = {
   slug: string | null;
 };
 
+type PublicCatalogItem = {
+  slug: string | null;
+  updated_at: string | null;
+  created_at?: string | null;
+};
+
 function slugPart(value: string): string {
   return value.trim().toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "-").replace(/^-|-$/g, "");
 }
@@ -78,6 +84,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const businessPages: MetadataRoute.Sitemap = [];
   const blogPages: MetadataRoute.Sitemap = [];
   const categoryPages: MetadataRoute.Sitemap = [];
+  const productPages: MetadataRoute.Sitemap = [];
+  const servicePages: MetadataRoute.Sitemap = [];
   const locationCounts = new Map<string, number>();
 
   try {
@@ -102,6 +110,56 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           changeFrequency: "monthly",
           priority: 0.65,
         });
+      }
+    }
+
+    const catalogPageSize = 100;
+
+    for (const catalog of [
+      {
+        table: "get_public_products",
+        route: "/products/",
+        destination: productPages,
+        label: "products",
+      },
+      {
+        table: "get_public_services",
+        route: "/services/",
+        destination: servicePages,
+        label: "services",
+      },
+    ]) {
+      let catalogOffset = 0;
+
+      while (true) {
+        const { data, error } = await supabase.rpc(catalog.table, {
+          p_search: null,
+          p_limit: catalogPageSize,
+          p_offset: catalogOffset,
+        });
+
+        if (error || !data) {
+          console.error(`Failed to load public ${catalog.label} for sitemap:`, error);
+          break;
+        }
+
+        const items = data as PublicCatalogItem[];
+        for (const item of items) {
+          const slug = item.slug?.trim();
+          if (!slug) continue;
+
+          const modifiedValue = item.updated_at ?? item.created_at;
+          const modified = modifiedValue ? new Date(modifiedValue) : now;
+          catalog.destination.push({
+            url: `${siteConfig.url}${catalog.route}${encodeURIComponent(slug)}`,
+            lastModified: Number.isNaN(modified.getTime()) ? now : modified,
+            changeFrequency: "weekly",
+            priority: 0.65,
+          });
+        }
+
+        if (items.length < catalogPageSize) break;
+        catalogOffset += catalogPageSize;
       }
     }
 
@@ -190,5 +248,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     }));
 
-  return [...staticPages, ...blogPages, ...businessPages, ...categoryPages, ...locationPages];
+  return [
+    ...staticPages,
+    ...blogPages,
+    ...businessPages,
+    ...productPages,
+    ...servicePages,
+    ...categoryPages,
+    ...locationPages,
+  ];
 }
