@@ -7,6 +7,10 @@ import { siteConfig } from "@/config/site";
 import BlogEngagement from "@/components/blog/blog-engagement";
 import BlogImage from "@/components/blog/blog-image";
 
+// Always read the latest published blog data and featured images from Supabase.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 type BlogPost = {
   id: string;
   title: string;
