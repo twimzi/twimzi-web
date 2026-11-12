@@ -10,7 +10,7 @@ const templates = [
   { id: "announcement", label: "Product announcement", category: "Announcement", subject: "An update from Twimzi", body: "Hello {{name}},\n\nWe have an update from Twimzi. Visit https://www.twimzi.com to explore local businesses, products, and services.\n\nThank you for being part of Twimzi.\n\nRegards,\nTeam Twimzi" },
 ];
 
-type Tab = "compose" | "templates" | "automations" | "history";
+type Tab = "inbox" | "sent" | "compose" | "templates" | "automations" | "history" | "settings";
 
 export default function AdminEmailMessagesPage() {
   const [tab, setTab] = useState<Tab>("compose");
@@ -28,6 +28,12 @@ export default function AdminEmailMessagesPage() {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [audienceLoading, setAudienceLoading] = useState(false);
   const [audienceMessage, setAudienceMessage] = useState("");
+  const [mailboxMessages, setMailboxMessages] = useState<any[]>([]);
+  const [mailboxLoading, setMailboxLoading] = useState(false);
+  const [mailboxError, setMailboxError] = useState("");
+  const [mailboxConnection, setMailboxConnection] = useState<{ connected: boolean; address?: string; mailboxId?: string; error?: string } | null>(null);
+  const [mailboxPage, setMailboxPage] = useState(1);
+  const [selectedMessage, setSelectedMessage] = useState<any | null>(null);
 
   const recipients = useMemo(() => Array.from(new Set(recipientsText.split(/[\s,;]+/).map((x) => x.trim().toLowerCase()).filter(Boolean))), [recipientsText]);
   const invalidRecipients = recipients.filter((email) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
@@ -40,6 +46,28 @@ export default function AdminEmailMessagesPage() {
     fetch("/api/admin/email-campaigns", { cache: "no-store" }).then(async (response) => { const result = await response.json(); if (!response.ok) throw new Error(result.error); return result; }).then((result) => { if (active) setCampaigns(result.campaigns || []); }).catch(() => { if (active) setCampaigns([]); }).finally(() => { if (active) setHistoryLoading(false); });
     return () => { active = false; };
   }, [tab]);
+
+  useEffect(() => {
+    if (tab !== "inbox" && tab !== "sent" && tab !== "settings") return;
+    let active = true;
+    setMailboxLoading(true);
+    setMailboxError("");
+    fetch("/api/admin/hostinger-mail?folder=" + encodeURIComponent(tab === "sent" ? "INBOX.Sent" : "INBOX") + "&page=" + mailboxPage, { cache: "no-store" })
+      .then(async (response) => { const result = await response.json(); if (!response.ok) throw new Error(result.error || "Hostinger mailbox could not be loaded."); return result; })
+      .then((result) => {
+        if (!active) return;
+        setMailboxConnection({ connected: true, address: result.address, mailboxId: result.mailboxId });
+        setMailboxMessages(result.messages || []);
+      })
+      .catch((error) => {
+        if (!active) return;
+        setMailboxConnection({ connected: false, error: error instanceof Error ? error.message : "Connection unavailable" });
+        setMailboxError(error instanceof Error ? error.message : "Hostinger mailbox could not be loaded.");
+        setMailboxMessages([]);
+      })
+      .finally(() => { if (active) setMailboxLoading(false); });
+    return () => { active = false; };
+  }, [tab, mailboxPage]);
 
   function chooseTemplate(id: string) {
     const template = templates.find((item) => item.id === id);
@@ -107,7 +135,7 @@ export default function AdminEmailMessagesPage() {
     { id: "compose", label: "Campaign builder", icon: Mail },
     { id: "templates", label: "Templates", icon: WandSparkles },
     { id: "automations", label: "Automations", icon: Clock3 },
-    { id: "history", label: "Campaign history", icon: Eye },
+    { id: "history", label: "Campaign history", icon: Eye },\n    { id: "settings", label: "Email Settings", icon: WandSparkles },
   ];
 
   return (
@@ -145,7 +173,42 @@ export default function AdminEmailMessagesPage() {
         })}
       </div>
 
-      {tab === "compose" && (
+
+      {(tab === "inbox" || tab === "sent") && (
+        <div className="overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--color-border)] p-5">
+            <div><h2 className="font-bold">{tab === "inbox" ? "Inbox" : "Sent / Outbox"}</h2><p className="mt-1 text-sm text-[var(--color-text-muted)]">Live mailbox folder from Hostinger Mail API</p></div>
+            <button type="button" onClick={() => { setMailboxPage(1); setSelectedMessage(null); }} className="rounded-lg border px-3 py-2 text-sm font-semibold">Refresh</button>
+          </div>
+          {mailboxLoading ? <p className="p-8 text-center text-sm">Connecting to Hostinger mailbox…</p> : mailboxError ? <div className="p-6"><p className="font-semibold text-red-700">Mailbox connection unavailable</p><p className="mt-2 text-sm text-[var(--color-text-secondary)]">{mailboxError}</p><p className="mt-3 text-sm">Open Email Settings and configure the Hostinger Mail API token on the server.</p></div> : selectedMessage ? <div className="p-5"><button type="button" onClick={() => setSelectedMessage(null)} className="mb-4 text-sm font-semibold text-[var(--color-primary)]">← Back to messages</button><h3 className="text-lg font-bold">{selectedMessage.subject || "(No subject)"}</h3><p className="mt-2 text-sm text-[var(--color-text-muted)]">From: {selectedMessage.from || selectedMessage.sender || "—"} · To: {selectedMessage.to || "—"}</p><p className="mt-1 text-xs text-[var(--color-text-muted)]">{selectedMessage.date || selectedMessage.internalDate || ""}</p><div className="mt-5 whitespace-pre-wrap rounded-xl bg-gray-50 p-4 text-sm leading-6">{selectedMessage.text || selectedMessage.body || selectedMessage.snippet || "Message content is not included in the list response."}</div></div> : mailboxMessages.length === 0 ? <p className="p-8 text-center text-sm text-[var(--color-text-muted)]">No messages found in this folder.</p> : <div className="divide-y">{mailboxMessages.map((message, index) => <button key={String(message.uid || message.id || index)} type="button" onClick={() => setSelectedMessage(message)} className="flex w-full flex-col gap-1 p-4 text-left hover:bg-gray-50 sm:flex-row sm:items-center sm:justify-between"><div className="min-w-0"><p className="truncate text-sm font-semibold">{message.subject || "(No subject)"}</p><p className="mt-1 truncate text-xs text-[var(--color-text-muted)]">{message.from || message.sender || message.to || "Unknown sender"}</p><p className="mt-1 truncate text-xs text-[var(--color-text-muted)]">{message.snippet || message.preview || ""}</p></div><span className="shrink-0 text-xs text-[var(--color-text-muted)]">{message.date || message.internalDate || ""}</span></button>)}</div>}
+        </div>
+      )}
+
+      {tab === "settings" && (
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
+          <div className="rounded-2xl border border-[var(--color-border)] bg-white p-5 sm:p-7">
+            <h2 className="text-xl font-bold">Email sending & mailbox settings</h2>
+            <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">Manage the Hostinger connection used by Twimzi. Secrets are kept on the server and are never displayed in this dashboard.</p>
+            <div className="mt-6 rounded-xl border p-4">
+              <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="font-semibold">Hostinger Mail API</p><p className="mt-1 text-xs text-[var(--color-text-muted)]">Inbox, Sent folder and mailbox access</p></div><span className={mailboxConnection?.connected ? "rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700" : "rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800"}>{mailboxLoading ? "Checking…" : mailboxConnection?.connected ? "Connected" : "Not connected"}</span></div>
+              {mailboxConnection?.address && <p className="mt-3 text-sm">Mailbox: <strong>{mailboxConnection.address}</strong></p>}
+              {mailboxConnection?.error && <p className="mt-3 text-sm text-red-700">{mailboxConnection.error}</p>}
+              <button type="button" onClick={() => { setTab("settings"); setMailboxPage((p) => p + 1); }} className="mt-4 rounded-lg border px-3 py-2 text-sm font-semibold">Test connection</button>
+            </div>
+            <div className="mt-5 rounded-xl border p-4">
+              <p className="font-semibold">Server environment variables</p>
+              <p className="mt-2 text-sm text-[var(--color-text-secondary)]">Add these in Hostinger hPanel → Website → Manage → Advanced → PHP Configuration / Environment variables (or your Node.js app environment settings, depending on your deployment type).</p>
+              <div className="mt-3 space-y-2 rounded-lg bg-gray-50 p-3 font-mono text-xs"><p>HOSTINGER_MAIL_API_TOKEN</p><p>HOSTINGER_SMTP_HOST</p><p>HOSTINGER_SMTP_PORT=465</p><p>HOSTINGER_SMTP_USER</p><p>HOSTINGER_SMTP_PASS</p><p>HOSTINGER_SMTP_FROM</p><p>EMAIL_AUTOMATION_CRON_SECRET</p><p>EMAIL_UNSUBSCRIBE_SECRET</p></div>
+              <p className="mt-3 text-xs text-[var(--color-text-muted)]">Create the API token in Hostinger Agentic Mail → API. Select only the mailbox Twimzi should manage. Paste the token into the server environment, never into GitHub or browser code.</p>
+            </div>
+            <div className="mt-5 rounded-xl border p-4">
+              <p className="font-semibold">Campaign sender</p><p className="mt-1 text-sm text-[var(--color-text-secondary)]">Campaign sending currently uses Hostinger SMTP credentials. SMTP accepted status does not confirm inbox delivery. Inbox and Sent folder access uses the Mail API token.</p>
+            </div>
+          </div>
+          <aside className="rounded-2xl border border-[var(--color-border)] bg-white p-5"><h3 className="font-bold">Hostinger setup</h3><ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-6 text-[var(--color-text-secondary)]"><li>Open Hostinger hPanel.</li><li>Go to Agentic Mail → API.</li><li>Create a token restricted to the Twimzi mailbox.</li><li>Save it as HOSTINGER_MAIL_API_TOKEN in the website server environment.</li><li>Redeploy and test the connection here.</li></ol><p className="mt-4 text-xs text-[var(--color-text-muted)]">API token is write-only from the server side; it cannot be retrieved from this page.</p></aside>
+        </div>
+      )}
+\n      {tab === "compose" && (
         <form onSubmit={sendCampaign} className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
           <div className="space-y-5 rounded-2xl border border-[var(--color-border)] bg-white p-5 sm:p-7">
             <div className="flex items-center gap-3"><div className="rounded-xl bg-[var(--color-primary-light)] p-3 text-[var(--color-primary)]"><Mail size={20} /></div><div><h2 className="font-bold">Create campaign</h2><p className="text-sm text-[var(--color-text-muted)]">Draft and send an email campaign</p></div></div>
