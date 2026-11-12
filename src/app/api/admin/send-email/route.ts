@@ -172,10 +172,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Campaign history could not be saved. No email was sent." }, { status: 500 });
     }
 
-    const { data: preferences } = await supabase
+    const { data: preferences, error: preferenceError } = await supabase
       .from("email_preferences")
       .select("email,marketing_consent,unsubscribed_at")
       .in("email", recipients);
+    if (preferenceError) {
+      await supabase.from("email_campaigns").update({ status: "failed", failed_count: recipients.length, completed_at: new Date().toISOString() }).eq("id", campaign.id);
+      return NextResponse.json({ error: "Recipient suppression checks failed. No emails were sent." }, { status: 500 });
+    }
     const preferenceByEmail = new Map((preferences ?? []).map((row) => [String(row.email).toLowerCase(), row]));
     const eligibleRecipients = recipients.filter((email) => {
       const preference = preferenceByEmail.get(email);
