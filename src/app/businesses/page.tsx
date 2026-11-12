@@ -27,9 +27,16 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { siteConfig } from "@/config/site";
 
 export const metadata: Metadata = {
-  title: "Businesses | Twimzi",
+  title: "Business Directory India – Manufacturers, Traders & Services | Twimzi",
   description:
-    "Discover verified local businesses, manufacturers, traders, professionals, shops and service providers on Twimzi.",
+    "Explore India's business directory on Twimzi. Discover manufacturers, wholesalers, traders, local shops, professionals and service providers. Find businesses and connect directly.",
+  alternates: { canonical: "/businesses" },
+  openGraph: {
+    type: "website",
+    url: "/businesses",
+    title: "Business Directory India | Twimzi",
+    description: "Discover manufacturers, wholesalers, traders and local service providers across India.",
+  },
 };
 
 type SearchParams = {
