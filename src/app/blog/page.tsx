@@ -3,6 +3,10 @@ import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import BlogImage from "@/components/blog/blog-image";
 
+// Always read the latest published blog data and featured images from Supabase.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: "Small Business Tips, Local Guides & Insights | Twimzi",
   description: "Practical guides to help Indian businesses grow online and help people discover trusted local businesses with Twimzi.",
