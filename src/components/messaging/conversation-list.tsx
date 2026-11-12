@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -73,6 +74,7 @@ export function ConversationList() {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
 
   const [items, setItems] = useState<ConversationSummary[]>([]);
+  const [avatarUrls, setAvatarUrls] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [authenticated, setAuthenticated] = useState(true);
   const [error, setError] = useState("");
@@ -103,7 +105,21 @@ export function ConversationList() {
       return;
     }
 
-    setItems((data ?? []) as ConversationSummary[]);
+    const conversations = (data ?? []) as ConversationSummary[];
+    setItems(conversations);
+    const mediaIds = Array.from(new Set(conversations.map((item) => item.counterpart_avatar_media_id).filter((id): id is string => Boolean(id))));
+    if (mediaIds.length) {
+      const { data: mediaRows } = await supabase.from("media").select("id,bucket_name,object_path,is_public").in("id", mediaIds).eq("is_public", true);
+      const urls: Record<string, string> = {};
+      for (const media of mediaRows ?? []) {
+        if (!media.bucket_name || !media.object_path) continue;
+        const { data: publicUrl } = supabase.storage.from(media.bucket_name).getPublicUrl(media.object_path);
+        if (publicUrl?.publicUrl) urls[media.id] = publicUrl.publicUrl;
+      }
+      setAvatarUrls(urls);
+    } else {
+      setAvatarUrls({});
+    }
     setLoading(false);
   }, [supabase]);
 
@@ -141,7 +157,21 @@ export function ConversationList() {
       }
 
       setAuthenticated(true);
-      setItems((data ?? []) as ConversationSummary[]);
+      const conversations = (data ?? []) as ConversationSummary[];
+      setItems(conversations);
+      const mediaIds = Array.from(new Set(conversations.map((item) => item.counterpart_avatar_media_id).filter((id): id is string => Boolean(id))));
+      if (mediaIds.length) {
+      const { data: mediaRows } = await supabase.from("media").select("id,bucket_name,object_path,is_public").in("id", mediaIds).eq("is_public", true);
+      const urls: Record<string, string> = {};
+      for (const media of mediaRows ?? []) {
+      if (!media.bucket_name || !media.object_path) continue;
+      const { data: publicUrl } = supabase.storage.from(media.bucket_name).getPublicUrl(media.object_path);
+      if (publicUrl?.publicUrl) urls[media.id] = publicUrl.publicUrl;
+      }
+      setAvatarUrls(urls);
+      } else {
+      setAvatarUrls({});
+      }
       setLoading(false);
     };
 
@@ -278,7 +308,11 @@ export function ConversationList() {
               >
                 <div className="relative shrink-0">
                   <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-[linear-gradient(135deg,#EDE1FF_0%,#DCEBFF_55%,#DDF8FF_100%)] text-sm font-bold text-[var(--color-primary-dark)] ring-1 ring-white shadow-sm transition group-hover:scale-105">
-                    {getInitial(displayName)}
+                    {item.counterpart_avatar_media_id && avatarUrls[item.counterpart_avatar_media_id] ? (
+                      <Image src={avatarUrls[item.counterpart_avatar_media_id]} alt={displayName + " profile"} width={48} height={48} unoptimized className="h-full w-full object-cover" />
+                    ) : (
+                      getInitial(displayName)
+                    )}
                   </div>
 
                   {unreadCount > 0 ? (
