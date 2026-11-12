@@ -35,6 +35,23 @@ type CampaignRow = {
 };
 type PageRow = { path: string; views: number; visitors: number };
 
+type GrowthIntelligence = {
+  summary: {
+    active_users_7d: number;
+    active_users_30d: number;
+    returning_users_30d: number;
+    active_businesses: number;
+    businesses_with_products: number;
+    businesses_with_services: number;
+    businesses_with_posts: number;
+    products_total: number;
+    services_total: number;
+    published_posts_30d: number;
+    businesses_created_previous_30d: number;
+  };
+  category_breakdown: { category: string; businesses: number }[];
+};
+
 type GrowthDashboard = {
   summary: GrowthSummary;
   funnel: FunnelStage[];
@@ -96,8 +113,12 @@ function Section({
 
 export default async function AdminGrowthPage() {
   const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.rpc("admin_growth_dashboard_stats");
+  const [{ data, error }, { data: intelligenceData }] = await Promise.all([
+    supabase.rpc("admin_growth_dashboard_stats"),
+    supabase.rpc("admin_growth_intelligence_metrics"),
+  ]);
   const growth = (data ?? null) as GrowthDashboard | null;
+  const intelligence = (intelligenceData ?? null) as GrowthIntelligence | null;
 
   if (error || !growth?.summary) {
     return (
@@ -151,6 +172,43 @@ export default async function AdminGrowthPage() {
         <Metric label="New businesses" value={summary.new_businesses_30d} note="Created in last 30 days" />
         <Metric label="New user accounts" value={summary.new_users_30d} note="Created in last 30 days" />
       </div>
+
+      {intelligence?.summary ? (
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <Metric label="Active users · 7 days" value={intelligence.summary.active_users_7d} note="Signed-in users with recorded activity" />
+            <Metric label="Active users · 30 days" value={intelligence.summary.active_users_30d} note="Signed-in users with recorded activity" />
+            <Metric label="Returning users · 30 days" value={intelligence.summary.returning_users_30d} note="Active on more than one calendar day" />
+            <Metric label="Activated businesses" value={intelligence.summary.active_businesses} note="Published products, services or posts" />
+            <Metric label="Businesses with products" value={intelligence.summary.businesses_with_products} note={number(intelligence.summary.products_total) + " active products"} />
+            <Metric label="Businesses with services" value={intelligence.summary.businesses_with_services} note={number(intelligence.summary.services_total) + " active services"} />
+            <Metric label="Businesses publishing posts" value={intelligence.summary.businesses_with_posts} note={number(intelligence.summary.published_posts_30d) + " posts published in 30 days"} />
+            <Metric label="Previous 30-day businesses" value={intelligence.summary.businesses_created_previous_30d} note="Baseline for acquisition comparison" />
+          </div>
+          <Section title="Business category mix" description="Which types of businesses are joining Twimzi.">
+            {intelligence.category_breakdown.length === 0 ? (
+              <p className="py-8 text-center text-sm text-[var(--color-text-muted)]">Category data will appear as businesses register.</p>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2">
+                {intelligence.category_breakdown.map((item) => {
+                  const maximum = Math.max(1, ...intelligence.category_breakdown.map((row) => row.businesses));
+                  return (
+                    <div key={item.category}>
+                      <div className="mb-1.5 flex justify-between gap-3 text-sm">
+                        <span className="font-medium">{item.category}</span>
+                        <span className="tabular-nums text-[var(--color-text-muted)]">{number(item.businesses)}</span>
+                      </div>
+                      <div className="h-2 overflow-hidden rounded-full bg-[var(--color-secondary)]">
+                        <div className="h-full rounded-full bg-[var(--color-primary)]" style={{ width: Math.max(3, item.businesses / maximum * 100) + "%" }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Section>
+        </>
+      ) : null}
 
       <div className="grid gap-6 xl:grid-cols-2">
         <Section
