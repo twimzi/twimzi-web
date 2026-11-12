@@ -227,6 +227,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       const candidates = data as PublicCityCategoryBusiness[];
       for (const item of candidates) {
         if (!item.city?.trim() || !item.business_type?.trim()) continue;
+        if (slugPart(item.business_type) === "other") continue;
         const city = slugPart(item.city);
         const category = getPluralCategorySlug(item.business_type);
         const key = `${city}/${category}`;
