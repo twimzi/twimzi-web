@@ -1,4 +1,5 @@
 import tls from "node:tls";
+import { createHmac } from "node:crypto";
 import { createInterface } from "node:readline";
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -120,12 +121,12 @@ export async function POST(request: Request) {
   try {
     const internalSecret = process.env.EMAIL_AUTOMATION_CRON_SECRET;
     const isInternal = !!internalSecret && request.headers.get("authorization") === `Bearer ${internalSecret}`;
-    const supabase = isInternal
-      ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } })
-      : await createSupabaseServerClient();
     if (isInternal && !process.env.SUPABASE_SERVICE_ROLE_KEY) {
       return NextResponse.json({ error: "SUPABASE_SERVICE_ROLE_KEY is not configured for the automation worker." }, { status: 503 });
     }
+    const supabase = isInternal
+      ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } })
+      : await createSupabaseServerClient();
     const { data: { user } } = isInternal ? { data: { user: null } } : await supabase.auth.getUser();
     if (!isInternal) {
       if (!user) return NextResponse.json({ error: "Please sign in." }, { status: 401 });
@@ -153,6 +154,10 @@ export async function POST(request: Request) {
     }
 
     const campaignType = payload.campaignType === "transactional" ? "transactional" : "marketing";
+    const unsubscribeSecret = process.env.EMAIL_UNSUBSCRIBE_SECRET || process.env.EMAIL_AUTOMATION_CRON_SECRET;
+    if (campaignType === "marketing" && !unsubscribeSecret) {
+      return NextResponse.json({ error: "Marketing unsubscribe signing is not configured. Set EMAIL_UNSUBSCRIBE_SECRET in Hostinger environment variables." }, { status: 503 });
+    }
     if (campaignType === "marketing" && payload.consentConfirmed !== true) {
       return NextResponse.json({ error: "Confirm that every marketing recipient has opted in to receive Twimzi emails. Unsubscribed addresses will always be suppressed." }, { status: 400 });
     }
