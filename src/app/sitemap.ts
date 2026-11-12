@@ -31,6 +31,12 @@ type BusinessLocation = {
   state: string;
 };
 
+type PublicCityCategoryBusiness = {
+  business_type: string | null;
+  city: string | null;
+  state: string | null;
+};
+
 type PublicCategory = {
   id: string;
   category_name: string;
@@ -53,6 +59,11 @@ function getCategorySlug(category: PublicCategory): string {
 
 function getLocationSlug(location: BusinessLocation): string {
   return `${slugPart(location.city)}-${slugPart(location.state)}`;
+}
+
+function getPluralCategorySlug(value: string): string {
+  const slug = slugPart(value);
+  return slug.endsWith("s") ? slug : `${slug}s`;
 }
 
 function createPublicSupabaseClient() {
@@ -87,6 +98,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const productPages: MetadataRoute.Sitemap = [];
   const servicePages: MetadataRoute.Sitemap = [];
   const locationCounts = new Map<string, number>();
+  const cityCategoryCounts = new Map<string, { city: string; category: string; count: number }>();
 
   try {
     const supabase = createPublicSupabaseClient();
@@ -196,6 +208,41 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       offset += pageSize;
     }
 
+    // Build city × business-type landing pages only where at least two real,
+    // approved public listings exist. This avoids thin or empty SEO pages.
+    let cityCategoryOffset = 0;
+    while (true) {
+      const { data, error } = await supabase.rpc("get_public_businesses_with_location", {
+        p_search: null,
+        p_location: null,
+        p_limit: 100,
+        p_offset: cityCategoryOffset,
+      });
+
+      if (error || !data) {
+        console.error("Failed to load city/category candidates for sitemap:", error);
+        break;
+      }
+
+      const candidates = data as PublicCityCategoryBusiness[];
+      for (const item of candidates) {
+        if (!item.city?.trim() || !item.business_type?.trim()) continue;
+        if (slugPart(item.business_type) === "other") continue;
+        const city = slugPart(item.city);
+        const category = getPluralCategorySlug(item.business_type);
+        const key = `${city}/${category}`;
+        const existing = cityCategoryCounts.get(key);
+        cityCategoryCounts.set(key, {
+          city,
+          category,
+          count: (existing?.count ?? 0) + 1,
+        });
+      }
+
+      if (candidates.length < 100) break;
+      cityCategoryOffset += 100;
+    }
+
     const { data: locationData, error: locationError } =
       await supabase.rpc("get_public_business_locations");
 
@@ -239,6 +286,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("Unable to generate dynamic sitemap entries:", error);
   }
 
+  const cityCategoryPages: MetadataRoute.Sitemap = [...cityCategoryCounts.values()]
+    .filter((item) => item.count >= 2)
+    .map((item) => ({
+      url: `${siteConfig.url}/city/${encodeURIComponent(item.city)}/${encodeURIComponent(item.category)}`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.65,
+    }));
+
   const locationPages: MetadataRoute.Sitemap = [...locationCounts.entries()]
     .filter(([, count]) => count >= 2)
     .map(([slug]) => ({
@@ -256,5 +312,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...servicePages,
     ...categoryPages,
     ...locationPages,
+    ...cityCategoryPages,
   ];
 }
