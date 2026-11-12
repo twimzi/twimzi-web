@@ -143,13 +143,49 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Enter a message up to 20,000 characters." }, { status: 400 });
     }
 
+    if (payload.consentConfirmed !== true) {
+      return NextResponse.json({ error: "Confirm that every marketing recipient has opted in to receive Twimzi emails. Unsubscribed addresses will always be suppressed." }, { status: 400 });
+    }
+
+    const { data: campaign, error: campaignError } = await supabase
+      .from("email_campaigns")
+      .insert({ name: campaignName, subject, body, campaign_type: "marketing", status: "sending", created_by: user.id, started_at: new Date().toISOString(), total_recipients: recipients.length })
+      .select("id")
+      .single();
+    if (campaignError || !campaign) {
+      console.error("[admin/send-email] campaign log insert failed", campaignError?.message);
+      return NextResponse.json({ error: "Campaign history could not be saved. No email was sent." }, { status: 500 });
+    }
+
+    const { data: preferences } = await supabase
+      .from("email_preferences")
+      .select("email,marketing_consent,unsubscribed_at")
+      .in("email", recipients);
+    const preferenceByEmail = new Map((preferences ?? []).map((row) => [String(row.email).toLowerCase(), row]));
+    const eligibleRecipients = recipients.filter((email) => {
+      const preference = preferenceByEmail.get(email);
+      return !preference?.unsubscribed_at && (preference?.marketing_consent === true || payload.consentConfirmed === true);
+    });
+    const suppressedRecipients = recipients.filter((email) => !eligibleRecipients.includes(email));
+    if (suppressedRecipients.length) {
+      await supabase.from("email_campaign_recipients").insert(suppressedRecipients.map((email) => ({
+        campaign_id: campaign.id, email, status: "suppressed", error_message: "Recipient has unsubscribed."
+      })));
+    }
+    if (eligibleRecipients.length) {
+      await supabase.from("email_campaign_recipients").insert(eligibleRecipients.map((email) => ({
+        campaign_id: campaign.id, email, status: "queued"
+      })));
+    }
+
     let sent = 0;
     const failed: string[] = [];
-    for (const recipient of recipients) {
+    for (const recipient of eligibleRecipients) {
       try {
         const personalizedBody = body.replace(/\{\{name\}\}/g, "there");
         await sendViaHostinger(recipient, subject, personalizedBody);
         sent += 1;
+        await supabase.from("email_campaign_recipients").update({ status: "accepted", accepted_at: new Date().toISOString(), provider_message: "Accepted by Hostinger SMTP" }).eq("campaign_id", campaign.id).eq("email", recipient);
       } catch (error) {
         // Log only safe diagnostic details; never log SMTP credentials or message bodies.
         console.error("[admin/send-email] SMTP send failed", {
@@ -157,15 +193,15 @@ export async function POST(request: Request) {
           error: error instanceof Error ? error.message : "Unknown SMTP error",
         });
         failed.push(recipient);
+        await supabase.from("email_campaign_recipients").update({ status: "failed", error_message: error instanceof Error ? error.message.slice(0, 500) : "SMTP error" }).eq("campaign_id", campaign.id).eq("email", recipient);
       }
     }
+    await supabase.from("email_campaigns").update({ status: failed.length ? (sent ? "partially_sent" : "failed") : "sent", accepted_count: sent, failed_count: failed.length + suppressedRecipients.length, completed_at: new Date().toISOString() }).eq("id", campaign.id);
     if (sent === 0) {
-      return NextResponse.json({ error: "No emails were sent. Check the Hostinger SMTP settings and server logs." }, { status: 502 });
+      return NextResponse.json({ error: "No emails were accepted by SMTP. Check Hostinger SMTP settings or recipient suppression.", campaignId: campaign.id, suppressed: suppressedRecipients.length }, { status: 502 });
     }
-    const message = failed.length
-      ? `${sent} of ${recipients.length} emails sent for "${campaignName}". Failed recipients: ${failed.join(", ")}.`
-      : `Campaign "${campaignName}" sent to ${sent} recipient(s).`;
-    return NextResponse.json({ ok: failed.length === 0, sent, failed: failed.length, message }, { status: failed.length ? 207 : 200 });
+    const message = `${sent} of ${recipients.length} emails accepted by Hostinger SMTP for "${campaignName}". ${failed.length} failed; ${suppressedRecipients.length} unsubscribed/suppressed.`;
+    return NextResponse.json({ ok: failed.length === 0, campaignId: campaign.id, sent, failed: failed.length, suppressed: suppressedRecipients.length, message }, { status: failed.length ? 207 : 200 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to send email.";
     return NextResponse.json({ error: message }, { status: 500 });
