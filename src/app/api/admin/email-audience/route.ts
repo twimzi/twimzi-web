@@ -28,6 +28,6 @@ export async function GET() {
   const recipients = (profiles || []).map((profile) => ({
     email: String(profile.email || "").toLowerCase(),
     name: profile.full_name || "Twimzi member",
-  })).filter((item) => /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(item.email));
+  })).filter((item) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(item.email));
   return NextResponse.json({ recipients, count: recipients.length });
 }
