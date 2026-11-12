@@ -1,4 +1,5 @@
-﻿import { BusinessSections } from "@/components/home/business-sections";
+﻿import type { Metadata } from "next";
+import { BusinessSections } from "@/components/home/business-sections";
 import { BusinessCta } from "@/components/home/business-cta";
 import {
   HeroSection,
@@ -8,6 +9,13 @@ import { CategorySection } from "@/components/home/category-section";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { AndroidAppSection } from "@/components/home/android-app-section";
 import CommunityStories, { type CommunityStory } from "@/components/community/community-stories";
+
+export const metadata: Metadata = {
+  title: "Discover Local Businesses, Products & Services in India | Twimzi",
+  description:
+    "Discover local businesses, manufacturers, traders, products, services and offers on Twimzi. Explore business profiles and connect with local providers.",
+  alternates: { canonical: "https://www.twimzi.com" },
+};
 
 type Business = {
   id: string;
