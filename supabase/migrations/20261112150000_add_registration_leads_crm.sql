@@ -45,8 +45,16 @@ as $function$
 declare
   v_payload jsonb;
 begin
-  if p_session_id is null or p_consent is distinct from true
-     or jsonb_typeof(p_payload) <> 'object'
+  if p_session_id is null then
+    raise exception 'Invalid registration lead session' using errcode = '22023';
+  end if;
+
+  if p_consent is distinct from true then
+    delete from public.business_registration_leads where session_id = p_session_id;
+    return true;
+  end if;
+
+  if jsonb_typeof(p_payload) <> 'object'
      or octet_length(p_payload::text) > 12000 then
     raise exception 'Invalid registration lead payload' using errcode = '22023';
   end if;
