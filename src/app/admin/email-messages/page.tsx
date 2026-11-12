@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AlertCircle, CheckCircle2, ChevronRight, Clock3, Copy, Eye, Mail, Send, Users, WandSparkles } from "lucide-react";
 
 const templates = [
@@ -23,10 +23,21 @@ export default function AdminEmailMessagesPage() {
   const [sending, setSending] = useState(false);
   const [status, setStatus] = useState<{ kind: "success" | "error"; text: string } | null>(null);
   const [copied, setCopied] = useState(false);
+  const [consentConfirmed, setConsentConfirmed] = useState(false);
+  const [campaigns, setCampaigns] = useState<any[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
 
   const recipients = useMemo(() => Array.from(new Set(recipientsText.split(/[\s,;]+/).map((x) => x.trim().toLowerCase()).filter(Boolean))), [recipientsText]);
   const invalidRecipients = recipients.filter((email) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
   const activeTemplate = templates.find((item) => item.id === templateId) ?? templates[0];
+
+  useEffect(() => {
+    if (tab !== "history") return;
+    let active = true;
+    setHistoryLoading(true);
+    fetch("/api/admin/email-campaigns", { cache: "no-store" }).then(async (response) => { const result = await response.json(); if (!response.ok) throw new Error(result.error); return result; }).then((result) => { if (active) setCampaigns(result.campaigns || []); }).catch(() => { if (active) setCampaigns([]); }).finally(() => { if (active) setHistoryLoading(false); });
+    return () => { active = false; };
+  }, [tab]);
 
   function chooseTemplate(id: string) {
     const template = templates.find((item) => item.id === id);
@@ -48,7 +59,7 @@ export default function AdminEmailMessagesPage() {
       const response = await fetch("/api/admin/send-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ recipients, subject, body, campaignName }),
+        body: JSON.stringify({ recipients, subject, body, campaignName, consentConfirmed }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Campaign could not be sent.");
@@ -86,7 +97,7 @@ export default function AdminEmailMessagesPage() {
         </div>
         <div className="rounded-xl border border-[var(--color-border)] bg-white px-4 py-3">
           <p className="text-xs text-[var(--color-text-muted)]">Sending provider</p>
-          <p className="mt-1 flex items-center gap-2 text-sm font-semibold"><span className="h-2 w-2 rounded-full bg-amber-500" /> Hostinger SMTP · setup required</p>
+          <p className="mt-1 flex items-center gap-2 text-sm font-semibold"><span className="h-2 w-2 rounded-full bg-amber-500" /> Hostinger SMTP · server connection</p>
         </div>
       </div>
 
@@ -130,6 +141,10 @@ export default function AdminEmailMessagesPage() {
               {invalidRecipients.length > 0 && <p className="mt-2 text-xs text-red-600">Invalid email(s): {invalidRecipients.slice(0, 3).join(", ")}</p>}
               {recipients.length > 25 && <p className="mt-2 text-xs text-red-600">This batch exceeds 25 recipients. Split it into smaller batches.</p>}
             </div>
+            <label className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
+              <input type="checkbox" checked={consentConfirmed} onChange={(event) => setConsentConfirmed(event.target.checked)} className="mt-1 h-4 w-4 shrink-0" />
+              <span>I confirm every recipient agreed to receive Twimzi marketing emails. This is not a purchased or unsolicited list. Unsubscribed addresses are suppressed.</span>
+            </label>
             <div>
               <label htmlFor="subject" className="mb-2 block text-sm font-semibold">Email subject</label>
               <input id="subject" value={subject} onChange={(e) => setSubject(e.target.value)} required maxLength={200} className="w-full rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)]" />
@@ -142,7 +157,7 @@ export default function AdminEmailMessagesPage() {
             <div className="flex flex-wrap gap-3">
               <button type="button" onClick={() => setPreview(!preview)} className="inline-flex items-center gap-2 rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm font-semibold hover:bg-gray-50"><Eye size={16} />{preview ? "Hide preview" : "Preview email"}</button>
               <button type="button" onClick={copyCampaign} className="inline-flex items-center gap-2 rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm font-semibold hover:bg-gray-50"><Copy size={16} />{copied ? "Copied" : "Copy campaign"}</button>
-              <button type="submit" disabled={sending || !recipients.length || invalidRecipients.length > 0 || recipients.length > 25 || !subject.trim() || !body.trim()} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-5 py-3 text-sm font-bold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50">{sending ? "Sending…" : <><Send size={17} /> Send campaign <ChevronRight size={16} /></>}</button>
+              <button type="submit" disabled={sending || !consentConfirmed || !recipients.length || invalidRecipients.length > 0 || recipients.length > 25 || !subject.trim() || !body.trim()} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-5 py-3 text-sm font-bold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50">{sending ? "Sending…" : <><Send size={17} /> Send campaign <ChevronRight size={16} /></>}</button>
             </div>
             {preview && <div className="rounded-xl border border-[var(--color-border)] bg-gray-50 p-5"><p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">Email preview · plain text</p><p className="mt-3 text-sm"><strong>Subject:</strong> {subject}</p><div className="my-3 border-t border-[var(--color-border)]" /><p className="whitespace-pre-wrap text-sm leading-6">{body.replaceAll("{{name}}", "there")}</p></div>}
             {status && <div role="status" className={`flex items-start gap-2 rounded-xl p-4 text-sm ${status.kind === "success" ? "bg-emerald-50 text-emerald-800" : "bg-red-50 text-red-800"}`}>{status.kind === "success" ? <CheckCircle2 size={18} className="mt-0.5 shrink-0" /> : <AlertCircle size={18} className="mt-0.5 shrink-0" />}<span>{status.text}</span></div>}
@@ -176,7 +191,7 @@ export default function AdminEmailMessagesPage() {
 
       {tab === "automations" && <div className="rounded-2xl border border-[var(--color-border)] bg-white p-6 sm:p-8"><div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--color-primary-light)] text-[var(--color-primary)]"><Clock3 size={22} /></div><h2 className="mt-4 text-xl font-bold">Email automations</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--color-text-secondary)]">Automation rules need a persistent scheduler, contact events, opt-out storage, and delivery logs. These are not enabled yet, so no emails will be sent automatically from this screen.</p><div className="mt-5 grid gap-3 sm:grid-cols-2">{[["Welcome new businesses", "When a business registers"], ["Profile completion reminder", "When a profile remains incomplete"], ["Product listing reminder", "When a business has no products"], ["Platform announcement", "When an admin schedules an update"]].map(([name, trigger]) => <div key={name} className="rounded-xl border border-dashed border-[var(--color-border)] p-4"><div className="flex items-center justify-between gap-2"><p className="font-semibold">{name}</p><span className="rounded-full bg-gray-100 px-2 py-1 text-[10px] font-bold uppercase text-gray-600">Not active</span></div><p className="mt-1 text-sm text-[var(--color-text-muted)]">{trigger}</p></div>)}</div></div>}
 
-      {tab === "history" && <div className="rounded-2xl border border-[var(--color-border)] bg-white p-8 text-center"><Send size={26} className="mx-auto text-[var(--color-text-muted)]" /><h2 className="mt-3 font-bold">Campaign history is not connected yet</h2><p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-[var(--color-text-secondary)]">Sent campaign records, delivery outcomes, and bounce reporting require a database log. This view will remain empty until that storage is implemented.</p></div>}
+      {tab === "history" && <div className="overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white"><div className="border-b border-[var(--color-border)] p-5"><h2 className="font-bold">Campaign history</h2><p className="mt-1 text-sm text-[var(--color-text-muted)]">SMTP acceptance and failures; not inbox delivery confirmation.</p></div>{historyLoading ? <p className="p-8 text-center text-sm">Loading campaigns…</p> : campaigns.length === 0 ? <p className="p-8 text-center text-sm text-[var(--color-text-muted)]">No campaign records yet.</p> : <div className="overflow-x-auto"><table className="w-full min-w-[680px] text-left text-sm"><thead className="bg-gray-50 text-xs uppercase"><tr><th className="p-4">Campaign</th><th className="p-4">Status</th><th className="p-4">Recipients</th><th className="p-4">Accepted</th><th className="p-4">Failed</th><th className="p-4">Created</th></tr></thead><tbody>{campaigns.map((item) => <tr key={item.id} className="border-t"><td className="p-4"><strong>{item.name}</strong><p className="text-xs text-gray-500">{item.subject}</p></td><td className="p-4 capitalize">{String(item.status).replaceAll("_", " ")}</td><td className="p-4">{item.total_recipients}</td><td className="p-4">{item.accepted_count}</td><td className="p-4">{item.failed_count}</td><td className="p-4">{new Date(item.created_at).toLocaleString()}</td></tr>)}</tbody></table></div>}</div>}
     </div>
   );
 }
