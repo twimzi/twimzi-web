@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { RegistrationLeadsTable, type RegistrationLead } from "@/components/admin/registration-leads-table";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -115,8 +116,12 @@ export default async function AdminRegistrationsPage({
   const query = (params.q ?? "").trim().toLowerCase();
   const status = params.status ?? "all";
   const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.rpc("admin_registration_intelligence");
+  const [{ data, error }, { data: leadsData, error: leadsError }] = await Promise.all([
+    supabase.rpc("admin_registration_intelligence"),
+    supabase.rpc("admin_registration_leads"),
+  ]);
   const payload = data as Payload | null;
+  const leads = (Array.isArray(leadsData) ? leadsData : []) as RegistrationLead[];
 
   if (error || !payload?.summary) {
     return (
@@ -257,6 +262,20 @@ export default async function AdminRegistrationsPage({
             </table>
           </div>
         )}
+      </section>
+
+      <section id="registration-leads" className="rounded-2xl border border-[var(--color-border)] bg-white shadow-[var(--shadow-sm)]">
+        <div className="border-b border-[var(--color-border)] p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="font-bold">Registration leads & follow-ups</h2>
+              <p className="mt-1 text-xs text-[var(--color-text-muted)]">Consent-based form details captured while visitors complete business registration.</p>
+            </div>
+            <span className="text-xs text-[var(--color-text-muted)]">{leads.length} leads</span>
+          </div>
+          {leadsError ? <p className="mt-3 text-xs text-red-600">Lead list could not load: {leadsError.message}</p> : null}
+        </div>
+        <div className="p-5"><RegistrationLeadsTable initialLeads={leads} /></div>
       </section>
 
       <section className="rounded-2xl border border-[var(--color-border)] bg-white shadow-[var(--shadow-sm)]">

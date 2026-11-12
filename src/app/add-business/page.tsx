@@ -15,7 +15,7 @@ import { Container } from "@/components/ui/container";
 import { PageHero } from "@/components/ui/page-hero";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { optimizeImageForUpload } from "@/lib/media/optimize-image";
-import { trackAnalyticsEvent } from "@/lib/analytics";
+import { getAnalyticsAttribution, getAnalyticsSessionId, setAnalyticsSessionId, trackAnalyticsEvent } from "@/lib/analytics";
 
 type MediaKind = "logo" | "cover" | "gallery";
 
@@ -56,6 +56,9 @@ export default function AddBusiness() {
   const [description, setDescription] = useState("");
   const [keywords, setKeywords] = useState("");
   const [hashtags, setHashtags] = useState("");
+  const [contactName, setContactName] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [leadCaptureConsent, setLeadCaptureConsent] = useState(false);
   const [phone, setPhone] = useState("");
   const [website, setWebsite] = useState("");
 
@@ -83,6 +86,7 @@ export default function AddBusiness() {
 
         const draft = JSON.parse(saved) as Record<string, unknown>;
         const savedAt = typeof draft.savedAt === "number" ? draft.savedAt : Date.now();
+        if (typeof draft.analyticsSessionId === "string") setAnalyticsSessionId(draft.analyticsSessionId);
         if (Date.now() - savedAt > 24 * 60 * 60 * 1000) {
           window.localStorage.removeItem("twimzi-business-registration-draft");
           window.sessionStorage.removeItem("twimzi-business-registration-draft");
@@ -100,6 +104,9 @@ export default function AddBusiness() {
         if (typeof draft.description === "string") setDescription(draft.description);
         if (typeof draft.keywords === "string") setKeywords(draft.keywords);
         if (typeof draft.hashtags === "string") setHashtags(draft.hashtags);
+        if (typeof draft.contactName === "string") setContactName(draft.contactName);
+        if (typeof draft.contactEmail === "string") setContactEmail(draft.contactEmail);
+        if (draft.leadCaptureConsent === true) setLeadCaptureConsent(true);
         if (typeof draft.phone === "string") setPhone(draft.phone);
         if (typeof draft.website === "string") setWebsite(draft.website);
         if (typeof draft.latitude === "number") setLatitude(draft.latitude);
@@ -115,6 +122,34 @@ export default function AddBusiness() {
 
     return () => window.clearTimeout(timeoutId);
   }, []);
+
+  useEffect(() => {
+    if (!leadCaptureConsent) return;
+    const hasEnteredDetails = [businessName, businessType, contactName, contactEmail, phone, addressLine1, city, state].some((value) => value.trim());
+    if (!hasEnteredDetails) return;
+
+    const timeoutId = window.setTimeout(() => {
+      const supabase = createSupabaseBrowserClient();
+      const attribution = getAnalyticsAttribution();
+      void supabase.rpc("capture_business_registration_lead", {
+        p_session_id: getAnalyticsSessionId(),
+        p_consent: true,
+        p_submitted: false,
+        p_source: attribution.utm_source ?? null,
+        p_medium: attribution.utm_medium ?? null,
+        p_campaign: attribution.utm_campaign ?? null,
+        p_payload: {
+          business_name: businessName, business_type: businessType,
+          contact_name: contactName, contact_email: contactEmail, phone,
+          website, address_line_1: addressLine1, address_line_2: addressLine2,
+          landmark, city, state, country, postal_code: postalCode,
+          description, keywords, hashtags,
+        },
+      });
+    }, 800);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [leadCaptureConsent, businessName, businessType, contactName, contactEmail, phone, website, addressLine1, addressLine2, landmark, city, state, country, postalCode, description, keywords, hashtags]);
 
   const totalSelectedImages = useMemo(
     () => gallery.length + (logo ? 1 : 0) + (cover ? 1 : 0),
@@ -584,12 +619,24 @@ export default function AddBusiness() {
         window.localStorage.setItem(
           "twimzi-business-registration-draft",
           JSON.stringify({
-            savedAt: Date.now(),
-            businessName, businessType, addressLine1, addressLine2, landmark,
-            city, state, country, postalCode, latitude, longitude, description,
-            keywords, hashtags, phone, website,
+            savedAt: Date.now(), analyticsSessionId: getAnalyticsSessionId(),
+            businessName, businessType, contactName, contactEmail, leadCaptureConsent,
+            addressLine1, addressLine2, landmark, city, state, country, postalCode,
+            latitude, longitude, description, keywords, hashtags, phone, website,
           }),
         );
+        if (leadCaptureConsent) {
+          const attribution = getAnalyticsAttribution();
+          await supabase.rpc("capture_business_registration_lead", {
+            p_session_id: getAnalyticsSessionId(), p_consent: true, p_submitted: false,
+            p_source: attribution.utm_source ?? null, p_medium: attribution.utm_medium ?? null,
+            p_campaign: attribution.utm_campaign ?? null,
+            p_payload: { business_name: businessName, business_type: businessType,
+              contact_name: contactName, contact_email: contactEmail, phone, website,
+              address_line_1: addressLine1, address_line_2: addressLine2, landmark,
+              city, state, country, postal_code: postalCode, description, keywords, hashtags },
+          });
+        }
         await trackAnalyticsEvent("business_registration_auth_required");
         router.push("/register?next=%2Fadd-business");
         return;
@@ -693,6 +740,18 @@ export default function AddBusiness() {
       window.localStorage.removeItem("twimzi-business-registration-draft");
       window.sessionStorage.removeItem("twimzi-business-registration-draft");
       await trackAnalyticsEvent("business_registration_submitted");
+      if (leadCaptureConsent) {
+        const attribution = getAnalyticsAttribution();
+        await supabase.rpc("capture_business_registration_lead", {
+          p_session_id: getAnalyticsSessionId(), p_consent: true, p_submitted: true,
+          p_source: attribution.utm_source ?? null, p_medium: attribution.utm_medium ?? null,
+          p_campaign: attribution.utm_campaign ?? null,
+          p_payload: { business_name: businessName, business_type: businessType,
+            contact_name: contactName, contact_email: contactEmail, phone, website,
+            address_line_1: addressLine1, address_line_2: addressLine2, landmark,
+            city, state, country, postal_code: postalCode, description, keywords, hashtags },
+        });
+      }
 
       if (logo) {
         revokePreview(logo.preview);
@@ -710,6 +769,9 @@ export default function AddBusiness() {
       setCreatedBusinessId(null);
       setBusinessName("");
       setBusinessType("");
+      setContactName("");
+      setContactEmail("");
+      setLeadCaptureConsent(false);
       setAddressLine1("");
       setAddressLine2("");
       setLandmark("");
@@ -988,6 +1050,17 @@ export default function AddBusiness() {
                   )}
                 </div>
               </section>
+
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="contact-name" className="mb-2 block text-sm font-semibold">Contact person (optional)</label>
+                  <input id="contact-name" value={contactName} onChange={(event) => setContactName(event.target.value)} placeholder="Your name" autoComplete="name" className="min-h-12 w-full rounded-xl border border-[var(--color-border)] px-4 text-sm outline-none transition focus:border-[var(--color-primary)]" />
+                </div>
+                <div>
+                  <label htmlFor="contact-email" className="mb-2 block text-sm font-semibold">Contact email (optional)</label>
+                  <input id="contact-email" type="email" value={contactEmail} onChange={(event) => setContactEmail(event.target.value)} placeholder="you@example.com" autoComplete="email" className="min-h-12 w-full rounded-xl border border-[var(--color-border)] px-4 text-sm outline-none transition focus:border-[var(--color-primary)]" />
+                </div>
+              </div>
 
               <div>
                 <label
@@ -1317,6 +1390,11 @@ export default function AddBusiness() {
                   {uploadProgress}
                 </div>
               ) : null}
+
+              <label className="flex items-start gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-secondary)] p-4 text-sm leading-6">
+                <input type="checkbox" checked={leadCaptureConsent} onChange={(event) => { const accepted = event.target.checked; setLeadCaptureConsent(accepted); if (!accepted) { const supabase = createSupabaseBrowserClient(); void supabase.rpc("capture_business_registration_lead", { p_session_id: getAnalyticsSessionId(), p_payload: {}, p_consent: false, p_submitted: false }); } }} className="mt-1 h-4 w-4 shrink-0 accent-[var(--color-primary)]" />
+                <span>I agree that Twimzi may securely save the business and contact details I enter here if I do not complete registration, so the Twimzi team can contact me to help finish setup. I can continue registration without opting in.</span>
+              </label>
 
               <Button type="submit" disabled={loading}>
                 {loading
