@@ -15,7 +15,7 @@ import { Container } from "@/components/ui/container";
 import { PageHero } from "@/components/ui/page-hero";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { optimizeImageForUpload } from "@/lib/media/optimize-image";
-import { getAnalyticsAttribution, getAnalyticsSessionId, trackAnalyticsEvent } from "@/lib/analytics";
+import { getAnalyticsAttribution, getAnalyticsSessionId, setAnalyticsSessionId, trackAnalyticsEvent } from "@/lib/analytics";
 
 type MediaKind = "logo" | "cover" | "gallery";
 
@@ -86,6 +86,7 @@ export default function AddBusiness() {
 
         const draft = JSON.parse(saved) as Record<string, unknown>;
         const savedAt = typeof draft.savedAt === "number" ? draft.savedAt : Date.now();
+        if (typeof draft.analyticsSessionId === "string") setAnalyticsSessionId(draft.analyticsSessionId);
         if (Date.now() - savedAt > 24 * 60 * 60 * 1000) {
           window.localStorage.removeItem("twimzi-business-registration-draft");
           window.sessionStorage.removeItem("twimzi-business-registration-draft");
@@ -619,6 +620,7 @@ export default function AddBusiness() {
           "twimzi-business-registration-draft",
           JSON.stringify({
             savedAt: Date.now(),
+            savedAt: Date.now(), analyticsSessionId: getAnalyticsSessionId(),
             businessName, businessType, contactName, contactEmail, leadCaptureConsent,
             addressLine1, addressLine2, landmark, city, state, country, postalCode,
             latitude, longitude, description, keywords, hashtags, phone, website,
@@ -768,6 +770,9 @@ export default function AddBusiness() {
       setCreatedBusinessId(null);
       setBusinessName("");
       setBusinessType("");
+      setContactName("");
+      setContactEmail("");
+      setLeadCaptureConsent(false);
       setAddressLine1("");
       setAddressLine2("");
       setLandmark("");
