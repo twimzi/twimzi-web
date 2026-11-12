@@ -1321,25 +1321,38 @@ export default async function BusinessDetailPage({
               </h2>
 
               <div className="mt-5 grid grid-cols-2 gap-3">
-                <div className="rounded-2xl bg-[var(--color-background)] p-4">
-                  <p className="text-2xl font-bold text-[var(--color-primary)]">
-                    {business.total_followers.toLocaleString("en-IN")}
-                  </p>
+                {business.total_followers > 10 && (
+                  <div className="rounded-2xl bg-[var(--color-background)] p-4">
+                    <p className="text-2xl font-bold text-[var(--color-primary)]">
+                      {business.total_followers.toLocaleString("en-IN")}
+                    </p>
+                    <p className="mt-1 text-xs font-medium text-[var(--color-text-muted)]">
+                      Followers
+                    </p>
+                  </div>
+                )}
 
-                  <p className="mt-1 text-xs font-medium text-[var(--color-text-muted)]">
-                    Followers
-                  </p>
-                </div>
+                {business.total_views > 10 && (
+                  <div className="rounded-2xl bg-[var(--color-background)] p-4">
+                    <p className="text-2xl font-bold text-[#8E07FB]">
+                      {business.total_views.toLocaleString("en-IN")}
+                    </p>
+                    <p className="mt-1 text-xs font-medium text-[var(--color-text-muted)]">
+                      Views
+                    </p>
+                  </div>
+                )}
 
-                <div className="rounded-2xl bg-[var(--color-background)] p-4">
-                  <p className="text-2xl font-bold text-[#8E07FB]">
-                    {business.total_views.toLocaleString("en-IN")}
-                  </p>
-
-                  <p className="mt-1 text-xs font-medium text-[var(--color-text-muted)]">
-                    Views
-                  </p>
-                </div>
+                {business.total_followers <= 10 && business.total_views <= 10 && (
+                  <div className="col-span-2 rounded-2xl bg-[var(--color-background)] p-4">
+                    <p className="text-sm font-bold text-[var(--color-primary)]">
+                      New on Twimzi
+                    </p>
+                    <p className="mt-1 text-xs leading-5 text-[var(--color-text-muted)]">
+                      This business is building its presence on Twimzi.
+                    </p>
+                  </div>
+                )}
 
                 <div className="rounded-2xl bg-[var(--color-background)] p-4">
                   <p className="text-2xl font-bold text-[#05CDFC]">
