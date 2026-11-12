@@ -132,10 +132,13 @@ export default function AdminEmailMessagesPage() {
   }
 
   const navItems: { id: Tab; label: string; icon: typeof Mail }[] = [
+    { id: "inbox", label: "Inbox", icon: Mail },
+    { id: "sent", label: "Sent / Outbox", icon: Send },
     { id: "compose", label: "Campaign builder", icon: Mail },
     { id: "templates", label: "Templates", icon: WandSparkles },
     { id: "automations", label: "Automations", icon: Clock3 },
-    { id: "history", label: "Campaign history", icon: Eye },\n    { id: "settings", label: "Email Settings", icon: WandSparkles },
+    { id: "history", label: "Campaign history", icon: Eye },
+    { id: "settings", label: "Email Settings", icon: WandSparkles },
   ];
 
   return (
