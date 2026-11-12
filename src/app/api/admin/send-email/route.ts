@@ -197,7 +197,12 @@ export async function POST(request: Request) {
     const failed: string[] = [];
     for (const recipient of eligibleRecipients) {
       try {
-        const personalizedBody = body.replace(/\{\{name\}\}/g, "there");
+        let personalizedBody = body.replace(/\\{\\{name\\}\\}/g, "there");
+        if (campaignType === "marketing" && unsubscribeSecret) {
+          const token = createHmac("sha256", unsubscribeSecret).update(recipient).digest("base64url");
+          const site = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.twimzi.com").replace(/\\/$/, "");
+          personalizedBody += `\\n\\n---\\nTo stop receiving Twimzi marketing emails, unsubscribe here: ${site}/api/email/unsubscribe?email=${encodeURIComponent(recipient)}&token=${token}`;
+        }
         await sendViaHostinger(recipient, subject, personalizedBody);
         sent += 1;
         await supabase.from("email_campaign_recipients").update({ status: "accepted", accepted_at: new Date().toISOString(), provider_message: "Accepted by Hostinger SMTP" }).eq("campaign_id", campaign.id).eq("email", recipient);
