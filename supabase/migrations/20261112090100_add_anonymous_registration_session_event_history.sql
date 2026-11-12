@@ -49,7 +49,7 @@ begin
     ) ev on true
     where p.deleted_at is null order by p.created_at desc limit 250
   ),
-  anonymous_sessions as (
+  anonymous_session_summary as (
     select ae.metadata->>'session_id' as session_id,min(ae.created_at) as first_seen,max(ae.created_at) as last_seen,
       count(*)::integer as event_count,(array_agg(ae.event_name order by ae.created_at desc))[1] as last_event,
       (array_agg(ae.metadata->>'path' order by ae.created_at desc))[1] as last_path,
@@ -59,16 +59,21 @@ begin
         filter(where ae.metadata ? 'utm_campaign'))[1] as campaign,
       bool_or(ae.event_name='business_registration_started') as registration_started,
       bool_or(ae.event_name='business_registration_submitted') as registration_submitted,
-      (select jsonb_agg(jsonb_build_object('event_name',h.event_name,'created_at',h.created_at,
-        'path',h.metadata->>'path','cta_label',h.metadata->>'cta_label') order by h.created_at desc)
-       from (select x.event_name,x.created_at,x.metadata from public.analytics_events x
-        where x.profile_id is null and x.metadata->>'session_id'=ae.metadata->>'session_id'
-        order by x.created_at desc limit 12) h) as event_history
+
     from public.analytics_events ae
     where ae.profile_id is null and ae.metadata ? 'session_id' and ae.created_at>=now()-interval '90 days'
       and not exists (select 1 from public.analytics_events linked where linked.profile_id is not null
         and linked.metadata->>'session_id'=ae.metadata->>'session_id')
     group by ae.metadata->>'session_id' order by max(ae.created_at) desc limit 250
+  ),
+  anonymous_sessions as (
+    select s.*,
+      (select jsonb_agg(jsonb_build_object('event_name',h.event_name,'created_at',h.created_at,
+        'path',h.metadata->>'path','cta_label',h.metadata->>'cta_label') order by h.created_at desc)
+       from (select x.event_name,x.created_at,x.metadata from public.analytics_events x
+        where x.profile_id is null and x.metadata->>'session_id'=s.session_id
+        order by x.created_at desc limit 12) h) as event_history
+    from anonymous_session_summary s
   )
   select jsonb_build_object(
     'users',coalesce((select jsonb_agg(to_jsonb(u)) from user_rows u),'[]'::jsonb),
