@@ -44,21 +44,30 @@ async function getPost(slug: string): Promise<BlogPost | null> {
   return (data as BlogPost | null) ?? null;
 }
 
-async function getRelatedPosts(slug: string): Promise<Pick<BlogPost, "id" | "title" | "slug" | "excerpt" | "featured_image_url" | "published_at" | "created_at">[]> {
+async function getRelatedPosts(post: BlogPost): Promise<Pick<BlogPost, "id" | "title" | "slug" | "excerpt" | "featured_image_url" | "published_at" | "created_at">[]> {
   const supabase = getPublicClient();
   if (!supabase) return [];
+
+  const relatedSlugs = Array.from(
+    post.content.matchAll(/\\[[^\\]]+\\]\\(\\/blog\\/([^)]+)\\)/g),
+    (match) => match[1],
+  ).filter((value, index, values) => value !== post.slug && values.indexOf(value) === index).slice(0, 3);
+
+  if (relatedSlugs.length === 0) return [];
+
   const { data, error } = await supabase
     .from("blog_posts")
     .select("id,title,slug,excerpt,featured_image_url,published_at,created_at")
     .eq("status", "published")
-    .neq("slug", slug)
-    .order("published_at", { ascending: false })
-    .limit(3);
+    .in("slug", relatedSlugs);
+
   if (error) {
     console.error("Related blog articles could not be loaded:", error.message);
     return [];
   }
-  return data ?? [];
+
+  const posts = (data ?? []) as Pick<BlogPost, "id" | "title" | "slug" | "excerpt" | "featured_image_url" | "published_at" | "created_at">[];
+  return relatedSlugs.map((relatedSlug) => posts.find((item) => item.slug === relatedSlug)).filter((item): item is typeof posts[number] => Boolean(item));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -217,8 +226,9 @@ function renderInline(text: string, key: string) {
 
 export default async function BlogArticlePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const [post, relatedPosts] = await Promise.all([getPost(slug), getRelatedPosts(slug)]);
+  const post = await getPost(slug);
   if (!post) notFound();
+  const relatedPosts = await getRelatedPosts(post);
 
   const cover = post.featured_image_url || DEFAULT_COVER;
   const date = formatDate(post.published_at ?? post.created_at);
