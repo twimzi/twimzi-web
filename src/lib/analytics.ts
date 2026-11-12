@@ -37,7 +37,7 @@ function clean(
   return normalized ? normalized.slice(0, maxLength) : undefined;
 }
 
-function getSessionId(): string {
+export function getAnalyticsSessionId(): string {
   let sessionId = window.sessionStorage.getItem(SESSION_KEY);
 
   if (!sessionId) {
@@ -70,7 +70,7 @@ export function captureAnalyticsAttribution(): void {
   }
 }
 
-function getAttribution(): Attribution {
+export function getAnalyticsAttribution(): Attribution {
   try {
     const stored = window.sessionStorage.getItem(ATTRIBUTION_KEY);
     return stored ? (JSON.parse(stored) as Attribution) : {};
@@ -97,10 +97,10 @@ export async function trackAnalyticsEvent(
 
   try {
     const metadata = {
-      session_id: getSessionId(),
+      session_id: getAnalyticsSessionId(),
       path: clean(window.location.pathname, 200) ?? "/",
       referrer_host: getReferrerHost(),
-      ...getAttribution(),
+      ...getAnalyticsAttribution(),
       ...(extras.cta_label
         ? { cta_label: clean(extras.cta_label, 80) }
         : {}),
