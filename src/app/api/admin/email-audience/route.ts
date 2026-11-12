@@ -12,24 +12,22 @@ export async function GET() {
 
   const { data: preferences, error: preferenceError } = await supabase
     .from("email_preferences")
-    .select("email,profile_id")
+    .select("email")
     .eq("marketing_consent", true)
-    .is("unsubscribed_at", null)
-    .not("profile_id", "is", null);
+    .is("unsubscribed_at", null);
   if (preferenceError) return NextResponse.json({ error: "Could not load opted-in audience." }, { status: 500 });
-  const profileIds = Array.from(new Set((preferences || []).map((item) => item.profile_id).filter(Boolean)));
-  if (!profileIds.length) return NextResponse.json({ recipients: [], count: 0 });
+  const optedInEmails = Array.from(new Set((preferences || []).map((item) => String(item.email).toLowerCase())));
+  if (!optedInEmails.length) return NextResponse.json({ recipients: [], count: 0 });
 
   const { data: profiles, error } = await supabase
     .from("profiles")
     .select("id,full_name,email")
-    .in("id", profileIds);
+    .in("email", optedInEmails);
   if (error) return NextResponse.json({ error: "Could not load registered user details." }, { status: 500 });
 
-  const emailByProfile = new Map((preferences || []).map((item) => [item.profile_id, item.email]));
   const recipients = (profiles || []).map((profile) => ({
-    email: String(profile.email || emailByProfile.get(profile.id) || "").toLowerCase(),
+    email: String(profile.email || "").toLowerCase(),
     name: profile.full_name || "Twimzi member",
-  })).filter((item) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(item.email));
+  })).filter((item) => /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(item.email));
   return NextResponse.json({ recipients, count: recipients.length });
 }
