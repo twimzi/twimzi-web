@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -71,6 +71,7 @@ export default function AddBusiness() {
   // Keep the created business ID if a later media upload fails, so retrying
   // the form resumes the same business instead of creating a duplicate.
   const [createdBusinessId, setCreatedBusinessId] = useState<string | null>(null);
+  const registrationStartedRef = useRef(false);
   const [uploadProgress, setUploadProgress] = useState("");
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -482,6 +483,12 @@ export default function AddBusiness() {
     return "Unable to submit the business right now. Please try again.";
   }
 
+  function handleRegistrationFocus() {
+    if (registrationStartedRef.current) return;
+    registrationStartedRef.current = true;
+    void trackAnalyticsEvent("business_registration_started");
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -600,6 +607,9 @@ export default function AddBusiness() {
 
         businessId = business.id as string;
         setCreatedBusinessId(businessId);
+        await trackAnalyticsEvent("business_registration_step_completed", {
+          step_name: "business_profile_created",
+        });
       }
 
       const { error: tagsError } = await supabase
@@ -651,6 +661,11 @@ export default function AddBusiness() {
       }
 
       setUploadProgress("");
+      if (uploads.length > 0) {
+        await trackAnalyticsEvent("business_registration_step_completed", {
+          step_name: "business_media_uploaded",
+        });
+      }
 
       const successText =
         uploads.length > 0
@@ -773,6 +788,7 @@ export default function AddBusiness() {
         <div className="max-w-3xl py-14">
           <form
             onSubmit={handleSubmit}
+            onFocusCapture={handleRegistrationFocus}
             className="rounded-3xl border border-[var(--color-border)] bg-white p-6 shadow-[var(--shadow-md)] sm:p-8"
           >
             <div className="mb-8">
