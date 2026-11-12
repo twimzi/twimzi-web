@@ -107,15 +107,17 @@ function BusinessCard({ business }: { business: BusinessCardData }) {
           </p>
 
           <div className="mt-4 flex items-center justify-between border-t border-[var(--color-border)] pt-4">
-            {business.total_followers !== null ? (
+            {business.total_followers !== null && business.total_followers > 10 ? (
               <span className="text-xs text-[var(--color-text-muted)]">
                 <strong className="text-[var(--color-text)]">
-                  {business.total_followers}
+                  {business.total_followers.toLocaleString("en-IN")}
                 </strong>{" "}
                 followers
               </span>
             ) : (
-              <span />
+              <span className="text-xs font-semibold text-[var(--color-primary)]">
+                New on Twimzi
+              </span>
             )}
 
             <span className="text-sm font-semibold text-[var(--color-primary)] ">
