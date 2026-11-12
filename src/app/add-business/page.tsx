@@ -619,7 +619,6 @@ export default function AddBusiness() {
         window.localStorage.setItem(
           "twimzi-business-registration-draft",
           JSON.stringify({
-            savedAt: Date.now(),
             savedAt: Date.now(), analyticsSessionId: getAnalyticsSessionId(),
             businessName, businessType, contactName, contactEmail, leadCaptureConsent,
             addressLine1, addressLine2, landmark, city, state, country, postalCode,
