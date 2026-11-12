@@ -84,6 +84,8 @@ const statusLabel: Record<string, string> = {
   business_created: "Business created",
   pending_approval: "Pending approval",
   approved: "Approved",
+  rejected: "Rejected",
+  suspended: "Suspended",
 };
 
 function statusStyle(status: string) {
@@ -181,6 +183,8 @@ export default async function AdminRegistrationsPage({
               <option value="business_created">Business created</option>
               <option value="pending_approval">Pending approval</option>
               <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+              <option value="suspended">Suspended</option>
             </select>
             <button className="min-h-11 rounded-xl bg-[var(--color-primary)] px-5 text-sm font-semibold text-white">Filter</button>
           </form>
