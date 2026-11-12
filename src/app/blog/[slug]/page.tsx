@@ -217,7 +217,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ sl
   const date = formatDate(post.published_at ?? post.created_at);
   const minutes = readingTime(post.content);
   const sections = post.content.replace(/\r\n?/g, "\n").split("\n").map((line, index) => {
-    const heading = line.trim().match(/^#{1,3}\\s+(.+)$/);
+    const heading = line.trim().match(/^#{1,3}\s+(.+)$/);
     return heading ? { id: `section-${index}`, title: heading[1].trim() } : null;
   }).filter((section): section is { id: string; title: string } => section !== null);
 
