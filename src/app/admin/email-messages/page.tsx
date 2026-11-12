@@ -211,7 +211,8 @@ export default function AdminEmailMessagesPage() {
           <aside className="rounded-2xl border border-[var(--color-border)] bg-white p-5"><h3 className="font-bold">Hostinger setup</h3><ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-6 text-[var(--color-text-secondary)]"><li>Open Hostinger hPanel.</li><li>Go to Agentic Mail → API.</li><li>Create a token restricted to the Twimzi mailbox.</li><li>Save it as HOSTINGER_MAIL_API_TOKEN in the website server environment.</li><li>Redeploy and test the connection here.</li></ol><p className="mt-4 text-xs text-[var(--color-text-muted)]">API token is write-only from the server side; it cannot be retrieved from this page.</p></aside>
         </div>
       )}
-\n      {tab === "compose" && (
+
+      {tab === "compose" && (
         <form onSubmit={sendCampaign} className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
           <div className="space-y-5 rounded-2xl border border-[var(--color-border)] bg-white p-5 sm:p-7">
             <div className="flex items-center gap-3"><div className="rounded-xl bg-[var(--color-primary-light)] p-3 text-[var(--color-primary)]"><Mail size={20} /></div><div><h2 className="font-bold">Create campaign</h2><p className="text-sm text-[var(--color-text-muted)]">Draft and send an email campaign</p></div></div>
