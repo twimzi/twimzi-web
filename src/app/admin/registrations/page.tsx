@@ -264,7 +264,7 @@ export default async function AdminRegistrationsPage({
         )}
       </section>
 
-      <section className="rounded-2xl border border-[var(--color-border)] bg-white shadow-[var(--shadow-sm)]">
+      <section id="registration-leads" className="rounded-2xl border border-[var(--color-border)] bg-white shadow-[var(--shadow-sm)]">
         <div className="border-b border-[var(--color-border)] p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
