@@ -177,11 +177,11 @@ export default function AdminEmailMessagesPage() {
             <div className="rounded-2xl border border-[var(--color-border)] bg-white p-5">
               <h3 className="font-bold">Sender configuration</h3>
               <p className="mt-2 text-sm leading-6 text-[var(--color-text-secondary)]">Uses Hostinger SMTP credentials stored on the server. No email password is exposed to the browser.</p>
-              <p className="mt-3 flex items-center gap-2 text-xs text-amber-700"><span className="h-2 w-2 rounded-full bg-amber-500" /> SMTP setup and send test required</p>
+              <p className="mt-3 flex items-center gap-2 text-xs text-amber-700"><span className="h-2 w-2 rounded-full bg-amber-500" /> SMTP credentials are read from Hostinger server environment</p>
             </div>
             <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm leading-6 text-amber-900">
               <strong className="block">Responsible sending</strong>
-              Send only to relevant contacts who expect or agreed to receive your messages. Honor opt-outs. This page currently sends up to 25 recipients per request; it is not yet a scheduled or automated campaign system.
+              Send only to contacts who opted in to marketing emails. Every marketing send includes an unsubscribe link, and unsubscribed addresses are blocked. SMTP acceptance is not proof of inbox delivery.
             </div>
           </aside>
         </form>
