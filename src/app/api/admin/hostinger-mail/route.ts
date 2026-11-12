@@ -27,14 +27,19 @@ export async function GET(request: Request) {
     const mailboxes = account.data?.mailboxes || [];
     if (!mailboxes.length) return NextResponse.json({ error: "The API token has no mailbox access." }, { status: 404 });
     const mailbox = mailboxes[0];
-    const url = new URL(base + "/mailboxes/" + encodeURIComponent(mailbox.resourceId) + "/folders/" + encodeURIComponent(new URL(request.url).searchParams.get("folder") || "INBOX") + "/messages");
-    url.searchParams.set("page", new URL(request.url).searchParams.get("page") || "1");
-    url.searchParams.set("perPage", "25");
-    url.searchParams.set("sort", "-uid");
+    const params = new URL(request.url).searchParams;
+    const folderPath = "/mailboxes/" + encodeURIComponent(mailbox.resourceId) + "/folders/" + encodeURIComponent(params.get("folder") || "INBOX") + "/messages";
+    const uid = params.get("uid");
+    const url = new URL(base + folderPath + (uid ? "/" + encodeURIComponent(uid) : ""));
+    if (!uid) {
+      url.searchParams.set("page", params.get("page") || "1");
+      url.searchParams.set("perPage", "25");
+      url.searchParams.set("sort", "-uid");
+    }
     const messageResponse = await fetch(url, { headers, cache: "no-store" });
     const messages = await messageResponse.json().catch(() => ({}));
     if (!messageResponse.ok) return NextResponse.json({ error: messages.error || "Could not read the mailbox folder." }, { status: messageResponse.status });
-    return NextResponse.json({ address: mailbox.address, mailboxId: mailbox.resourceId, messages: messages.data || [], pagination: messages.pagination || null });
+    return NextResponse.json({ address: mailbox.address, mailboxId: mailbox.resourceId, messages: uid ? (messages.data || messages) : (messages.data || []), pagination: messages.pagination || null });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Hostinger Mail API connection failed." }, { status: 502 });
   }
