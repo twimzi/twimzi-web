@@ -38,6 +38,20 @@ const organizationSchema = {
   ],
 };
 
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": `${siteConfig.url}/#website`,
+  name: siteConfig.name,
+  url: siteConfig.url,
+  publisher: { "@id": `${siteConfig.url}/#organization` },
+  potentialAction: {
+    "@type": "SearchAction",
+    target: `${siteConfig.url}/businesses?q={search_term_string}`,
+    "query-input": "required name=search_term_string",
+  },
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
 
@@ -124,6 +138,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={poppins.variable} suppressHydrationWarning>
         <StructuredData data={organizationSchema} />
+        <StructuredData data={websiteSchema} />
         <Header />
         <AnalyticsTracker />
         <main>{children}</main>
