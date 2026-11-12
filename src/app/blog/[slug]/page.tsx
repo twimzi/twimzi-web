@@ -49,7 +49,7 @@ async function getRelatedPosts(post: BlogPost): Promise<Pick<BlogPost, "id" | "t
   if (!supabase) return [];
 
   const relatedSlugs = Array.from(
-    post.content.matchAll(/\\[[^\\]]+\\]\\(\\/blog\\/([^)]+)\\)/g),
+    post.content.matchAll(/\[[^\]]+\]\(\/blog\/([^)]+)\)/g),
     (match) => match[1],
   ).filter((value, index, values) => value !== post.slug && values.indexOf(value) === index).slice(0, 3);
 
