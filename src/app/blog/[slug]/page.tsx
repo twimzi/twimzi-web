@@ -96,22 +96,22 @@ function readingTime(content: string) {
 }
 
 function renderContent(content: string) {
-  const lines = content.replace(/\\r\\n?/g, "\\n").split("\\n");
+  const lines = content.replace(/\r\n?/g, "\n").split("\n");
   const elements: ReactNode[] = [];
   let index = 0;
 
   const isBlockStart = (line: string) =>
-    /^(#{1,3})\\s+/.test(line.trim()) ||
-    /^[-*]\\s+/.test(line.trim()) ||
-    /^\\d+[.)]\\s+/.test(line.trim()) ||
-    /^>\\s?/.test(line.trim()) ||
+    /^(#{1,3})\s+/.test(line.trim()) ||
+    /^[-*]\s+/.test(line.trim()) ||
+    /^\d+[.)]\s+/.test(line.trim()) ||
+    /^>\s?/.test(line.trim()) ||
     /^---+$/.test(line.trim());
 
   while (index < lines.length) {
     const current = lines[index].trim();
     if (!current) { index += 1; continue; }
     const key = index;
-    const heading = current.match(/^(#{1,3})\\s+(.+)$/);
+    const heading = current.match(/^(#{1,3})\s+(.+)$/);
     if (heading) {
       const title = heading[2].trim();
       if (heading[1].length <= 2) {
@@ -127,28 +127,28 @@ function renderContent(content: string) {
       index += 1;
       continue;
     }
-    if (/^>\\s?/.test(current)) {
+    if (/^>\s?/.test(current)) {
       const quote: string[] = [];
-      while (index < lines.length && /^>\\s?/.test(lines[index].trim())) {
-        quote.push(lines[index].trim().replace(/^>\\s?/, ""));
+      while (index < lines.length && /^>\s?/.test(lines[index].trim())) {
+        quote.push(lines[index].trim().replace(/^>\s?/, ""));
         index += 1;
       }
       elements.push(<blockquote key={key} className="my-7 rounded-r-xl border-l-4 border-[#8E07FB] bg-gradient-to-r from-[#F5ECFF] via-[#EFF5FF] to-[#EAFBFF] px-5 py-4 text-base leading-8 text-[#020D3A]">{renderInline(quote.join(" "), String(key))}</blockquote>);
       continue;
     }
-    if (/^[-*]\\s+/.test(current)) {
+    if (/^[-*]\s+/.test(current)) {
       const items: string[] = [];
       while (index < lines.length) {
         const line = lines[index].trim();
-        if (/^[-*]\\s+/.test(line)) {
-          items.push(line.replace(/^[-*]\\s+/, ""));
+        if (/^[-*]\s+/.test(line)) {
+          items.push(line.replace(/^[-*]\s+/, ""));
           index += 1;
           continue;
         }
         if (!line) {
           let next = index;
           while (next < lines.length && !lines[next].trim()) next += 1;
-          if (next < lines.length && /^[-*]\\s+/.test(lines[next].trim())) {
+          if (next < lines.length && /^[-*]\s+/.test(lines[next].trim())) {
             index = next;
             continue;
           }
@@ -158,19 +158,19 @@ function renderContent(content: string) {
       elements.push(<ul key={key} className="my-5 space-y-3 pl-1">{items.map((item, itemIndex) => <li key={itemIndex} className="flex gap-3 text-[16px] leading-8 text-[#344365] sm:text-[17px]"><span className="mt-3 h-2 w-2 shrink-0 rounded-full bg-gradient-to-br from-[#8E07FB] via-[#1879FD] to-[#05CDFC]" /><span>{renderInline(item, `${key}-${itemIndex}`)}</span></li>)}</ul>);
       continue;
     }
-    if (/^\\d+[.)]\\s+/.test(current)) {
+    if (/^\d+[.)]\s+/.test(current)) {
       const items: string[] = [];
       while (index < lines.length) {
         const line = lines[index].trim();
-        if (/^\\d+[.)]\\s+/.test(line)) {
-          items.push(line.replace(/^\\d+[.)]\\s+/, ""));
+        if (/^\d+[.)]\s+/.test(line)) {
+          items.push(line.replace(/^\d+[.)]\s+/, ""));
           index += 1;
           continue;
         }
         if (!line) {
           let next = index;
           while (next < lines.length && !lines[next].trim()) next += 1;
-          if (next < lines.length && /^\\d+[.)]\\s+/.test(lines[next].trim())) {
+          if (next < lines.length && /^\d+[.)]\s+/.test(lines[next].trim())) {
             index = next;
             continue;
           }
@@ -216,22 +216,56 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ sl
   const cover = post.featured_image_url || DEFAULT_COVER;
   const date = formatDate(post.published_at ?? post.created_at);
   const minutes = readingTime(post.content);
-  const sections = post.content.replace(/\\r\\n?/g, "\\n").split("\\n").map((line, index) => {
+  const sections = post.content.replace(/\r\n?/g, "\n").split("\n").map((line, index) => {
     const heading = line.trim().match(/^#{1,3}\\s+(.+)$/);
     return heading ? { id: `section-${index}`, title: heading[1].trim() } : null;
   }).filter((section): section is { id: string; title: string } => section !== null);
 
+  const articleUrl = `${siteConfig.url}/blog/${post.slug}`;
+  const publishedAt = post.published_at ?? post.created_at;
+  const modifiedAt = post.updated_at ?? publishedAt;
+  const wordCount = post.content.trim().split(/\s+/).filter(Boolean).length;
   const structuredData = {
     "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    headline: post.title,
-    description: post.meta_description?.trim() || post.excerpt,
-    mainEntityOfPage: `${siteConfig.url}/blog/${post.slug}`,
-    datePublished: post.published_at ?? post.created_at,
-    dateModified: post.updated_at,
-    image: [cover],
-    author: { "@type": "Organization", name: siteConfig.name, url: siteConfig.url },
-    publisher: { "@type": "Organization", name: siteConfig.name, url: siteConfig.url },
+    "@graph": [
+      {
+        "@type": "BlogPosting",
+        "@id": `${articleUrl}#article`,
+        url: articleUrl,
+        headline: post.title,
+        description: post.meta_description?.trim() || post.excerpt,
+        mainEntityOfPage: { "@type": "WebPage", "@id": articleUrl },
+        datePublished: publishedAt,
+        dateModified: modifiedAt,
+        image: [{ "@type": "ImageObject", url: cover }],
+        wordCount,
+        timeRequired: `PT${minutes}M`,
+        inLanguage: "en-IN",
+        author: {
+          "@type": "Organization",
+          name: "Twimzi Editorial Team",
+          url: siteConfig.url,
+        },
+        publisher: {
+          "@type": "Organization",
+          name: siteConfig.name,
+          url: siteConfig.url,
+          logo: {
+            "@type": "ImageObject",
+            url: `${siteConfig.url}${siteConfig.brand.logo}`,
+          },
+        },
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": `${articleUrl}#breadcrumbs`,
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: siteConfig.url },
+          { "@type": "ListItem", position: 2, name: "Blog", item: `${siteConfig.url}/blog` },
+          { "@type": "ListItem", position: 3, name: post.title, item: articleUrl },
+        ],
+      },
+    ],
   };
 
   return (
