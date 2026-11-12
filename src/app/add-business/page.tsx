@@ -1393,7 +1393,7 @@ export default function AddBusiness() {
               ) : null}
 
               <label className="flex items-start gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-secondary)] p-4 text-sm leading-6">
-                <input type="checkbox" checked={leadCaptureConsent} onChange={(event) => setLeadCaptureConsent(event.target.checked)} className="mt-1 h-4 w-4 shrink-0 accent-[var(--color-primary)]" />
+                <input type="checkbox" checked={leadCaptureConsent} onChange={(event) => { const accepted = event.target.checked; setLeadCaptureConsent(accepted); if (!accepted) { const supabase = createSupabaseBrowserClient(); void supabase.rpc("capture_business_registration_lead", { p_session_id: getAnalyticsSessionId(), p_payload: {}, p_consent: false, p_submitted: false }); } }} className="mt-1 h-4 w-4 shrink-0 accent-[var(--color-primary)]" />
                 <span>I agree that Twimzi may securely save the business and contact details I enter here if I do not complete registration, so the Twimzi team can contact me to help finish setup. I can continue registration without opting in.</span>
               </label>
 
