@@ -85,8 +85,7 @@ export default function AddBusiness() {
         const savedAt = typeof draft.savedAt === "number" ? draft.savedAt : Date.now();
         if (Date.now() - savedAt > 24 * 60 * 60 * 1000) {
           window.localStorage.removeItem("twimzi-business-registration-draft");
-          window.localStorage.removeItem("twimzi-business-registration-draft");
-      window.sessionStorage.removeItem("twimzi-business-registration-draft");
+          window.sessionStorage.removeItem("twimzi-business-registration-draft");
           return;
         }
         if (typeof draft.businessName === "string") setBusinessName(draft.businessName);
@@ -109,6 +108,7 @@ export default function AddBusiness() {
         window.sessionStorage.removeItem("twimzi-business-registration-draft");
         setMessage("Your saved business details have been restored. You can continue your registration.");
       } catch {
+        window.localStorage.removeItem("twimzi-business-registration-draft");
         window.sessionStorage.removeItem("twimzi-business-registration-draft");
       }
     }, 0);
@@ -690,6 +690,7 @@ export default function AddBusiness() {
           : "Your business has been submitted successfully. It will appear publicly after approval.";
 
       setMessage(successText);
+      window.localStorage.removeItem("twimzi-business-registration-draft");
       window.sessionStorage.removeItem("twimzi-business-registration-draft");
       await trackAnalyticsEvent("business_registration_submitted");
 
