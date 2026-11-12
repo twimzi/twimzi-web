@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import {
   FormEvent,
@@ -41,6 +42,7 @@ type ConversationHeader = {
   counterpart_name: string;
   counterpart_business_name: string | null;
   counterpart_is_business: boolean;
+  counterpart_avatar_media_id: string | null;
 };
 
 function formatMessageTime(value: string | null): string {
@@ -108,6 +110,7 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [header, setHeader] = useState<ConversationHeader | null>(null);
+  const [counterpartAvatarUrl, setCounterpartAvatarUrl] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -185,6 +188,7 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
         counterpart_name: string;
         counterpart_business_name: string | null;
         counterpart_is_business: boolean;
+        counterpart_avatar_media_id: string | null;
       }>
     ).find((item) => item.conversation_id === conversationId);
 
@@ -198,6 +202,19 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
 
     setMessages(loadedMessages);
     setHeader(conversation);
+    setCounterpartAvatarUrl(null);
+    if (conversation.counterpart_avatar_media_id) {
+      const { data: media } = await supabase
+        .from("media")
+        .select("bucket_name,object_path,is_public")
+        .eq("id", conversation.counterpart_avatar_media_id)
+        .eq("is_public", true)
+        .maybeSingle();
+      if (media?.bucket_name && media.object_path) {
+        const { data: image } = supabase.storage.from(media.bucket_name).getPublicUrl(media.object_path);
+        setCounterpartAvatarUrl(image?.publicUrl || null);
+      }
+    }
     setLoading(false);
 
     const unreadMessages = loadedMessages.filter(
@@ -446,8 +463,12 @@ export function ChatWindow({ conversationId }: ChatWindowProps) {
           ←
         </Link>
 
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary-light)] text-sm font-bold text-[var(--color-primary-dark)]">
-          {displayName.charAt(0).toUpperCase()}
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[var(--color-primary-light)] text-sm font-bold text-[var(--color-primary-dark)] ring-1 ring-[var(--color-border)]">
+          {counterpartAvatarUrl ? (
+            <Image src={counterpartAvatarUrl} alt={displayName + " profile"} width={40} height={40} unoptimized className="h-full w-full object-cover" />
+          ) : (
+            displayName.charAt(0).toUpperCase()
+          )}
         </div>
 
         <div className="min-w-0">
