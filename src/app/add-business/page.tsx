@@ -2,7 +2,6 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Check,
@@ -64,9 +63,6 @@ export default function AddBusiness() {
   const [cover, setCover] = useState<SelectedImage | null>(null);
   const [gallery, setGallery] = useState<SelectedImage[]>([]);
 
-  const [authChecking, setAuthChecking] = useState(true);
-  const [authenticated, setAuthenticated] = useState(false);
-
   const [loading, setLoading] = useState(false);
   // Keep the created business ID if a later media upload fails, so retrying
   // the form resumes the same business instead of creating a duplicate.
@@ -77,34 +73,47 @@ export default function AddBusiness() {
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
-    let active = true;
-
-    async function checkAuthentication() {
+    const timeoutId = window.setTimeout(() => {
       try {
-        const supabase = createSupabaseBrowserClient();
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+        // localStorage is shared with the tab opened by an email-verification link.
+        const saved =
+          window.localStorage.getItem("twimzi-business-registration-draft") ??
+          window.sessionStorage.getItem("twimzi-business-registration-draft");
+        if (!saved) return;
 
-        if (active) {
-          setAuthenticated(Boolean(user));
+        const draft = JSON.parse(saved) as Record<string, unknown>;
+        const savedAt = typeof draft.savedAt === "number" ? draft.savedAt : Date.now();
+        if (Date.now() - savedAt > 24 * 60 * 60 * 1000) {
+          window.localStorage.removeItem("twimzi-business-registration-draft");
+          window.sessionStorage.removeItem("twimzi-business-registration-draft");
+          return;
         }
+        if (typeof draft.businessName === "string") setBusinessName(draft.businessName);
+        if (typeof draft.businessType === "string") setBusinessType(draft.businessType);
+        if (typeof draft.addressLine1 === "string") setAddressLine1(draft.addressLine1);
+        if (typeof draft.addressLine2 === "string") setAddressLine2(draft.addressLine2);
+        if (typeof draft.landmark === "string") setLandmark(draft.landmark);
+        if (typeof draft.city === "string") setCity(draft.city);
+        if (typeof draft.state === "string") setState(draft.state);
+        if (typeof draft.country === "string") setCountry(draft.country);
+        if (typeof draft.postalCode === "string") setPostalCode(draft.postalCode);
+        if (typeof draft.description === "string") setDescription(draft.description);
+        if (typeof draft.keywords === "string") setKeywords(draft.keywords);
+        if (typeof draft.hashtags === "string") setHashtags(draft.hashtags);
+        if (typeof draft.phone === "string") setPhone(draft.phone);
+        if (typeof draft.website === "string") setWebsite(draft.website);
+        if (typeof draft.latitude === "number") setLatitude(draft.latitude);
+        if (typeof draft.longitude === "number") setLongitude(draft.longitude);
+        window.localStorage.removeItem("twimzi-business-registration-draft");
+        window.sessionStorage.removeItem("twimzi-business-registration-draft");
+        setMessage("Your saved business details have been restored. You can continue your registration.");
       } catch {
-        if (active) {
-          setAuthenticated(false);
-        }
-      } finally {
-        if (active) {
-          setAuthChecking(false);
-        }
+        window.localStorage.removeItem("twimzi-business-registration-draft");
+        window.sessionStorage.removeItem("twimzi-business-registration-draft");
       }
-    }
+    }, 0);
 
-    void checkAuthentication();
-
-    return () => {
-      active = false;
-    };
+    return () => window.clearTimeout(timeoutId);
   }, []);
 
   const totalSelectedImages = useMemo(
@@ -572,9 +581,17 @@ export default function AddBusiness() {
       }
 
       if (!user) {
-        router.push(
-          `/login?next=${encodeURIComponent("/add-business")}`,
+        window.localStorage.setItem(
+          "twimzi-business-registration-draft",
+          JSON.stringify({
+            savedAt: Date.now(),
+            businessName, businessType, addressLine1, addressLine2, landmark,
+            city, state, country, postalCode, latitude, longitude, description,
+            keywords, hashtags, phone, website,
+          }),
         );
+        await trackAnalyticsEvent("business_registration_auth_required");
+        router.push("/register?next=%2Fadd-business");
         return;
       }
 
@@ -673,6 +690,8 @@ export default function AddBusiness() {
           : "Your business has been submitted successfully. It will appear publicly after approval.";
 
       setMessage(successText);
+      window.localStorage.removeItem("twimzi-business-registration-draft");
+      window.sessionStorage.removeItem("twimzi-business-registration-draft");
       await trackAnalyticsEvent("business_registration_submitted");
 
       if (logo) {
@@ -716,66 +735,6 @@ export default function AddBusiness() {
     }
   }
 
-  if (authChecking) {
-    return (
-      <>
-        <PageHero
-          eyebrow="For businesses"
-          title="Create your Twimzi business presence."
-          description="Sign in to create and manage your business profile on Twimzi."
-        />
-        <Container>
-          <div className="max-w-3xl py-14">
-            <div className="rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-8 text-center shadow-[var(--shadow-md)]">
-              <p className="text-sm font-semibold text-[var(--color-text-secondary)]">
-                Checking your account...
-              </p>
-            </div>
-          </div>
-        </Container>
-      </>
-    );
-  }
-
-  if (!authenticated) {
-    return (
-      <>
-        <PageHero
-          eyebrow="For businesses"
-          title="Sign in to add your business."
-          description="Create a Twimzi account or sign in to submit your business for approval."
-        />
-        <Container>
-          <div className="max-w-2xl py-14">
-            <div className="rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-8 text-center shadow-[var(--shadow-md)] sm:p-10">
-              <h2 className="text-2xl font-bold text-[var(--color-text)]">
-                Account required
-              </h2>
-              <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-[var(--color-text-secondary)]">
-                Please log in or create a Twimzi account first. After you sign
-                in, you can return here and submit your business.
-              </p>
-              <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
-                <Link
-                  href="/login?next=%2Fadd-business"
-                  className="inline-flex min-h-11 items-center justify-center rounded-xl bg-[var(--color-primary)] px-6 text-sm font-semibold text-white transition hover:bg-[var(--color-primary-dark)]"
-                >
-                  Log In
-                </Link>
-                <Link
-                  href="/register?next=%2Fadd-business"
-                  className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-6 text-sm font-semibold text-[var(--color-text)] transition hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
-                >
-                  Create Account
-                </Link>
-              </div>
-            </div>
-          </div>
-        </Container>
-      </>
-    );
-  }
-
   return (
     <>
       <PageHero
@@ -785,7 +744,32 @@ export default function AddBusiness() {
       />
 
       <Container>
-        <div className="max-w-3xl py-14">
+        <div className="grid gap-4 pt-10 sm:grid-cols-3">
+          <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
+            <h2 className="font-bold text-[var(--color-text)]">Get discovered</h2>
+            <p className="mt-2 text-sm leading-6 text-[var(--color-text-muted)]">
+              Create a public profile customers can find when exploring local businesses.
+            </p>
+          </div>
+          <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
+            <h2 className="font-bold text-[var(--color-text)]">Show what you offer</h2>
+            <p className="mt-2 text-sm leading-6 text-[var(--color-text-muted)]">
+              Present your products, services, offers, photos and business updates.
+            </p>
+          </div>
+          <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
+            <h2 className="font-bold text-[var(--color-text)]">Connect with customers</h2>
+            <p className="mt-2 text-sm leading-6 text-[var(--color-text-muted)]">
+              Give people a place to learn about your business and contact you.
+            </p>
+          </div>
+        </div>
+
+        <div className="max-w-3xl py-8">
+          <div className="mb-5 rounded-2xl border border-[var(--color-primary)]/20 bg-[var(--color-primary)]/5 p-4 text-sm leading-6 text-[var(--color-text-secondary)]">
+            <strong className="text-[var(--color-text)]">No account needed to start.</strong>{" "}
+            Fill in your business details first. When you submit, you will be asked to create an account or sign in. Your text details will be saved in this browser while you complete that step. Selected photos are not saved and can be added after sign-in.
+          </div>
           <form
             onSubmit={handleSubmit}
             onFocusCapture={handleRegistrationFocus}

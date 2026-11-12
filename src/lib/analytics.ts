@@ -4,6 +4,7 @@ export type AnalyticsEventName =
   | "page_view"
   | "business_registration_viewed"
   | "business_registration_started"
+  | "business_registration_auth_required"
   | "business_registration_submitted"
   | "business_registration_step_completed"
   | "signup_started"

@@ -5,6 +5,7 @@ import { siteConfig } from "@/config/site";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { AnalyticsTracker } from "@/components/analytics/analytics-tracker";
+import { StructuredData } from "@/components/seo/structured-data";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -13,6 +14,43 @@ const poppins = Poppins({
   display: "swap",
   weight: ["400", "500", "600", "700"],
 });
+
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "@id": `${siteConfig.url}/#organization`,
+  name: siteConfig.name,
+  alternateName: "Twimzi Local Business Platform",
+  url: siteConfig.url,
+  logo: new URL(siteConfig.brand.logo, siteConfig.url).toString(),
+  description:
+    "Twimzi is a local business discovery platform where people can discover businesses, products, services and offers, and businesses can build their digital presence.",
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Ludhiana",
+    addressRegion: "Punjab",
+    addressCountry: "IN",
+  },
+  sameAs: [
+    "https://www.instagram.com/twimzi_official/",
+    "https://www.facebook.com/profile.php?id=61595903981246",
+    "https://www.linkedin.com/company/twimzi",
+  ],
+};
+
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": `${siteConfig.url}/#website`,
+  name: siteConfig.name,
+  url: siteConfig.url,
+  publisher: { "@id": `${siteConfig.url}/#organization` },
+  potentialAction: {
+    "@type": "SearchAction",
+    target: `${siteConfig.url}/businesses?q={search_term_string}`,
+    "query-input": "required name=search_term_string",
+  },
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -99,6 +137,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={poppins.variable} suppressHydrationWarning>
+        <StructuredData data={organizationSchema} />
+        <StructuredData data={websiteSchema} />
         <Header />
         <AnalyticsTracker />
         <main>{children}</main>

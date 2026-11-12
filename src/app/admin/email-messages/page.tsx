@@ -12,6 +12,32 @@ const templates = [
 
 type Tab = "inbox" | "sent" | "compose" | "templates" | "automations" | "history" | "settings";
 
+type CampaignRecord = {
+  id: string;
+  name: string;
+  subject: string;
+  status: string;
+  total_recipients: number;
+  accepted_count: number;
+  failed_count: number;
+  created_at: string;
+};
+
+type MailboxMessage = {
+  uid?: string | number;
+  id?: string | number;
+  subject?: string;
+  from?: string;
+  sender?: string;
+  to?: string;
+  date?: string;
+  internalDate?: string;
+  text?: string;
+  body?: string;
+  snippet?: string;
+  preview?: string;
+};
+
 export default function AdminEmailMessagesPage() {
   const [tab, setTab] = useState<Tab>("compose");
   const [campaignName, setCampaignName] = useState("Business invitation");
@@ -24,24 +50,24 @@ export default function AdminEmailMessagesPage() {
   const [status, setStatus] = useState<{ kind: "success" | "error"; text: string } | null>(null);
   const [copied, setCopied] = useState(false);
   const [consentConfirmed, setConsentConfirmed] = useState(false);
-  const [campaigns, setCampaigns] = useState<any[]>([]);
+  const [campaigns, setCampaigns] = useState<CampaignRecord[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [audienceLoading, setAudienceLoading] = useState(false);
   const [audienceMessage, setAudienceMessage] = useState("");
-  const [mailboxMessages, setMailboxMessages] = useState<any[]>([]);
+  const [mailboxMessages, setMailboxMessages] = useState<MailboxMessage[]>([]);
   const [mailboxLoading, setMailboxLoading] = useState(false);
   const [mailboxError, setMailboxError] = useState("");
   const [mailboxConnection, setMailboxConnection] = useState<{ connected: boolean; address?: string; mailboxId?: string; error?: string } | null>(null);
   const [mailboxPage, setMailboxPage] = useState(1);
-  const [selectedMessage, setSelectedMessage] = useState<any | null>(null);
+  const [selectedMessage, setSelectedMessage] = useState<MailboxMessage | null>(null);
 
   const recipients = useMemo(() => Array.from(new Set(recipientsText.split(/[\s,;]+/).map((x) => x.trim().toLowerCase()).filter(Boolean))), [recipientsText]);
   const invalidRecipients = recipients.filter((email) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
-  const activeTemplate = templates.find((item) => item.id === templateId) ?? templates[0];
 
   useEffect(() => {
     if (tab !== "history") return;
     let active = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setHistoryLoading(true);
     fetch("/api/admin/email-campaigns", { cache: "no-store" }).then(async (response) => { const result = await response.json(); if (!response.ok) throw new Error(result.error); return result; }).then((result) => { if (active) setCampaigns(result.campaigns || []); }).catch(() => { if (active) setCampaigns([]); }).finally(() => { if (active) setHistoryLoading(false); });
     return () => { active = false; };
@@ -50,6 +76,7 @@ export default function AdminEmailMessagesPage() {
   useEffect(() => {
     if (tab !== "inbox" && tab !== "sent" && tab !== "settings") return;
     let active = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMailboxLoading(true);
     setMailboxError("");
     fetch("/api/admin/hostinger-mail?folder=" + encodeURIComponent(tab === "sent" ? "sent" : "inbox") + "&page=" + mailboxPage, { cache: "no-store" })
