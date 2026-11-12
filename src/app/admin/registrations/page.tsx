@@ -51,6 +51,7 @@ type AnonymousSession = {
   campaign: string | null;
   registration_started: boolean;
   registration_submitted: boolean;
+  event_history: { event_name: string; created_at: string; path: string | null; cta_label: string | null }[];
 };
 type Payload = {
   users: RegistrationUser[];
@@ -269,7 +270,7 @@ export default async function AdminRegistrationsPage({
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-left text-sm">
               <thead className="bg-[var(--color-secondary)] text-xs text-[var(--color-text-muted)]">
-                <tr><th className="px-5 py-3">Session</th><th className="px-4 py-3">Source / campaign</th><th className="px-4 py-3">Last page</th><th className="px-4 py-3">Activity</th><th className="px-4 py-3">First seen</th><th className="px-4 py-3">Last seen</th></tr>
+                <tr><th className="px-5 py-3">Session</th><th className="px-4 py-3">Source / campaign</th><th className="px-4 py-3">Last page</th><th className="px-4 py-3">Activity</th><th className="px-4 py-3">First seen</th><th className="px-4 py-3">Last seen</th><th className="px-4 py-3">Journey</th></tr>
               </thead>
               <tbody>
                 {startedSessions.map((session) => (
@@ -280,6 +281,20 @@ export default async function AdminRegistrationsPage({
                     <td className="px-4 py-4"><span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">{session.registration_submitted ? "Submitted" : "Started · no submit"}</span></td>
                     <td className="px-4 py-4 whitespace-nowrap">{dateTime(session.first_seen)}</td>
                     <td className="px-4 py-4 whitespace-nowrap">{dateTime(session.last_seen)}</td>
+                    <td className="px-4 py-4">
+                      <details className="max-w-xs">
+                        <summary className="cursor-pointer font-semibold text-[var(--color-primary)]">View {session.event_count} events</summary>
+                        <ol className="mt-3 space-y-2 border-l border-[var(--color-border)] pl-3">
+                          {session.event_history.map((event, index) => (
+                            <li key={`${event.created_at}-${index}`} className="text-xs">
+                              <p className="font-semibold">{event.event_name}</p>
+                              <p className="text-[var(--color-text-muted)]">{dateTime(event.created_at)} · {event.path ?? "—"}</p>
+                              {event.cta_label ? <p className="text-[var(--color-text-muted)]">CTA: {event.cta_label}</p> : null}
+                            </li>
+                          ))}
+                        </ol>
+                      </details>
+                    </td>
                   </tr>
                 ))}
               </tbody>
