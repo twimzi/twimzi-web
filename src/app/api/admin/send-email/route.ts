@@ -182,6 +182,12 @@ export async function POST(request: Request) {
       return !preference?.unsubscribed_at && (campaignType === "transactional" || preference?.marketing_consent === true || payload.consentConfirmed === true);
     });
     const suppressedRecipients = recipients.filter((email) => !eligibleRecipients.includes(email));
+    if (campaignType === "marketing" && payload.consentConfirmed === true && eligibleRecipients.length) {
+      await supabase.from("email_preferences").upsert(
+        eligibleRecipients.map((email) => ({ email, marketing_consent: true, consent_source: "admin_campaign_confirmation", consent_at: new Date().toISOString(), updated_at: new Date().toISOString() })),
+        { onConflict: "email", ignoreDuplicates: false }
+      );
+    }
     if (suppressedRecipients.length) {
       await supabase.from("email_campaign_recipients").insert(suppressedRecipients.map((email) => ({
         campaign_id: campaign.id, email, status: "suppressed", error_message: "Recipient has unsubscribed."
