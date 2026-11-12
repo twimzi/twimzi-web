@@ -496,7 +496,7 @@ export async function generateMetadata({
     "Explore its products, services, offers and contact information on Twimzi.",
   ].filter(Boolean);
   const description = `${business.business_name} — ${descriptionParts.join(" ")}`
-    .replace(/\\s+/g, " ")
+    .replace(/\s+/g, " ")
     .slice(0, 160)
     .trim();
 
