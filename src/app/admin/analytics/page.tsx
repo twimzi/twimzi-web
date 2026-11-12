@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -201,14 +203,22 @@ export default function AdminAnalyticsPage() {
           </p>
         </div>
 
-        <button
+        <div className="flex flex-wrap gap-2">
+          <Link href="/admin/registrations" className="rounded-xl border border-[var(--color-border)] bg-white px-4 py-2.5 text-sm font-semibold text-[var(--color-text-secondary)] hover:bg-[var(--color-secondary)]">
+            Registration CRM
+          </Link>
+          <Link href="/admin/growth" className="rounded-xl border border-[var(--color-border)] bg-white px-4 py-2.5 text-sm font-semibold text-[var(--color-text-secondary)] hover:bg-[var(--color-secondary)]">
+            Growth intelligence
+          </Link>
+          <button
           type="button"
           onClick={() => void loadAnalytics()}
           disabled={loading}
           className="self-start rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 sm:self-auto"
         >
           {loading ? "Refreshing..." : "Refresh"}
-        </button>
+          </button>
+        </div>
       </div>
 
       {error && (
