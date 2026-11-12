@@ -123,6 +123,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={poppins.variable} suppressHydrationWarning>
+        <StructuredData data={organizationSchema} />
         <Header />
         <AnalyticsTracker />
         <main>{children}</main>
