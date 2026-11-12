@@ -2,7 +2,6 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Check,
@@ -74,8 +73,9 @@ export default function AddBusiness() {
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
-    try {
-      const saved = window.sessionStorage.getItem("twimzi-business-registration-draft");
+    const timeoutId = window.setTimeout(() => {
+      try {
+        const saved = window.sessionStorage.getItem("twimzi-business-registration-draft");
       if (!saved) return;
       const draft = JSON.parse(saved) as Record<string, unknown>;
       if (typeof draft.businessName === "string") setBusinessName(draft.businessName);
@@ -97,7 +97,8 @@ export default function AddBusiness() {
       setMessage("Your saved business details have been restored. You can continue your registration.");
     } catch {
       window.sessionStorage.removeItem("twimzi-business-registration-draft");
-    }
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
   }, []);
 
   const totalSelectedImages = useMemo(
