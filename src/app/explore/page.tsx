@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   BriefcaseBusiness,
@@ -21,6 +22,19 @@ import {
 import { Container } from "@/components/ui/container";
 import { GlobalNetworkGlobe } from "@/components/home/global-network-globe";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+export const metadata: Metadata = {
+  title: "Explore Local Businesses, Products & Services in India | Twimzi",
+  description:
+    "Find local businesses, manufacturers, traders, products and services across India. Explore business categories and discover providers on Twimzi.",
+  alternates: { canonical: "/explore" },
+  openGraph: {
+    type: "website",
+    url: "/explore",
+    title: "Explore Businesses Across India | Twimzi",
+    description: "Discover businesses, products and services by category and location on Twimzi.",
+  },
+};
 
 type SearchParams = {
   q?: string;
