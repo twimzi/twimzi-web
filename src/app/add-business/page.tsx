@@ -726,7 +726,32 @@ export default function AddBusiness() {
       />
 
       <Container>
-        <div className="max-w-3xl py-14">
+        <div className="grid gap-4 pt-10 sm:grid-cols-3">
+          <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
+            <h2 className="font-bold text-[var(--color-text)]">Get discovered</h2>
+            <p className="mt-2 text-sm leading-6 text-[var(--color-text-muted)]">
+              Create a public profile customers can find when exploring local businesses.
+            </p>
+          </div>
+          <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
+            <h2 className="font-bold text-[var(--color-text)]">Show what you offer</h2>
+            <p className="mt-2 text-sm leading-6 text-[var(--color-text-muted)]">
+              Present your products, services, offers, photos and business updates.
+            </p>
+          </div>
+          <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5">
+            <h2 className="font-bold text-[var(--color-text)]">Connect with customers</h2>
+            <p className="mt-2 text-sm leading-6 text-[var(--color-text-muted)]">
+              Give people a place to learn about your business and contact you.
+            </p>
+          </div>
+        </div>
+
+        <div className="max-w-3xl py-8">
+          <div className="mb-5 rounded-2xl border border-[var(--color-primary)]/20 bg-[var(--color-primary)]/5 p-4 text-sm leading-6 text-[var(--color-text-secondary)]">
+            <strong className="text-[var(--color-text)]">No account needed to start.</strong>{" "}
+            Fill in your business details first. When you submit, you will be asked to create an account or sign in. Your text details will be saved in this browser while you complete that step.
+          </div>
           <form
             onSubmit={handleSubmit}
             onFocusCapture={handleRegistrationFocus}
