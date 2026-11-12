@@ -197,12 +197,18 @@ function renderContent(content: string) {
 }
 
 function renderInline(text: string, key: string) {
-  const parts = text.split(/(\*\*[^*]+\*\*|https?:\/\/[^\s)]+)/g);
+  const parts = text.split(/(\[[^\]]+\]\([^)]+\)|\*\*[^*]+\*\*|https?:\/\/[^\s)]+)/g);
   return parts.map((part, index) => {
-    if (part.startsWith("**") && part.endsWith("**")) return <strong key={`${key}-${index}`} className="bg-gradient-to-r from-[#8E07FB] via-[#1879FD] to-[#05CDFC] bg-clip-text font-extrabold text-transparent">{part.slice(2, -2)}</strong>;
+    const markdownLink = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+    if (markdownLink) {
+      const [, label, href] = markdownLink;
+      const isExternal = /^https?:\/\//i.test(href);
+      return <a key={key + "-" + index} href={href} {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})} className="break-words font-bold text-[#1879FD] underline decoration-[#05CDFC] underline-offset-4 hover:text-[#8E07FB]">{label}</a>;
+    }
+    if (part.startsWith("**") && part.endsWith("**")) return <strong key={key + "-" + index} className="bg-gradient-to-r from-[#8E07FB] via-[#1879FD] to-[#05CDFC] bg-clip-text font-extrabold text-transparent">{part.slice(2, -2)}</strong>;
     if (/^https?:\/\//.test(part)) {
       const cleanUrl = part.replace(/[.,;!?]+$/, "");
-      return <a key={`${key}-${index}`} href={cleanUrl} target="_blank" rel="noopener noreferrer" className="break-words font-bold text-[#1879FD] underline decoration-[#05CDFC] underline-offset-4 hover:text-[#8E07FB]">{cleanUrl}{part.slice(cleanUrl.length)}</a>;
+      return <a key={key + "-" + index} href={cleanUrl} target="_blank" rel="noopener noreferrer" className="break-words font-bold text-[#1879FD] underline decoration-[#05CDFC] underline-offset-4 hover:text-[#8E07FB]">{cleanUrl}{part.slice(cleanUrl.length)}</a>;
     }
     return part;
   });
