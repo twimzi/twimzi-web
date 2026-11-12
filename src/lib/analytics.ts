@@ -5,6 +5,7 @@ export type AnalyticsEventName =
   | "business_registration_viewed"
   | "business_registration_started"
   | "business_registration_submitted"
+  | "business_registration_step_completed"
   | "signup_started"
   | "signup_completed"
   | "whatsapp_click"
@@ -21,6 +22,7 @@ type Attribution = {
 type EventExtras = {
   cta_label?: string;
   destination_host?: string;
+  step_name?: string;
 };
 
 const SESSION_KEY = "twimzi:analytics-session:v1";
@@ -104,10 +106,13 @@ export async function trackAnalyticsEvent(
       ...(extras.destination_host
         ? { destination_host: clean(extras.destination_host, 160) }
         : {}),
+      ...(extras.step_name ? { step_name: clean(extras.step_name, 80) } : {}),
     };
 
     const supabase = createSupabaseBrowserClient();
+    const { data: { user } } = await supabase.auth.getUser();
     await supabase.from("analytics_events").insert({
+      profile_id: user?.id ?? null,
       event_name: eventName,
       platform: "web",
       device_type: window.matchMedia("(max-width: 767px)").matches
