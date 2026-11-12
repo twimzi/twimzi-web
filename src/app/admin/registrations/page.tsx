@@ -262,7 +262,7 @@ export default async function AdminRegistrationsPage({
       <section className="rounded-2xl border border-[var(--color-border)] bg-white shadow-[var(--shadow-sm)]">
         <div className="border-b border-[var(--color-border)] p-5">
           <h2 className="font-bold">Anonymous registration sessions</h2>
-          <p className="mt-1 text-xs text-[var(--color-text-muted)]">These sessions started business registration before being linked to a signed-in profile. A session ID is not a person's identity.</p>
+          <p className="mt-1 text-xs text-[var(--color-text-muted)]">These sessions started business registration before being linked to a signed-in profile. A session ID is not a person&apos;s identity.</p>
         </div>
         {startedSessions.length === 0 ? (
           <p className="p-8 text-center text-sm text-[var(--color-text-muted)]">No anonymous registration starts recorded.</p>
