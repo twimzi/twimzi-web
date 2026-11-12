@@ -37,6 +37,11 @@ function clean(
   return normalized ? normalized.slice(0, maxLength) : undefined;
 }
 
+export function setAnalyticsSessionId(sessionId: string): void {
+  if (typeof window === "undefined" || !/^[0-9a-fA-F-]{36}$/.test(sessionId)) return;
+  window.sessionStorage.setItem(SESSION_KEY, sessionId);
+}
+
 export function getAnalyticsSessionId(): string {
   let sessionId = window.sessionStorage.getItem(SESSION_KEY);
 
