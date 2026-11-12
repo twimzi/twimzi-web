@@ -73,7 +73,7 @@ export default async function BlogPage() {
                 Explore articles <span aria-hidden="true">↓</span>
               </a>
             </div>
-            <div className="mt-8 flex flex-wrap gap-x-4 gap-y-2 text-sm font-medium text-slate-300 sm:gap-x-6"><span>Business essentials</span><span className="text-[#2459a9]" aria-hidden="true">•</span><span>Digital growth</span><span className="text-[#2459a9]" aria-hidden="true">•</span><span>Local discovery</span></div>
+            <div className="mt-8 flex flex-wrap gap-x-4 gap-y-2 text-sm font-medium text-slate-600 sm:gap-x-6"><span>Business essentials</span><span className="text-[#2459a9]" aria-hidden="true">•</span><span>Digital growth</span><span className="text-[#2459a9]" aria-hidden="true">•</span><span>Local discovery</span></div>
           </div>
         </div>
       </section>
