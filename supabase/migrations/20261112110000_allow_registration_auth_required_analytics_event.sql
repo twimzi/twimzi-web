@@ -1,5 +1,6 @@
 -- Allow the anonymous registration funnel to record the auth hand-off step.
 -- Keep the existing privacy and payload constraints unchanged.
+-- The event contains only the existing session/path attribution metadata, never form data.
 
 drop policy if exists analytics_public_web_insert on public.analytics_events;
 create policy analytics_public_web_insert
