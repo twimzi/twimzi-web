@@ -75,10 +75,20 @@ export default function AddBusiness() {
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
       try {
-        const saved = window.sessionStorage.getItem("twimzi-business-registration-draft");
+        // localStorage is shared with the tab opened by an email-verification link.
+        const saved =
+          window.localStorage.getItem("twimzi-business-registration-draft") ??
+          window.sessionStorage.getItem("twimzi-business-registration-draft");
         if (!saved) return;
 
         const draft = JSON.parse(saved) as Record<string, unknown>;
+        const savedAt = typeof draft.savedAt === "number" ? draft.savedAt : Date.now();
+        if (Date.now() - savedAt > 24 * 60 * 60 * 1000) {
+          window.localStorage.removeItem("twimzi-business-registration-draft");
+          window.localStorage.removeItem("twimzi-business-registration-draft");
+      window.sessionStorage.removeItem("twimzi-business-registration-draft");
+          return;
+        }
         if (typeof draft.businessName === "string") setBusinessName(draft.businessName);
         if (typeof draft.businessType === "string") setBusinessType(draft.businessType);
         if (typeof draft.addressLine1 === "string") setAddressLine1(draft.addressLine1);
@@ -95,6 +105,8 @@ export default function AddBusiness() {
         if (typeof draft.website === "string") setWebsite(draft.website);
         if (typeof draft.latitude === "number") setLatitude(draft.latitude);
         if (typeof draft.longitude === "number") setLongitude(draft.longitude);
+        window.localStorage.removeItem("twimzi-business-registration-draft");
+        window.sessionStorage.removeItem("twimzi-business-registration-draft");
         setMessage("Your saved business details have been restored. You can continue your registration.");
       } catch {
         window.sessionStorage.removeItem("twimzi-business-registration-draft");
@@ -569,9 +581,10 @@ export default function AddBusiness() {
       }
 
       if (!user) {
-        window.sessionStorage.setItem(
+        window.localStorage.setItem(
           "twimzi-business-registration-draft",
           JSON.stringify({
+            savedAt: Date.now(),
             businessName, businessType, addressLine1, addressLine2, landmark,
             city, state, country, postalCode, latitude, longitude, description,
             keywords, hashtags, phone, website,
