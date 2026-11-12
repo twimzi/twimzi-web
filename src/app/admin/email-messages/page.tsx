@@ -84,7 +84,7 @@ export default function AdminEmailMessagesPage() {
       if (!emails.length) {
         setAudienceMessage("No registered users have a recorded marketing opt-in yet.");
       } else {
-        setRecipientsText((current) => Array.from(new Set([...current.split(/[\\s,;]+/), ...emails].map((value) => value.trim().toLowerCase()).filter(Boolean))).join("\\n"));
+        setRecipientsText((current) => Array.from(new Set([...current.split(/[\s,;]+/), ...emails].map((value) => value.trim().toLowerCase()).filter(Boolean))).join("\n"));
         setAudienceMessage(String(emails.length) + " opted-in registered user(s) added.");
       }
     } catch (error) {
