@@ -54,7 +54,7 @@ begin
     return true;
   end if;
 
-  if jsonb_typeof(p_payload) <> 'object'
+  if p_payload is null or jsonb_typeof(p_payload) is distinct from 'object'
      or octet_length(p_payload::text) > 12000 then
     raise exception 'Invalid registration lead payload' using errcode = '22023';
   end if;
@@ -65,6 +65,12 @@ begin
     'country','postal_code','description','keywords','hashtags'
   ]::text[] <> '{}'::jsonb then
     raise exception 'Unsupported registration lead fields' using errcode = '22023';
+  end if;
+
+  if coalesce(p_payload->>'business_name','') = ''
+     and coalesce(p_payload->>'phone','') = ''
+     and coalesce(p_payload->>'contact_email','') = '' then
+    raise exception 'Enter a business name or contact detail before saving a lead' using errcode = '22023';
   end if;
 
   v_payload := jsonb_strip_nulls(jsonb_build_object(
