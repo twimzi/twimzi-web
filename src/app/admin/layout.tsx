@@ -29,6 +29,7 @@ const sections = [
     [
       ["Analytics", "/admin/analytics"],
       ["Growth Dashboard", "/admin/growth"],
+      ["Registration CRM", "/admin/registrations"],
       ["Featured", "/admin/featured"],
       ["Offers", "/admin/offers"],
       ["Blog", "/admin/blog"],
