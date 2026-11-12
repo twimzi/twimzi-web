@@ -2,6 +2,7 @@ import tls from "node:tls";
 import { createInterface } from "node:readline";
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -117,12 +118,20 @@ async function sendViaHostinger(to: string, subject: string, body: string) {
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createSupabaseServerClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: "Please sign in." }, { status: 401 });
-
-    const { data: isSuperAdmin, error: roleError } = await supabase.rpc("is_super_admin");
-    if (roleError || isSuperAdmin !== true) return NextResponse.json({ error: "Super Admin access required." }, { status: 403 });
+    const internalSecret = process.env.EMAIL_AUTOMATION_CRON_SECRET;
+    const isInternal = !!internalSecret && request.headers.get("authorization") === `Bearer ${internalSecret}`;
+    const supabase = isInternal
+      ? createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } })
+      : await createSupabaseServerClient();
+    if (isInternal && !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return NextResponse.json({ error: "SUPABASE_SERVICE_ROLE_KEY is not configured for the automation worker." }, { status: 503 });
+    }
+    const { data: { user } } = isInternal ? { data: { user: null } } : await supabase.auth.getUser();
+    if (!isInternal) {
+      if (!user) return NextResponse.json({ error: "Please sign in." }, { status: 401 });
+      const { data: isSuperAdmin, error: roleError } = await supabase.rpc("is_super_admin");
+      if (roleError || isSuperAdmin !== true) return NextResponse.json({ error: "Super Admin access required." }, { status: 403 });
+    }
 
     const payload = await request.json();
     const rawRecipients: unknown = payload.recipients ?? (typeof payload.to === "string" ? [payload.to] : []);
@@ -143,13 +152,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Enter a message up to 20,000 characters." }, { status: 400 });
     }
 
-    if (payload.consentConfirmed !== true) {
+    const campaignType = payload.campaignType === "transactional" ? "transactional" : "marketing";
+    if (campaignType === "marketing" && payload.consentConfirmed !== true) {
       return NextResponse.json({ error: "Confirm that every marketing recipient has opted in to receive Twimzi emails. Unsubscribed addresses will always be suppressed." }, { status: 400 });
     }
 
     const { data: campaign, error: campaignError } = await supabase
       .from("email_campaigns")
-      .insert({ name: campaignName, subject, body, campaign_type: "marketing", status: "sending", created_by: user.id, started_at: new Date().toISOString(), total_recipients: recipients.length })
+      .insert({ name: campaignName, subject, body, campaign_type: campaignType, status: "sending", created_by: user?.id ?? null, started_at: new Date().toISOString(), total_recipients: recipients.length })
       .select("id")
       .single();
     if (campaignError || !campaign) {
@@ -164,7 +174,7 @@ export async function POST(request: Request) {
     const preferenceByEmail = new Map((preferences ?? []).map((row) => [String(row.email).toLowerCase(), row]));
     const eligibleRecipients = recipients.filter((email) => {
       const preference = preferenceByEmail.get(email);
-      return !preference?.unsubscribed_at && (preference?.marketing_consent === true || payload.consentConfirmed === true);
+      return !preference?.unsubscribed_at && (campaignType === "transactional" || preference?.marketing_consent === true || payload.consentConfirmed === true);
     });
     const suppressedRecipients = recipients.filter((email) => !eligibleRecipients.includes(email));
     if (suppressedRecipients.length) {
