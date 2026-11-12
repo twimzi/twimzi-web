@@ -321,7 +321,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ sl
           <figure className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
             <BlogImage src={cover} alt={post.title} className="aspect-[16/9] w-full object-cover" loading="eager" fetchPriority="high" />
             <figcaption className="flex items-center justify-between gap-4 px-4 py-3 text-xs text-slate-500 sm:px-5">
-              <span>Twimzi Business Guides</span><span>Updated for 2026</span>
+              <span>Twimzi Business Guides</span><span>{post.title.includes("2027") ? "2027 planning guide" : "Business guide"}</span>
             </figcaption>
           </figure>
 
