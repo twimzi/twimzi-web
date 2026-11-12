@@ -76,28 +76,31 @@ export default function AddBusiness() {
     const timeoutId = window.setTimeout(() => {
       try {
         const saved = window.sessionStorage.getItem("twimzi-business-registration-draft");
-      if (!saved) return;
-      const draft = JSON.parse(saved) as Record<string, unknown>;
-      if (typeof draft.businessName === "string") setBusinessName(draft.businessName);
-      if (typeof draft.businessType === "string") setBusinessType(draft.businessType);
-      if (typeof draft.addressLine1 === "string") setAddressLine1(draft.addressLine1);
-      if (typeof draft.addressLine2 === "string") setAddressLine2(draft.addressLine2);
-      if (typeof draft.landmark === "string") setLandmark(draft.landmark);
-      if (typeof draft.city === "string") setCity(draft.city);
-      if (typeof draft.state === "string") setState(draft.state);
-      if (typeof draft.country === "string") setCountry(draft.country);
-      if (typeof draft.postalCode === "string") setPostalCode(draft.postalCode);
-      if (typeof draft.description === "string") setDescription(draft.description);
-      if (typeof draft.keywords === "string") setKeywords(draft.keywords);
-      if (typeof draft.hashtags === "string") setHashtags(draft.hashtags);
-      if (typeof draft.phone === "string") setPhone(draft.phone);
-      if (typeof draft.website === "string") setWebsite(draft.website);
-      if (typeof draft.latitude === "number") setLatitude(draft.latitude);
-      if (typeof draft.longitude === "number") setLongitude(draft.longitude);
-      setMessage("Your saved business details have been restored. You can continue your registration.");
-    } catch {
-      window.sessionStorage.removeItem("twimzi-business-registration-draft");
+        if (!saved) return;
+
+        const draft = JSON.parse(saved) as Record<string, unknown>;
+        if (typeof draft.businessName === "string") setBusinessName(draft.businessName);
+        if (typeof draft.businessType === "string") setBusinessType(draft.businessType);
+        if (typeof draft.addressLine1 === "string") setAddressLine1(draft.addressLine1);
+        if (typeof draft.addressLine2 === "string") setAddressLine2(draft.addressLine2);
+        if (typeof draft.landmark === "string") setLandmark(draft.landmark);
+        if (typeof draft.city === "string") setCity(draft.city);
+        if (typeof draft.state === "string") setState(draft.state);
+        if (typeof draft.country === "string") setCountry(draft.country);
+        if (typeof draft.postalCode === "string") setPostalCode(draft.postalCode);
+        if (typeof draft.description === "string") setDescription(draft.description);
+        if (typeof draft.keywords === "string") setKeywords(draft.keywords);
+        if (typeof draft.hashtags === "string") setHashtags(draft.hashtags);
+        if (typeof draft.phone === "string") setPhone(draft.phone);
+        if (typeof draft.website === "string") setWebsite(draft.website);
+        if (typeof draft.latitude === "number") setLatitude(draft.latitude);
+        if (typeof draft.longitude === "number") setLongitude(draft.longitude);
+        setMessage("Your saved business details have been restored. You can continue your registration.");
+      } catch {
+        window.sessionStorage.removeItem("twimzi-business-registration-draft");
+      }
     }, 0);
+
     return () => window.clearTimeout(timeoutId);
   }, []);
 
