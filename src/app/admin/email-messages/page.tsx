@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { AlertCircle, CheckCircle2, ChevronRight, Clock3, Copy, Eye, Mail, Send, Users, WandSparkles } from "lucide-react";
 
@@ -169,16 +170,31 @@ export default function AdminEmailMessagesPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-wider text-[var(--color-primary)]">Twimzi growth suite</p>
-          <h1 className="mt-2 text-3xl font-bold text-[var(--color-text-primary)]">Email Marketing</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--color-text-secondary)]">Build targeted email campaigns with your Hostinger business mailbox. Compose, personalize, preview, and send to a small recipient batch.</p>
+    <div className="relative isolate mx-auto max-w-7xl space-y-7 overflow-hidden rounded-[2rem] bg-[radial-gradient(ellipse_at_top_left,_rgba(142,7,251,0.10),_transparent_36%),radial-gradient(ellipse_at_bottom_right,_rgba(5,205,252,0.12),_transparent_34%),linear-gradient(135deg,#f7f8ff_0%,#eef4ff_48%,#f7f1ff_100%)] p-3 sm:p-5 lg:p-7">
+      <div className="relative overflow-hidden rounded-[1.7rem] bg-[linear-gradient(115deg,#020D3A_0%,#172A68_54%,#174D9B_100%)] p-6 text-white shadow-[0_22px_55px_rgba(2,13,58,0.18)] sm:p-8">
+        <div className="pointer-events-none absolute -right-12 -top-24 h-72 w-72 rounded-full bg-[#8E07FB]/25 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-28 right-1/3 h-64 w-64 rounded-full bg-[#05CDFC]/20 blur-3xl" />
+        <div className="relative flex flex-col justify-between gap-6 sm:flex-row sm:items-center">
+          <div className="flex items-center gap-4">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white p-2 shadow-lg">
+              <Image src="/twimzi-logo.png" alt="Twimzi logo" width={769} height={650} priority className="h-full w-full object-contain" />
+            </div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-cyan-200">Twimzi growth suite</p>
+              <h1 className="mt-1 text-3xl font-bold tracking-tight sm:text-4xl">Messages & campaigns</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-blue-100">Your branded email workspace to manage conversations, build campaigns and automate business communication.</p>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-white/20 bg-white/10 px-5 py-4 backdrop-blur-md">
+            <p className="text-xs font-medium text-blue-100">Mail service</p>
+            <p className="mt-1 flex items-center gap-2 text-sm font-bold"><span className="h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,.9)]" /> Hostinger mailbox connected</p>
+            <p className="mt-1 text-xs text-blue-100/80">support@twimzi.com</p>
+          </div>
         </div>
-        <div className="rounded-xl border border-[var(--color-border)] bg-white px-4 py-3">
-          <p className="text-xs text-[var(--color-text-muted)]">Sending provider</p>
-          <p className="mt-1 flex items-center gap-2 text-sm font-semibold"><span className="h-2 w-2 rounded-full bg-amber-500" /> Hostinger SMTP · server connection</p>
+        <div className="relative mt-7 flex flex-wrap gap-2 text-xs font-semibold text-white/90">
+          <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5">Inbox management</span>
+          <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5">Campaign builder</span>
+          <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5">Automated follow-ups</span>
         </div>
       </div>
 
@@ -189,23 +205,23 @@ export default function AdminEmailMessagesPage() {
           { label: "Automations", value: "Not configured", icon: Clock3 },
           { label: "Sent campaigns", value: "—", icon: Send },
         ].map((item) => (
-          <div key={item.label} className="rounded-2xl border border-[var(--color-border)] bg-white p-4">
+          <div key={item.label} className="group rounded-2xl border border-white/80 bg-white/85 p-5 shadow-[0_8px_28px_rgba(24,45,100,0.07)] backdrop-blur transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_36px_rgba(24,45,100,0.11)]">
             <div className="flex items-center justify-between gap-2 text-xs text-[var(--color-text-muted)]"><span>{item.label}</span><item.icon size={16} /></div>
             <p className="mt-3 text-xl font-bold text-[var(--color-text-primary)]">{item.value}</p>
           </div>
         ))}
       </div>
 
-      <div className="flex gap-2 overflow-x-auto rounded-xl border border-[var(--color-border)] bg-white p-2">
+      <div className="flex gap-2 overflow-x-auto rounded-2xl border border-white/80 bg-white/75 p-2 shadow-[0_8px_28px_rgba(24,45,100,0.07)] backdrop-blur">
         {navItems.map((item) => {
           const Icon = item.icon;
-          return <button key={item.id} type="button" onClick={() => setTab(item.id)} className={`inline-flex shrink-0 items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition ${tab === item.id ? "bg-[var(--color-primary)] text-white" : "text-[var(--color-text-secondary)] hover:bg-gray-100"}`}><Icon size={16} />{item.label}</button>;
+          return <button key={item.id} type="button" onClick={() => setTab(item.id)} className={`inline-flex shrink-0 items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition ${tab === item.id ? "bg-[linear-gradient(115deg,#8E07FB_0%,#1879FD_55%,#05CDFC_100%)] text-white shadow-[0_7px_18px_rgba(24,121,253,0.25)]" : "text-[var(--color-text-secondary)] hover:bg-blue-50 hover:text-[var(--color-primary-dark)]"}`}><Icon size={16} />{item.label}</button>;
         })}
       </div>
 
 
       {(tab === "inbox" || tab === "sent") && (
-        <div className="overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white">
+        <div className="overflow-hidden rounded-2xl border border-white/80 bg-white/90 shadow-[0_12px_34px_rgba(24,45,100,0.08)] backdrop-blur">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--color-border)] p-5">
             <div><h2 className="font-bold">{tab === "inbox" ? "Inbox" : "Sent / Outbox"}</h2><p className="mt-1 text-sm text-[var(--color-text-muted)]">Live mailbox folder from Hostinger Mail API</p></div>
             <button type="button" onClick={() => { setMailboxPage(1); setSelectedMessage(null); }} className="rounded-lg border px-3 py-2 text-sm font-semibold">Refresh</button>
@@ -235,13 +251,13 @@ export default function AdminEmailMessagesPage() {
               <p className="font-semibold">Campaign sender</p><p className="mt-1 text-sm text-[var(--color-text-secondary)]">Campaign sending currently uses Hostinger SMTP credentials. SMTP accepted status does not confirm inbox delivery. Inbox and Sent folder access uses the Mail API token.</p>
             </div>
           </div>
-          <aside className="rounded-2xl border border-[var(--color-border)] bg-white p-5"><h3 className="font-bold">Hostinger setup</h3><ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-6 text-[var(--color-text-secondary)]"><li>Open Hostinger hPanel.</li><li>Go to Agentic Mail → API.</li><li>Create a token restricted to the Twimzi mailbox.</li><li>Save it as HOSTINGER_MAIL_API_TOKEN in the website server environment.</li><li>Redeploy and test the connection here.</li></ol><p className="mt-4 text-xs text-[var(--color-text-muted)]">API token is write-only from the server side; it cannot be retrieved from this page.</p></aside>
+          <aside className="rounded-2xl border border-white/80 bg-white/90 p-5 shadow-[0_12px_34px_rgba(24,45,100,0.08)] backdrop-blur"><h3 className="font-bold">Hostinger setup</h3><ol className="mt-3 list-decimal space-y-2 pl-5 text-sm leading-6 text-[var(--color-text-secondary)]"><li>Open Hostinger hPanel.</li><li>Go to Agentic Mail → API.</li><li>Create a token restricted to the Twimzi mailbox.</li><li>Save it as HOSTINGER_MAIL_API_TOKEN in the website server environment.</li><li>Redeploy and test the connection here.</li></ol><p className="mt-4 text-xs text-[var(--color-text-muted)]">API token is write-only from the server side; it cannot be retrieved from this page.</p></aside>
         </div>
       )}
 
       {tab === "compose" && (
         <form onSubmit={sendCampaign} className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
-          <div className="space-y-5 rounded-2xl border border-[var(--color-border)] bg-white p-5 sm:p-7">
+          <div className="space-y-5 rounded-2xl border border-white/80 bg-white/90 p-5 shadow-[0_12px_34px_rgba(24,45,100,0.08)] backdrop-blur sm:p-7">
             <div className="flex items-center gap-3"><div className="rounded-xl bg-[var(--color-primary-light)] p-3 text-[var(--color-primary)]"><Mail size={20} /></div><div><h2 className="font-bold">Create campaign</h2><p className="text-sm text-[var(--color-text-muted)]">Draft and send an email campaign</p></div></div>
             <div>
               <label htmlFor="campaign-name" className="mb-2 block text-sm font-semibold">Campaign name</label>
@@ -310,7 +326,7 @@ export default function AdminEmailMessagesPage() {
 
       {tab === "templates" && <div className="grid gap-4 md:grid-cols-2">{templates.map((t) => <div key={t.id} className="rounded-2xl border border-[var(--color-border)] bg-white p-5"><div className="flex items-start justify-between gap-3"><div><span className="rounded-full bg-[var(--color-primary-light)] px-2.5 py-1 text-xs font-semibold text-[var(--color-primary)]">{t.category}</span><h3 className="mt-3 font-bold">{t.label}</h3><p className="mt-1 text-sm text-[var(--color-text-secondary)]">{t.subject}</p></div><WandSparkles size={19} className="text-[var(--color-primary)]" /></div><p className="mt-3 line-clamp-4 whitespace-pre-wrap text-sm leading-6 text-[var(--color-text-muted)]">{t.body}</p><button type="button" onClick={() => { chooseTemplate(t.id); setTab("compose"); }} className="mt-4 rounded-lg border border-[var(--color-border)] px-3 py-2 text-sm font-semibold hover:bg-gray-50">Use template</button></div>)}</div>}
 
-      {tab === "automations" && <div className="rounded-2xl border border-[var(--color-border)] bg-white p-6 sm:p-8"><div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--color-primary-light)] text-[var(--color-primary)]"><Clock3 size={22} /></div><h2 className="mt-4 text-xl font-bold">Email automations</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--color-text-secondary)]">Business registration events now enqueue transactional emails automatically. A scheduled Hostinger cron request must process the queue.</p><div className="mt-5 grid gap-3 sm:grid-cols-2">{[["Welcome new businesses", "Queued shortly after a business is created", "Event-triggered"], ["Profile completion reminder", "Queued 3 days after business creation; cancelled if profile is complete", "Scheduled"], ["Marketing unsubscribe", "Signed unsubscribe links are appended to marketing emails", "Enabled"], ["Campaign audit trail", "Campaign and per-recipient SMTP outcomes are stored", "Enabled"]].map(([name, trigger, state]) => <div key={name} className="rounded-xl border border-[var(--color-border)] p-4"><div className="flex items-center justify-between gap-2"><p className="font-semibold">{name}</p><span className="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-bold uppercase text-emerald-700">{state}</span></div><p className="mt-1 text-sm text-[var(--color-text-muted)]">{trigger}</p></div>)}</div><div className="mt-5 rounded-xl bg-amber-50 p-4 text-sm leading-6 text-amber-900"><strong>Scheduler required:</strong> configure Hostinger Cron Jobs to POST to <code>/api/cron/email-automation</code> every 5 minutes with header <code>Authorization: Bearer YOUR_EMAIL_AUTOMATION_CRON_SECRET</code>. Keep the secret private.</div></div>}
+      {tab === "automations" && <div className="rounded-2xl border border-white/80 bg-white/90 p-6 shadow-[0_12px_34px_rgba(24,45,100,0.08)] backdrop-blur sm:p-8"><div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--color-primary-light)] text-[var(--color-primary)]"><Clock3 size={22} /></div><h2 className="mt-4 text-xl font-bold">Email automations</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--color-text-secondary)]">Business registration events now enqueue transactional emails automatically. A scheduled Hostinger cron request must process the queue.</p><div className="mt-5 grid gap-3 sm:grid-cols-2">{[["Welcome new businesses", "Queued shortly after a business is created", "Event-triggered"], ["Profile completion reminder", "Queued 3 days after business creation; cancelled if profile is complete", "Scheduled"], ["Marketing unsubscribe", "Signed unsubscribe links are appended to marketing emails", "Enabled"], ["Campaign audit trail", "Campaign and per-recipient SMTP outcomes are stored", "Enabled"]].map(([name, trigger, state]) => <div key={name} className="rounded-xl border border-[var(--color-border)] p-4"><div className="flex items-center justify-between gap-2"><p className="font-semibold">{name}</p><span className="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-bold uppercase text-emerald-700">{state}</span></div><p className="mt-1 text-sm text-[var(--color-text-muted)]">{trigger}</p></div>)}</div><div className="mt-5 rounded-xl bg-amber-50 p-4 text-sm leading-6 text-amber-900"><strong>Scheduler required:</strong> configure Hostinger Cron Jobs to POST to <code>/api/cron/email-automation</code> every 5 minutes with header <code>Authorization: Bearer YOUR_EMAIL_AUTOMATION_CRON_SECRET</code>. Keep the secret private.</div></div>}
 
       {tab === "history" && <div className="overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white"><div className="border-b border-[var(--color-border)] p-5"><h2 className="font-bold">Campaign history</h2><p className="mt-1 text-sm text-[var(--color-text-muted)]">SMTP acceptance and failures; not inbox delivery confirmation.</p></div>{historyLoading ? <p className="p-8 text-center text-sm">Loading campaigns…</p> : campaigns.length === 0 ? <p className="p-8 text-center text-sm text-[var(--color-text-muted)]">No campaign records yet.</p> : <div className="overflow-x-auto"><table className="w-full min-w-[680px] text-left text-sm"><thead className="bg-gray-50 text-xs uppercase"><tr><th className="p-4">Campaign</th><th className="p-4">Status</th><th className="p-4">Recipients</th><th className="p-4">Accepted</th><th className="p-4">Failed</th><th className="p-4">Created</th></tr></thead><tbody>{campaigns.map((item) => <tr key={item.id} className="border-t"><td className="p-4"><strong>{item.name}</strong><p className="text-xs text-gray-500">{item.subject}</p></td><td className="p-4 capitalize">{String(item.status).replaceAll("_", " ")}</td><td className="p-4">{item.total_recipients}</td><td className="p-4">{item.accepted_count}</td><td className="p-4">{item.failed_count}</td><td className="p-4">{new Date(item.created_at).toLocaleString()}</td></tr>)}</tbody></table></div>}</div>}
     </div>
