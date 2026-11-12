@@ -195,15 +195,15 @@ export function ConversationList() {
   }
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white shadow-sm">
-      <div className="border-b border-[var(--color-border)] px-5 py-4 sm:px-6">
-        <h1 className="text-xl font-bold text-[var(--color-text)]">
-          Messages
-        </h1>
-
-        <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-          Your Twimzi conversations
-        </p>
+    <section className="overflow-hidden rounded-[1.6rem] border border-white/80 bg-white/90 shadow-[0_16px_42px_rgba(24,45,100,0.09)] backdrop-blur">
+      <div className="flex flex-col justify-between gap-3 border-b border-[var(--color-border)] bg-[linear-gradient(115deg,rgba(237,225,255,0.78),rgba(220,235,255,0.78),rgba(221,248,255,0.78))] px-5 py-5 sm:flex-row sm:items-center sm:px-6">
+        <div>
+          <h2 className="text-xl font-bold text-[var(--color-text)]">Conversations</h2>
+          <p className="mt-1 text-sm text-[var(--color-text-muted)]">Your latest chats and business enquiries</p>
+        </div>
+        <span className="inline-flex w-fit items-center gap-2 rounded-full border border-white/80 bg-white/80 px-3 py-1.5 text-xs font-semibold text-[var(--color-primary-dark)]">
+          <span className="h-2 w-2 rounded-full bg-emerald-500" /> Private conversations
+        </span>
       </div>
 
       {loading ? (
@@ -274,17 +274,17 @@ export function ConversationList() {
               <Link
                 key={item.conversation_id}
                 href={`/messages/${item.conversation_id}`}
-                className="flex gap-3 px-4 py-4 transition hover:bg-[var(--color-secondary)] sm:px-5"
+                className="group flex gap-3 px-4 py-4 transition duration-200 hover:bg-[linear-gradient(90deg,rgba(237,225,255,0.42),rgba(220,235,255,0.42),rgba(221,248,255,0.42))] sm:px-5"
               >
                 <div className="relative shrink-0">
-                  <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-[var(--color-primary-light)] text-sm font-bold text-[var(--color-primary-dark)]">
+                  <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-[linear-gradient(135deg,#EDE1FF_0%,#DCEBFF_55%,#DDF8FF_100%)] text-sm font-bold text-[var(--color-primary-dark)] ring-1 ring-white shadow-sm transition group-hover:scale-105">
                     {getInitial(displayName)}
                   </div>
 
                   {unreadCount > 0 ? (
                     <span
                       aria-label={`${unreadCount} unread messages`}
-                      className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--color-accent)] px-1.5 text-[10px] font-bold text-white ring-2 ring-white"
+                      className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[linear-gradient(135deg,#8E07FB,#1879FD)] px-1.5 text-[10px] font-bold text-white ring-2 ring-white"
                     >
                       {unreadCount > 99 ? "99+" : unreadCount}
                     </span>
