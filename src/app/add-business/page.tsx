@@ -750,7 +750,7 @@ export default function AddBusiness() {
         <div className="max-w-3xl py-8">
           <div className="mb-5 rounded-2xl border border-[var(--color-primary)]/20 bg-[var(--color-primary)]/5 p-4 text-sm leading-6 text-[var(--color-text-secondary)]">
             <strong className="text-[var(--color-text)]">No account needed to start.</strong>{" "}
-            Fill in your business details first. When you submit, you will be asked to create an account or sign in. Your text details will be saved in this browser while you complete that step.
+            Fill in your business details first. When you submit, you will be asked to create an account or sign in. Your text details will be saved in this browser while you complete that step. Selected photos are not saved and can be added after sign-in.
           </div>
           <form
             onSubmit={handleSubmit}
