@@ -33,6 +33,9 @@ function titleCase(value: string) {
 }
 
 async function getCityCategoryBusinesses(citySlug: string, category: string) {
+  if (categorySlug(category) === "other") {
+    return { businesses: [] as Business[], city: "", state: "" };
+  }
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.rpc("get_public_businesses_with_location", {
     p_search: null,
