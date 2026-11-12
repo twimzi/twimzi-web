@@ -26,6 +26,8 @@ export default function AdminEmailMessagesPage() {
   const [consentConfirmed, setConsentConfirmed] = useState(false);
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [audienceLoading, setAudienceLoading] = useState(false);
+  const [audienceMessage, setAudienceMessage] = useState("");
 
   const recipients = useMemo(() => Array.from(new Set(recipientsText.split(/[\s,;]+/).map((x) => x.trim().toLowerCase()).filter(Boolean))), [recipientsText]);
   const invalidRecipients = recipients.filter((email) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
@@ -68,6 +70,27 @@ export default function AdminEmailMessagesPage() {
       setStatus({ kind: "error", text: error instanceof Error ? error.message : "Campaign could not be sent." });
     } finally {
       setSending(false);
+    }
+  }
+
+  async function loadOptedInAudience() {
+    setAudienceLoading(true);
+    setAudienceMessage("");
+    try {
+      const response = await fetch("/api/admin/email-audience", { cache: "no-store" });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Could not load opted-in users.");
+      const emails = (result.recipients || []).map((item: { email: string }) => item.email);
+      if (!emails.length) {
+        setAudienceMessage("No registered users have a recorded marketing opt-in yet.");
+      } else {
+        setRecipientsText((current) => Array.from(new Set([...current.split(/[\\s,;]+/), ...emails].map((value) => value.trim().toLowerCase()).filter(Boolean))).join("\\n"));
+        setAudienceMessage(String(emails.length) + " opted-in registered user(s) added.");
+      }
+    } catch (error) {
+      setAudienceMessage(error instanceof Error ? error.message : "Could not load opted-in users.");
+    } finally {
+      setAudienceLoading(false);
     }
   }
 
@@ -138,6 +161,10 @@ export default function AdminEmailMessagesPage() {
               <label htmlFor="recipients" className="mb-2 flex items-center gap-2 text-sm font-semibold"><Users size={16} /> Recipients</label>
               <textarea id="recipients" value={recipientsText} onChange={(e) => setRecipientsText(e.target.value)} required rows={4} placeholder={"business@example.com\ncontact@example.com"} className="w-full rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)]" />
               <div className="mt-2 flex justify-between gap-3 text-xs text-[var(--color-text-muted)]"><span>{recipients.length} unique recipient(s) · maximum 25 per send</span><span>Separate with commas or new lines</span></div>
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <button type="button" onClick={loadOptedInAudience} disabled={audienceLoading} className="rounded-lg border border-[var(--color-border)] px-3 py-2 text-xs font-semibold hover:bg-gray-50 disabled:opacity-50">{audienceLoading ? "Loading opted-in users…" : "Add opted-in registered users"}</button>
+                {audienceMessage && <span className="text-xs text-[var(--color-text-secondary)]">{audienceMessage}</span>}
+              </div>
               {invalidRecipients.length > 0 && <p className="mt-2 text-xs text-red-600">Invalid email(s): {invalidRecipients.slice(0, 3).join(", ")}</p>}
               {recipients.length > 25 && <p className="mt-2 text-xs text-red-600">This batch exceeds 25 recipients. Split it into smaller batches.</p>}
             </div>
