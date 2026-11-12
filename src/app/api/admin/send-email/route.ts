@@ -211,7 +211,7 @@ export async function POST(request: Request) {
         if (campaignType === "marketing" && unsubscribeSecret) {
           const token = createHmac("sha256", unsubscribeSecret).update(recipient).digest("base64url");
           const site = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.twimzi.com").replace(/\/$/, "");
-          personalizedBody += \`\n\n---\nTo stop receiving Twimzi marketing emails, unsubscribe here: \${site}/api/email/unsubscribe?email=\${encodeURIComponent(recipient)}&token=\${token}\`;
+          personalizedBody += "\n\n---\nTo stop receiving Twimzi marketing emails, unsubscribe here: " + site + "/api/email/unsubscribe?email=" + encodeURIComponent(recipient) + "&token=" + token;
         }
         await sendViaHostinger(recipient, subject, personalizedBody);
         sent += 1;
