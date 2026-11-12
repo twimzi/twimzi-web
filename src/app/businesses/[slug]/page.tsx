@@ -479,9 +479,26 @@ export async function generateMetadata({
     };
   }
 
-  const description =
-    business.description?.trim() ||
-    `${business.business_name} on Twimzi â€” discover products, services, offers and business information.`;
+  const supabase = await createSupabaseServerClient();
+  const { data: locationRows } = await supabase.rpc("get_public_business_location", {
+    p_business_id: business.id,
+  });
+  const location = (locationRows?.[0] ?? null) as BusinessLocation | null;
+  const locationLabel = location
+    ? [location.city, location.state].filter(Boolean).join(", ")
+    : "";
+
+  const suppliedDescription = business.description?.trim() ?? "";
+  const descriptionParts = [
+    suppliedDescription.length >= 70 ? suppliedDescription : "",
+    business.business_type ? `Category: ${business.business_type}.` : "",
+    locationLabel ? `Located in ${locationLabel}.` : "",
+    "Explore its products, services, offers and contact information on Twimzi.",
+  ].filter(Boolean);
+  const description = `${business.business_name} — ${descriptionParts.join(" ")}`
+    .replace(/\\s+/g, " ")
+    .slice(0, 160)
+    .trim();
 
   const businessPath = `/businesses/${business.slug || business.id}`;
   const canonicalUrl = new URL(businessPath, siteConfig.url).toString();
@@ -585,7 +602,29 @@ export default async function BusinessDetailPage({
   }
 
   if (website) {
-    structuredData.sameAs = [website];
+    try {
+      const websiteUrl = new URL(
+        website.startsWith("http://") || website.startsWith("https://")
+          ? website
+          : `https://${website}`,
+      );
+      if (websiteUrl.protocol === "http:" || websiteUrl.protocol === "https:") {
+        structuredData.sameAs = [websiteUrl.toString()];
+      }
+    } catch {
+      // Ignore malformed website values rather than publishing invalid schema URLs.
+    }
+  }
+
+  // Publish city-level business address only; never expose the private street address.
+  if (businessLocation) {
+    structuredData.address = {
+      "@type": "PostalAddress",
+      ...(businessLocation.city ? { addressLocality: businessLocation.city } : {}),
+      ...(businessLocation.state ? { addressRegion: businessLocation.state } : {}),
+      ...(businessLocation.postal_code ? { postalCode: businessLocation.postal_code } : {}),
+      ...(businessLocation.country ? { addressCountry: businessLocation.country } : {}),
+    };
   }
 
   // Do not publish the street address in structured data. Public visitors
