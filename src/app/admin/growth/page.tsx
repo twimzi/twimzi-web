@@ -167,7 +167,7 @@ export default async function AdminGrowthPage() {
         <Metric label="Page views" value={summary.page_views} note="Last 30 days" />
         <Metric label="Business registrations" value={summary.registration_submissions} note="Successful submissions" />
         <Metric label="WhatsApp outbound clicks" value={summary.whatsapp_clicks} note="Website-to-WhatsApp actions" />
-        <Metric label="Registration starts" value={summary.registration_starts} />
+        <Link href="/admin/registrations?lead_filter=open#registration-leads" className="block rounded-2xl outline-none focus:ring-2 focus:ring-[var(--color-primary)]"><Metric label="Registration starts" value={summary.registration_starts} note="Click to view leads and follow-ups" /></Link>
         <Metric label="Accounts created" value={summary.signup_completions} note="Successful sign-up submissions" />
         <Metric label="New businesses" value={summary.new_businesses_30d} note="Created in last 30 days" />
         <Metric label="New user accounts" value={summary.new_users_30d} note="Created in last 30 days" />
