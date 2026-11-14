@@ -348,7 +348,7 @@ export default async function OffersPage({
   ] = await Promise.all([
     supabase
       .from("offers")
-      .select("*")
+      .select("id,business_id,title,slug,short_description,description,coupon_code,offer_type,discount_type,discount_value,minimum_order_amount,maximum_discount_amount,redemption_limit,redemption_count,per_user_limit,start_at,end_at,visibility,status,priority,is_featured,terms_conditions,created_at,is_active,deleted_at")
       .eq("is_active", true)
       .eq("status", "active")
       .is("deleted_at", null)
