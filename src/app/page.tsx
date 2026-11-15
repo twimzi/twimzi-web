@@ -1,4 +1,5 @@
 ﻿import type { Metadata } from "next";
+import Link from "next/link";
 import { BusinessSections } from "@/components/home/business-sections";
 import { BusinessCta } from "@/components/home/business-cta";
 import {
@@ -307,6 +308,25 @@ export default async function Home() {
       <AndroidAppSection />
 
       <BusinessCta />
+
+      <section className="border-t border-[var(--color-border)] bg-[var(--color-secondary)] py-8">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+          <div>
+            <h2 className="text-base font-bold text-[var(--color-text)]">
+              Explore all pages on Twimzi
+            </h2>
+            <p className="mt-1 text-sm text-[var(--color-text-muted)]">
+              Browse business categories, local listings, articles and important information.
+            </p>
+          </div>
+          <Link
+            href="/sitemap"
+            className="inline-flex w-fit items-center rounded-full bg-[var(--color-primary)] px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
+          >
+            View HTML Sitemap
+          </Link>
+        </div>
+      </section>
     </>
   );
 }
