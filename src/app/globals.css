@@ -425,3 +425,22 @@ a.border-purple-600 {
   .twimzi-home-category-card,
   .twimzi-home-business-card { transition: none; }
 }
+
+/* ============================================================
+   MOBILE FIRST-PAINT OPTIMIZATION
+   Keep the hero artwork intact on desktop while reducing
+   decorative paint/compositing work on small screens.
+   ============================================================ */
+@media (max-width: 767px) {
+  .twimzi-home-hero > div[aria-hidden="true"]:nth-of-type(2),
+  .twimzi-home-hero > div[aria-hidden="true"]:nth-of-type(3) {
+    display: none;
+  }
+
+  .twimzi-home-hero::before,
+  .twimzi-home-hero::after {
+    display: none;
+    animation: none;
+    filter: none;
+  }
+}
