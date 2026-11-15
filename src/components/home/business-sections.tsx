@@ -63,9 +63,9 @@ function getInitials(name: string) {
 
 function BusinessCard({ business }: { business: BusinessCardData }) {
   return (
-    <article className="group overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] transition-colors hover:border-[var(--color-primary)]/40">
+    <article className="twimzi-home-business-card group overflow-hidden rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] transition-all duration-300 hover:border-[var(--color-primary)]/40">
       <Link href={getBusinessUrl(business)} className="block">
-        <div className="relative h-24 overflow-hidden bg-[#e8edf2]">
+        <div className="relative h-32 overflow-hidden bg-[#e8edf2]">
           {business.coverUrl ? (
             <Image
               src={business.coverUrl}
@@ -78,7 +78,7 @@ function BusinessCard({ business }: { business: BusinessCardData }) {
         </div>
 
         <div className="relative px-5 pb-5">
-          <div className="-mt-8 flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl border-2 border-[var(--color-surface)] bg-[#e8edf2] text-lg font-bold text-[var(--color-primary)]">
+          <div className="-mt-9 flex h-[72px] w-[72px] items-center justify-center overflow-hidden rounded-2xl border-2 border-[var(--color-surface)] bg-[#e8edf2] text-lg font-bold text-[var(--color-primary)]">
             {business.logoUrl ? (
               <Image
                 src={business.logoUrl}
@@ -189,7 +189,7 @@ export async function BusinessSections({
   return (
     <>
       {featuredWithMedia.length > 0 && (
-        <section className="py-20">
+        <section className="twimzi-home-section py-16 sm:py-20">
           <Container>
             <SectionHeading
               eyebrow="Featured"
@@ -216,7 +216,7 @@ export async function BusinessSections({
       )}
 
       {latestWithMedia.length > 0 && (
-        <section className="bg-[var(--color-secondary)] py-20">
+        <section className="twimzi-home-section bg-[var(--color-secondary)] py-16 sm:py-20">
           <Container>
             <SectionHeading
               eyebrow="New on Twimzi"
