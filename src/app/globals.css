@@ -350,3 +350,78 @@ a.border-purple-600 {
     display: none !important;
   }
 }
+
+
+/* ============================================================
+   HOMEPAGE VISUAL REFRESH
+   Lightweight CSS-only ambient motion; no data or behaviour changes.
+   ============================================================ */
+.twimzi-home-hero {
+  isolation: isolate;
+  background-color: #020d3a;
+  background-image:
+    radial-gradient(ellipse at 12% 12%, rgba(142, 7, 251, .42), transparent 35%),
+    radial-gradient(ellipse at 88% 82%, rgba(5, 205, 252, .32), transparent 38%),
+    linear-gradient(125deg, #05072f 0%, #06164a 52%, #071b64 100%);
+}
+.twimzi-home-hero::before,
+.twimzi-home-hero::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: 9999px;
+  filter: blur(2px);
+}
+.twimzi-home-hero::before {
+  width: min(58vw, 720px);
+  aspect-ratio: 1;
+  top: -34%;
+  right: -12%;
+  border: 1px solid rgba(99, 231, 255, .16);
+  background: radial-gradient(circle at 35% 35%, rgba(142,7,251,.18), rgba(24,121,253,.10) 42%, transparent 68%);
+  box-shadow: inset 0 0 90px rgba(5,205,252,.10), 0 0 100px rgba(24,121,253,.12);
+  animation: twimzi-orb-drift 18s ease-in-out infinite alternate;
+}
+.twimzi-home-hero::after {
+  width: min(42vw, 520px);
+  aspect-ratio: 1;
+  bottom: -42%;
+  left: 22%;
+  background: radial-gradient(circle, rgba(5,205,252,.17), transparent 68%);
+  animation: twimzi-orb-drift 22s ease-in-out infinite alternate-reverse;
+}
+.twimzi-discovery-panel,
+.twimzi-home-discovery-panel {
+  box-shadow: 0 28px 80px rgba(0, 8, 35, .34), 0 1px 0 rgba(255,255,255,.8) inset;
+}
+.twimzi-home-category-card {
+  box-shadow: 0 5px 18px rgba(2,13,58,.035);
+}
+.twimzi-home-category-card:hover,
+.twimzi-home-business-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 42px rgba(2,13,58,.10);
+}
+.twimzi-home-business-card .relative.h-32 img {
+  transition: transform 650ms cubic-bezier(.2,.7,.2,1);
+}
+.twimzi-home-business-card:hover .relative.h-32 img {
+  transform: scale(1.045);
+}
+.twimzi-home-stories {
+  box-shadow: 0 12px 34px rgba(2,13,58,.055);
+}
+.twimzi-home-cta {
+  box-shadow: 0 24px 60px rgba(2,13,58,.13);
+}
+@keyframes twimzi-orb-drift {
+  from { transform: translate3d(-2%, 1%, 0) scale(.96); }
+  to { transform: translate3d(3%, -2%, 0) scale(1.04); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .twimzi-home-hero::before,
+  .twimzi-home-hero::after { animation: none; }
+  .twimzi-home-category-card,
+  .twimzi-home-business-card { transition: none; }
+}
