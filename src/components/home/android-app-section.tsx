@@ -7,7 +7,7 @@ export function AndroidAppSection() {
   return (
     <section className="py-20">
       <Container>
-        <div className="relative overflow-hidden rounded-xl bg-[linear-gradient(115deg,#020D3A_0%,#11165B_48%,#3D16A5_100%)] px-7 py-12 text-white sm:px-12 lg:px-16">
+        <div className="twimzi-home-cta relative overflow-hidden rounded-[2rem] bg-[linear-gradient(115deg,#020D3A_0%,#11165B_48%,#3D16A5_100%)] px-7 py-12 text-white sm:px-12 lg:px-16">
 <div
             aria-hidden="true"
             className="absolute -bottom-32 -left-20 h-72 w-72 rounded-full bg-[rgba(5,205,252,0.20)] blur-3xl"
