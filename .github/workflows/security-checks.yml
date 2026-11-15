@@ -17,12 +17,11 @@ jobs:
     name: Dependency vulnerability audit
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
     steps:
-      - name: Checkout pull request branch
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref || github.ref_name }}
           persist-credentials: false
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -31,26 +30,8 @@ jobs:
           cache: npm
       - name: Install locked dependencies
         run: npm ci
-      - name: Apply compatible security updates on this PR branch
-        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
-        run: |
-          npm audit fix || echo "Some advisories have no compatible upstream fix; the production audit below remains blocking."
-      - name: Commit compatible security updates
-        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          if ! git diff --quiet -- package.json package-lock.json; then
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add package.json package-lock.json
-            git commit -m "chore(security): apply compatible npm audit fixes"
-            git fetch origin "${GITHUB_HEAD_REF}"
-            git rebase "origin/${GITHUB_HEAD_REF}"
-            git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GITHUB_TOKEN" | base64 -w0)" push origin "HEAD:${GITHUB_HEAD_REF}"
-          fi
-      - name: Audit production dependencies
-        run: npm audit --omit=dev --audit-level=high
+      - name: Audit all dependencies
+        run: npm audit --audit-level=high
 
   lint:
     name: ESLint and TypeScript
