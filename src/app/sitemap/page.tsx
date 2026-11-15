@@ -56,6 +56,36 @@ export default async function HtmlSitemapPage() {
   // Use the exact same live URL inventory as /sitemap.xml.
   // New static routes and eligible public dynamic URLs appear here automatically.
   const entries = (await xmlSitemap()) as MetadataRoute.Sitemap;
+
+  // Resolve public business profile identifiers to their display names.
+  const supabase = await createSupabaseServerClient();
+  const businessLabels = new Map<string, string>();
+  const pageSize = 100;
+  let offset = 0;
+
+  while (true) {
+    const { data, error } = await supabase.rpc("get_public_businesses", {
+      p_search: null,
+      p_limit: pageSize,
+      p_offset: offset,
+    });
+    if (error || !data) break;
+
+    for (const business of data as PublicBusinessLabel[]) {
+      const identifier = business.slug?.trim() || business.id;
+      const displayName = business.business_name?.trim() || business.name?.trim();
+      if (identifier && displayName) {
+        businessLabels.set(
+          `/businesses/${encodeURIComponent(identifier)}`,
+          displayName,
+        );
+      }
+    }
+
+    if (data.length < pageSize) break;
+    offset += pageSize;
+  }
+
   const links = entries
     .filter((entry) => {
       const path = new URL(entry.url).pathname;
@@ -63,7 +93,8 @@ export default async function HtmlSitemapPage() {
       return path !== "/add-business" && !/^\/(login|admin|dashboard)(\/|$)/.test(path);
     })
     .map((entry) => ({
-      label: labelFromUrl(entry.url),
+      label:
+        businessLabels.get(new URL(entry.url).pathname) || labelFromUrl(entry.url),
       href: new URL(entry.url).pathname,
     }));
 
