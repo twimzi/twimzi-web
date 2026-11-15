@@ -1,5 +1,8 @@
 import { Container } from "@/components/ui/container";
 import { PageHero } from "@/components/ui/page-hero";
+import { aboutMetadata } from "./metadata";
+
+export const metadata = aboutMetadata;
 
 const directions = [
   "Better local business visibility",
