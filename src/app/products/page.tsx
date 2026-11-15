@@ -7,7 +7,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 export const metadata: Metadata = {
   title: "Products from Indian Manufacturers & Wholesalers | Twimzi",
   description:
-    "Discover products from manufacturers, traders, wholesalers, dealers, and local businesses on Twimzi.",
+    "Browse products from Indian manufacturers, traders, wholesalers and local sellers. Discover suppliers and product ranges on Twimzi.",
 };
 
 type Product = {
