@@ -2,7 +2,7 @@ import LegalDocumentPage from "@/components/legal/legal-document-page";
 
 export const metadata = {
   title: "Messaging & Communication Policy | Twimzi",
-  description: "Twimzi Messaging & Communication Policy.",
+  description: "Read the Twimzi messaging policy for appropriate business communications, user consent, unwanted messages and reporting concerns.",
 };
 
 export default function MessagingPolicyPage() {
