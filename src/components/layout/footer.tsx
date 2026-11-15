@@ -224,13 +224,21 @@ export function Footer() {
             © {new Date().getFullYear()} Twimzi. All rights reserved.
           </p>
 
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1 text-sm font-semibold text-slate-300 transition hover:text-cyan-300"
-          >
-            Back to top
-            <ArrowUpRight className="h-4 w-4" />
-          </Link>
+          <div className="flex flex-wrap items-center gap-5">
+            <Link
+              href="/sitemap"
+              className="text-sm font-semibold text-slate-300 transition hover:text-cyan-300"
+            >
+              HTML Sitemap
+            </Link>
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1 text-sm font-semibold text-slate-300 transition hover:text-cyan-300"
+            >
+              Back to top
+              <ArrowUpRight className="h-4 w-4" />
+            </Link>
+          </div>
         </div>
       </div>
     </footer>
