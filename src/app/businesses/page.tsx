@@ -27,7 +27,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { siteConfig } from "@/config/site";
 
 export const metadata: Metadata = {
-  title: "Business Directory India – Manufacturers, Traders & Services | Twimzi",
+  title: "Business Directory India: Find Local Businesses | Twimzi",
   description:
     "Explore India's business directory on Twimzi. Discover manufacturers, wholesalers, traders, local shops, professionals and service providers. Find businesses and connect directly.",
   alternates: { canonical: "/businesses" },
