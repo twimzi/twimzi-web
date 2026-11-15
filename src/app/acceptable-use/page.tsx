@@ -2,7 +2,7 @@ import LegalDocumentPage from "@/components/legal/legal-document-page";
 
 export const metadata = {
   title: "Acceptable Use Policy | Twimzi",
-  description: "Twimzi Acceptable Use Policy.",
+  description: "Learn the content, conduct and platform-use standards that help keep Twimzi safe, useful and trustworthy for businesses and visitors.",
 };
 
 export default function AcceptableUsePage() {
