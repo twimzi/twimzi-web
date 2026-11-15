@@ -12,7 +12,7 @@ import {
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
-  title: "Offers | Twimzi",
+  title: "Local Business Offers & Deals in India | Twimzi",
   description:
     "Discover active offers and promotions from local businesses on Twimzi.",
 };
