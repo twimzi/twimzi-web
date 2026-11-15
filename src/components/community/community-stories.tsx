@@ -108,7 +108,7 @@ export default function CommunityStories({ stories }: Props) {
 
   return (
     <>
-      <section aria-labelledby="community-stories-heading" className="mb-8 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+      <section aria-labelledby="community-stories-heading" className="twimzi-home-stories mb-8 rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6">
         <div className="mb-4 flex items-end justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-700">Fresh from local businesses</p>
