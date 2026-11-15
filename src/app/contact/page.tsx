@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { PageHero } from "@/components/ui/page-hero";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { contactMetadata } from "./metadata";
+
+export const metadata = contactMetadata;
 
 type TicketCategory =
   | "general"
