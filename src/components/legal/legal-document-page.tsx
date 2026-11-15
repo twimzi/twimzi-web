@@ -1,5 +1,4 @@
 import Link from "next/link";
-import type { Metadata } from "next";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -19,7 +18,6 @@ type LegalDocument = {
 type LegalDocumentPageProps = {
   documentType: string;
   title?: string;
-  description?: string;
 };
 
 function formatDate(value: string | null) {
@@ -108,7 +106,6 @@ function renderContent(content: string) {
 export default async function LegalDocumentPage({
   documentType,
   title,
-  description,
 }: LegalDocumentPageProps) {
   const supabase = await createSupabaseServerClient();
 
@@ -150,6 +147,7 @@ export default async function LegalDocumentPage({
   }
 
   const effectiveDate = formatDate(document.effective_from);
+
   return (
     <main className="min-h-screen bg-[var(--color-background)] text-[var(--color-text)]">
       <section className="border-b border-[var(--color-border)] bg-white">
