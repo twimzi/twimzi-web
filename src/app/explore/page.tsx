@@ -24,7 +24,7 @@ import { GlobalNetworkGlobe } from "@/components/home/global-network-globe";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
-  title: "Explore Local Businesses, Products & Services in India | Twimzi",
+  title: "Explore Local Businesses, Products & Services | Twimzi",
   description:
     "Find local businesses, manufacturers, traders, products and services across India. Explore business categories and discover providers on Twimzi.",
   alternates: { canonical: "/explore" },
