@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
