@@ -18,6 +18,7 @@ type LegalDocument = {
 type LegalDocumentPageProps = {
   documentType: string;
   title?: string;
+  description?: string;
 };
 
 function formatDate(value: string | null) {
@@ -106,6 +107,7 @@ function renderContent(content: string) {
 export default async function LegalDocumentPage({
   documentType,
   title,
+  description,
 }: LegalDocumentPageProps) {
   const supabase = await createSupabaseServerClient();
 
