@@ -2,7 +2,7 @@ import LegalDocumentPage from "@/components/legal/legal-document-page";
 
 export const metadata = {
   title: "Terms & Conditions | Twimzi",
-  description: "Twimzi Terms of Service.",
+  description: "Read the terms governing access to and use of Twimzi, including accounts, business listings, user responsibilities and platform limitations.",
 };
 
 export default function TermsAndConditionsPage() {
