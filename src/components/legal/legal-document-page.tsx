@@ -150,7 +150,6 @@ export default async function LegalDocumentPage({
   }
 
   const effectiveDate = formatDate(document.effective_from);
-
   return (
     <main className="min-h-screen bg-[var(--color-background)] text-[var(--color-text)]">
       <section className="border-b border-[var(--color-border)] bg-white">
