@@ -63,6 +63,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "assets.science.nasa.gov",
+        pathname: "/content/dam/science/esd/eo/images/bmng/**",
+      },
+      {
+        protocol: "https",
         hostname: "*.supabase.co",
         pathname: "/storage/v1/object/public/**",
       },

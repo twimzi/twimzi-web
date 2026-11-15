@@ -1,5 +1,6 @@
 
 import Link from "next/link";
+import Image from "next/image";
 
 import { ArrowRight, Compass, Flame, MapPin, Megaphone, Package, Search, Star, Store, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -71,9 +72,18 @@ export function HeroSection({
       <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#08052F]/35 to-transparent" />
       <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 z-0 hidden h-[min(76vw,660px)] w-[min(76vw,660px)] -translate-x-1/2 -translate-y-1/2 lg:block">
         <div className="absolute inset-0 rounded-full opacity-70 blur-2xl bg-[radial-gradient(circle,rgba(24,121,253,0.48)_0%,rgba(5,205,252,0.2)_58%,transparent_72%)]" />
-        <div className="absolute inset-[5%] overflow-hidden rounded-full border border-cyan-200/70 shadow-[0_0_28px_rgba(5,205,252,0.65),inset_0_0_30px_rgba(24,121,253,0.35)]"
-          style={{ backgroundImage: "linear-gradient(115deg,rgba(2,13,58,.08),rgba(2,13,58,.22)),url('https://assets.science.nasa.gov/content/dam/science/esd/eo/images/bmng/bmng-topography-bathymetry/january/world.topo.bathy.200401.3x5400x2700.jpg')", backgroundSize: "cover", backgroundPosition: "center" }}>
-          <div className="absolute inset-0 rounded-full bg-[radial-gradient(ellipse_at_35%_28%,rgba(255,255,255,0.16),transparent_34%),radial-gradient(ellipse_at_78%_75%,rgba(2,13,58,0.7),transparent_58%)]" />
+        <div className="absolute inset-[5%] overflow-hidden rounded-full border border-cyan-200/70 shadow-[0_0_28px_rgba(5,205,252,0.65),inset_0_0_30px_rgba(24,121,253,0.35)]">
+          <Image
+            src="https://assets.science.nasa.gov/content/dam/science/esd/eo/images/bmng/bmng-topography-bathymetry/january/world.topo.bathy.200401.3x5400x2700.jpg"
+            alt=""
+            fill
+            priority
+            fetchPriority="high"
+            quality={65}
+            sizes="(min-width: 1024px) 500px, 0px"
+            className="object-cover"
+          />
+          <div className="absolute inset-0 rounded-full bg-[linear-gradient(115deg,rgba(2,13,58,.08),rgba(2,13,58,.22)),radial-gradient(ellipse_at_35%_28%,rgba(255,255,255,0.16),transparent_34%),radial-gradient(ellipse_at_78%_75%,rgba(2,13,58,0.7),transparent_58%)]" />
           <svg viewBox="0 0 600 600" className="absolute inset-0 h-full w-full" fill="none">
             <g stroke="#63E7FF" strokeWidth="2.5" strokeOpacity=".78">
               <path d="M85 280 Q280 55 480 245" />
