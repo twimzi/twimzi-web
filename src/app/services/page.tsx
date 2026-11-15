@@ -7,7 +7,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 export const metadata: Metadata = {
   title: "Find Local Professionals & Services in India | Twimzi",
   description:
-    "Discover services from professionals, home service providers, shops, and local businesses on Twimzi.",
+    "Find local professionals, home services and business service providers across India. Explore available services and connect on Twimzi.",
 };
 
 type Service = {
