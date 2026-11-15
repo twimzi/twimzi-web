@@ -5,7 +5,7 @@ import { ArrowRight, Package, Search, Store, Tag } from "lucide-react";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
-  title: "Products | Twimzi",
+  title: "Products from Indian Manufacturers & Wholesalers | Twimzi",
   description:
     "Discover products from manufacturers, traders, wholesalers, dealers, and local businesses on Twimzi.",
 };
