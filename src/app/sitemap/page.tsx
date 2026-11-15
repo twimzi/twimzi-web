@@ -1,60 +1,33 @@
-import type { Metadata } from "next";
+import type { Metadata, MetadataRoute } from "next";
 import Link from "next/link";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import xmlSitemap from "../sitemap";
 
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "HTML Sitemap | Explore Twimzi",
   description:
-    "Explore Twimzi's pages, business categories, local businesses and latest articles in one place.",
+    "Explore all public pages on Twimzi, including business listings, categories, products, services and articles.",
   alternates: { canonical: "https://www.twimzi.com/sitemap" },
 };
 
-type Category = {
-  id: string;
-  category_name: string;
-};
+type SitemapLink = { label: string; href: string };
 
-type Business = {
-  id: string;
-  business_name: string;
-  slug: string | null;
-};
-
-type BlogPost = {
-  title: string;
-  slug: string;
-};
-
-const coreLinks = [
-  { label: "Home", href: "/" },
-  { label: "Explore", href: "/explore" },
-  { label: "Businesses", href: "/businesses" },
-  { label: "Products", href: "/products" },
-  { label: "Services", href: "/services" },
-  { label: "Offers", href: "/offers" },
-  { label: "Community", href: "/community" },
-  { label: "Blog", href: "/blog" },
-  { label: "About Twimzi", href: "/about" },
-  { label: "Contact", href: "/contact" },
-  { label: "Add Your Business", href: "/add-business" },
-];
-
-const legalLinks = [
-  { label: "Privacy Policy", href: "/privacy-policy" },
-  { label: "Terms & Conditions", href: "/terms-and-conditions" },
-  { label: "Community Guidelines", href: "/community-guidelines" },
-  { label: "Acceptable Use", href: "/acceptable-use" },
-  { label: "Cookie Policy", href: "/cookie-policy" },
-];
+function labelFromUrl(url: string): string {
+  const pathname = new URL(url).pathname;
+  const lastPart = pathname.split("/").filter(Boolean).at(-1);
+  if (!lastPart) return "Home";
+  return decodeURIComponent(lastPart)
+    .replace(/[-_]+/g, " ")
+    .replace(/\b\w/g, (character) => character.toUpperCase());
+}
 
 function SitemapSection({
   title,
   links,
 }: {
   title: string;
-  links: Array<{ label: string; href: string }>;
+  links: SitemapLink[];
 }) {
   if (links.length === 0) return null;
 
@@ -78,48 +51,43 @@ function SitemapSection({
 }
 
 export default async function HtmlSitemapPage() {
-  const supabase = await createSupabaseServerClient();
-
-  const [
-    { data: categoryData },
-    { data: businessData },
-    { data: blogData },
-  ] = await Promise.all([
-    supabase.rpc("get_public_categories"),
-    supabase.rpc("get_public_businesses", {
-      p_search: null,
-      p_limit: 18,
-      p_offset: 0,
-    }),
-    supabase
-      .from("blog_posts")
-      .select("title,slug")
-      .eq("status", "published")
-      .order("published_at", { ascending: false })
-      .limit(12),
-  ]);
-
-  const categories = ((categoryData ?? []) as Category[])
-    .filter((category) => category.id && category.category_name)
-    .slice(0, 24)
-    .map((category) => ({
-      label: category.category_name,
-      href: `/businesses?category=${encodeURIComponent(category.id)}`,
+  // Use the exact same live URL inventory as /sitemap.xml.
+  // New static routes and eligible public dynamic URLs appear here automatically.
+  const entries = (await xmlSitemap()) as MetadataRoute.Sitemap;
+  const links = entries
+    .filter((entry) => {
+      const path = new URL(entry.url).pathname;
+      // Do not expose routes explicitly excluded from crawling or authentication.
+      return path !== "/add-business" && !/^\/(login|admin|dashboard)(\/|$)/.test(path);
+    })
+    .map((entry) => ({
+      label: labelFromUrl(entry.url),
+      href: new URL(entry.url).pathname,
     }));
 
-  const businesses = ((businessData ?? []) as Business[])
-    .filter((business) => business.id && business.business_name)
-    .map((business) => ({
-      label: business.business_name,
-      href: `/businesses/${encodeURIComponent(business.slug?.trim() || business.id)}`,
-    }));
+  const uniqueLinks = Array.from(
+    new Map(links.map((link) => [link.href, link])).values(),
+  );
 
-  const articles = ((blogData ?? []) as BlogPost[])
-    .filter((post) => post.slug && post.title)
-    .map((post) => ({
-      label: post.title,
-      href: `/blog/${encodeURIComponent(post.slug)}`,
-    }));
+  const groups: Array<{ title: string; matches: (href: string) => boolean }> = [
+    { title: "Main Pages", matches: (href) => !/^\/(businesses|products|services|offers|blog|city)\//.test(href) },
+    { title: "Business Categories & Locations", matches: (href) => href.startsWith("/businesses/category/") || href.startsWith("/businesses/location/") || href.startsWith("/city/") },
+    { title: "Business Profiles", matches: (href) => /^\/businesses\/[^/]+$/.test(href) },
+    { title: "Products", matches: (href) => href.startsWith("/products/") },
+    { title: "Services", matches: (href) => href.startsWith("/services/") },
+    { title: "Articles & Guides", matches: (href) => href.startsWith("/blog/") },
+  ];
+
+  const assigned = new Set<string>();
+  const sections = groups.map((group) => {
+    const sectionLinks = uniqueLinks.filter((link) => {
+      if (assigned.has(link.href) || !group.matches(link.href)) return false;
+      assigned.add(link.href);
+      return true;
+    });
+    return { title: group.title, links: sectionLinks };
+  });
+  const otherLinks = uniqueLinks.filter((link) => !assigned.has(link.href));
 
   return (
     <main className="min-h-screen bg-[var(--color-background)]">
@@ -132,27 +100,26 @@ export default async function HtmlSitemapPage() {
             HTML Sitemap
           </h1>
           <p className="mt-4 text-base leading-7 text-[var(--color-text-muted)]">
-            Find your way around Twimzi. Browse important pages, business
-            categories, local business profiles and the latest articles.
+            Browse Twimzi’s public pages in one place. This directory is generated
+            from the same live page inventory as our XML sitemap and refreshes hourly.
           </p>
         </header>
 
         <div className="mt-10 grid gap-5">
-          <SitemapSection title="Explore Twimzi" links={coreLinks} />
-          <SitemapSection title="Business Categories" links={categories} />
-          <SitemapSection title="Recently Listed Businesses" links={businesses} />
-          <SitemapSection title="Latest Articles" links={articles} />
-          <SitemapSection title="Policies & Information" links={legalLinks} />
+          {sections.map((section) => (
+            <SitemapSection key={section.title} {...section} />
+          ))}
+          <SitemapSection title="Other Public Pages" links={otherLinks} />
         </div>
 
         <p className="mt-8 text-sm text-[var(--color-text-muted)]">
-          Looking for the technical XML sitemap?{" "}
+          Search engines can also use our{" "}
           <a
             href="/sitemap.xml"
             className="font-semibold text-[var(--color-primary)] underline-offset-4 hover:underline"
           >
-            View XML sitemap
-          </a>
+            XML sitemap
+          </a>.
         </p>
       </div>
     </main>
