@@ -187,7 +187,7 @@ export function CategorySection({
     .slice(0, 8);
 
   return (
-    <section className="bg-white py-20">
+    <section className="twimzi-home-section bg-white py-16 sm:py-20">
       <Container>
         <SectionHeading
           eyebrow="Discover"
@@ -217,7 +217,7 @@ export function CategorySection({
             </p>
           </div>
         ) : (
-          <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {sortedCategories.map((category, index) => {
               const Icon = getCategoryIcon(category);
 
@@ -225,11 +225,11 @@ return (
                 <Link
                   key={category.id}
                   href={getCategoryHref(category)}
-                  className="group relative overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 transition-colors hover:border-[var(--color-primary)]/40 sm:p-6"
+                  className="twimzi-home-category-card group relative overflow-hidden rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 transition-all duration-300 hover:border-[var(--color-primary)]/40 sm:p-6"
                 >
                   <div className="flex items-center gap-4">
                     <div
-                      className={`flex h-20 w-20 shrink-0 items-center justify-center rounded-xl ${iconTheme}`}
+                      className={`flex h-[68px] w-[68px] shrink-0 items-center justify-center rounded-2xl ${iconTheme}`}
                     >
                       <Icon
                         aria-hidden="true"
