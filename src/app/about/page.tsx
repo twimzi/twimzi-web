@@ -15,7 +15,7 @@ const pillars = [
   {
     title: "Discover",
     description:
-    "Help people find relevant local businesses, products and services in one connected experience.",
+      "Help people find relevant local businesses, products and services in one connected experience.",
   },
   {
     title: "Present",
