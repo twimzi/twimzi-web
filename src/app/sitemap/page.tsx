@@ -1,6 +1,7 @@
 import type { Metadata, MetadataRoute } from "next";
 import Link from "next/link";
 import xmlSitemap from "../sitemap";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const revalidate = 3600;
 
@@ -12,6 +13,7 @@ export const metadata: Metadata = {
 };
 
 type SitemapLink = { label: string; href: string };
+type PublicBusinessLabel = { id: string; slug: string | null; business_name?: string | null; name?: string | null };
 
 function labelFromUrl(url: string): string {
   const pathname = new URL(url).pathname;
