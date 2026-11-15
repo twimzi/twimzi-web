@@ -14,7 +14,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 export const metadata: Metadata = {
   title: "Local Business Offers & Deals in India | Twimzi",
   description:
-    "Discover active offers and promotions from local businesses on Twimzi.",
+    "Explore current offers, discounts and promotions shared by local businesses on Twimzi. Discover deals from nearby sellers and service providers.",
 };
 
 type Offer = {
