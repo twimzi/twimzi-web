@@ -11,7 +11,7 @@ import { AndroidAppSection } from "@/components/home/android-app-section";
 import CommunityStories, { type CommunityStory } from "@/components/community/community-stories";
 
 export const metadata: Metadata = {
-  title: "Discover Local Businesses, Products & Services in India | Twimzi",
+  title: "Local Business Directory & Discovery in India | Twimzi",
   description:
     "Discover local businesses, manufacturers, traders, products, services and offers on Twimzi. Explore business profiles and connect with local providers.",
   alternates: { canonical: "https://www.twimzi.com" },
