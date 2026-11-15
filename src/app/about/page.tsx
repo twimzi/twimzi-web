@@ -15,7 +15,7 @@ const pillars = [
   {
     title: "Discover",
     description:
-    "A local business discovery platform helping people find businesses, products and services while helping businesses build their online presence with Twimzi.",
+    "Help people find relevant local businesses, products and services in one connected experience.",
   },
   {
     title: "Present",
