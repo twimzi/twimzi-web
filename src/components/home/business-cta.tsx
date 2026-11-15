@@ -5,7 +5,7 @@ export function BusinessCta() {
   return (
     <section className="py-20">
       <Container>
-        <div className="overflow-hidden rounded-xl bg-[linear-gradient(115deg,#020D3A_0%,#11165B_48%,#3D16A5_100%)] px-7 py-12 text-white sm:px-12 lg:flex lg:items-center lg:justify-between">
+        <div className="twimzi-home-cta relative overflow-hidden rounded-[2rem] bg-[linear-gradient(115deg,#020D3A_0%,#11165B_48%,#3D16A5_100%)] px-7 py-12 text-white sm:px-12 lg:flex lg:items-center lg:justify-between">
           <div className="max-w-2xl">
             <p className="text-sm font-semibold uppercase tracking-[.16em] text-cyan-200">
               For business owners
