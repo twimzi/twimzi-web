@@ -1,5 +1,12 @@
+import type { Metadata } from "next";
 import { Container } from "@/components/ui/container";
 import { PageHero } from "@/components/ui/page-hero";
+
+export const metadata: Metadata = {
+  title: "About Twimzi | Local Business Discovery Platform",
+  description: "Learn how Twimzi helps people discover local businesses, products and services while giving Indian businesses a connected digital presence.",
+  alternates: { canonical: "https://www.twimzi.com/about" },
+};
 
 const directions = [
   "Better local business visibility",

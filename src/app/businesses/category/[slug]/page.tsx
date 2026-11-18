@@ -56,6 +56,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!category) return { title: "Category Not Found | Twimzi", robots: { index: false, follow: true } };
 
   const canonical = `${siteConfig.url}/businesses/category/${encodeURIComponent(slugifyCategory(category.slug?.trim() || category.category_name))}`;
+  const supabase = await createSupabaseServerClient();
+  const { data: businesses } = await supabase.rpc("get_public_businesses_by_category", {
+    p_category_id: category.id,
+    p_search: null,
+    p_limit: 5,
+    p_offset: 0,
+  });
+  const canIndex = Array.isArray(businesses) && businesses.length >= 5;
   const description = category.description?.trim() ||
     `Discover ${category.category_name.toLowerCase()} businesses, shops, professionals and service providers on Twimzi.`;
 
@@ -63,6 +71,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     title: `${category.category_name} Businesses | Twimzi`,
     description,
     alternates: { canonical },
+    robots: canIndex ? { index: true, follow: true } : { index: false, follow: true },
     openGraph: { title: `${category.category_name} Businesses | Twimzi`, description, url: canonical, type: "website" },
   };
 }

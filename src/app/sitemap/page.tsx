@@ -2,6 +2,7 @@ import type { Metadata, MetadataRoute } from "next";
 import Link from "next/link";
 import xmlSitemap from "../sitemap";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { seoDirectoryPages } from "@/lib/seo/programmatic-directory";
 
 export const revalidate = 3600;
 
@@ -102,9 +103,12 @@ export default async function HtmlSitemapPage() {
     new Map(links.map((link) => [link.href, link])).values(),
   );
 
+  const seoLandingSlugs = new Set(seoDirectoryPages.map((page) => `/${page.slug}`));
+
   const groups: Array<{ title: string; matches: (href: string) => boolean }> = [
-    { title: "Main Pages", matches: (href) => !/^\/(businesses|products|services|offers|blog|city)\//.test(href) },
+    { title: "Main Pages", matches: (href) => !/^\/(businesses|products|services|offers|blog|city)\//.test(href) && !seoLandingSlugs.has(href) },
     { title: "Business Categories & Locations", matches: (href) => href.startsWith("/businesses/category/") || href.startsWith("/businesses/location/") || href.startsWith("/city/") },
+    { title: "Industries & Supplier Pages", matches: (href) => seoLandingSlugs.has(href) },
     { title: "Business Profiles", matches: (href) => /^\/businesses\/[^/]+$/.test(href) },
     { title: "Products", matches: (href) => href.startsWith("/products/") },
     { title: "Services", matches: (href) => href.startsWith("/services/") },

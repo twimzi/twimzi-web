@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 
 import { createClient } from "@supabase/supabase-js";
 import { siteConfig } from "@/config/site";
+import { matchesSeoDirectoryPage, SEO_DIRECTORY_MIN_LISTINGS, seoDirectoryPages } from "@/lib/seo/programmatic-directory";
 
 export const revalidate = 3600;
 
@@ -32,6 +33,10 @@ type BusinessLocation = {
 };
 
 type PublicCityCategoryBusiness = {
+  id?: string;
+  slug?: string | null;
+  business_name?: string | null;
+  description?: string | null;
   business_type: string | null;
   city: string | null;
   state: string | null;
@@ -97,6 +102,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const categoryPages: MetadataRoute.Sitemap = [];
   const productPages: MetadataRoute.Sitemap = [];
   const servicePages: MetadataRoute.Sitemap = [];
+  const seoLandingPages: MetadataRoute.Sitemap = [];
+  const directoryBusinesses: PublicCityCategoryBusiness[] = [];
   const locationCounts = new Map<string, number>();
   const cityCategoryCounts = new Map<string, { city: string; category: string; count: number }>();
 
@@ -208,7 +215,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       offset += pageSize;
     }
 
-    // Build city × business-type landing pages only where at least two real,
+    // Build city × business-type landing pages only where at least five real,
     // approved public listings exist. This avoids thin or empty SEO pages.
     let cityCategoryOffset = 0;
     while (true) {
@@ -225,6 +232,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }
 
       const candidates = data as PublicCityCategoryBusiness[];
+      directoryBusinesses.push(...candidates);
       for (const item of candidates) {
         if (!item.city?.trim() || !item.business_type?.trim()) continue;
         if (slugPart(item.business_type) === "other") continue;
@@ -268,11 +276,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         const { data, error } = await supabase.rpc("get_public_businesses_by_category", {
           p_category_id: category.id,
           p_search: null,
-          p_limit: 1,
+          p_limit: 5,
           p_offset: 0,
         });
 
-        if (!error && data && data.length > 0) {
+        if (!error && data && data.length >= 5) {
           categoryPages.push({
             url: `${siteConfig.url}/businesses/category/${encodeURIComponent(slug)}`,
             lastModified: now,
@@ -286,8 +294,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("Unable to generate dynamic sitemap entries:", error);
   }
 
+  for (const page of seoDirectoryPages) {
+    const listingCount = directoryBusinesses.filter((business) => matchesSeoDirectoryPage(business, page)).length;
+    if (listingCount >= SEO_DIRECTORY_MIN_LISTINGS) {
+      seoLandingPages.push({
+        url: `${siteConfig.url}/${page.slug}`,
+        lastModified: now,
+        changeFrequency: "weekly",
+        priority: 0.65,
+      });
+    }
+  }
+
   const cityCategoryPages: MetadataRoute.Sitemap = [...cityCategoryCounts.values()]
-    .filter((item) => item.count >= 2)
+    .filter((item) => item.count >= 5)
     .map((item) => ({
       url: `${siteConfig.url}/city/${encodeURIComponent(item.city)}/${encodeURIComponent(item.category)}`,
       lastModified: now,
@@ -296,7 +316,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
 
   const locationPages: MetadataRoute.Sitemap = [...locationCounts.entries()]
-    .filter(([, count]) => count >= 2)
+    .filter(([, count]) => count >= 5)
     .map(([slug]) => ({
       url: `${siteConfig.url}/businesses/location/${encodeURIComponent(slug)}`,
       lastModified: now,
@@ -312,6 +332,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...servicePages,
     ...categoryPages,
     ...locationPages,
+    ...seoLandingPages,
     ...cityCategoryPages,
   ];
 }
