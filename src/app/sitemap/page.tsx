@@ -105,6 +105,7 @@ export default async function HtmlSitemapPage() {
   const groups: Array<{ title: string; matches: (href: string) => boolean }> = [
     { title: "Main Pages", matches: (href) => !/^\/(businesses|products|services|offers|blog|city)\//.test(href) },
     { title: "Business Categories & Locations", matches: (href) => href.startsWith("/businesses/category/") || href.startsWith("/businesses/location/") || href.startsWith("/city/") },
+    { title: "Industry & Buyer Directories", matches: (href) => href.startsWith("/directory/") },
     { title: "Business Profiles", matches: (href) => /^\/businesses\/[^/]+$/.test(href) },
     { title: "Products", matches: (href) => href.startsWith("/products/") },
     { title: "Services", matches: (href) => href.startsWith("/services/") },
