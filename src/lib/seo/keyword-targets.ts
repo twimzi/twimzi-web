@@ -152,7 +152,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "high",
     "slug": "business-search-india",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "businesses"
   },
   {
     "keyword": "search companies in India",
@@ -160,7 +160,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "search-companies-in-india",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "businesses"
   },
   {
     "keyword": "find local businesses online India",
@@ -168,7 +168,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "high",
     "slug": "find-local-businesses-online-india",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "businesses"
   },
   {
     "keyword": "company database India",
@@ -240,7 +240,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Local",
     "priority": "medium",
     "slug": "business-directory-near-me",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "businesses"
   },
   {
     "keyword": "business directory in India",
@@ -264,7 +264,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "business-directory-for-businesses",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "free-business-listing-india"
   },
   {
     "keyword": "business directory for small businesses",
@@ -272,7 +272,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "business-directory-for-small-businesses",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "free-business-listing-india"
   },
   {
     "keyword": "business directory to find suppliers",
@@ -280,7 +280,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Transactional",
     "priority": "medium",
     "slug": "business-directory-to-find-suppliers",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "suppliers-in-india"
   },
   {
     "keyword": "business directory to promote a business",
@@ -288,7 +288,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Transactional",
     "priority": "medium",
     "slug": "business-directory-to-promote-a-business",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "free-business-listing-india"
   },
   {
     "keyword": "best B2B supplier directory",
@@ -296,7 +296,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "best-b2b-supplier-directory",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "suppliers-in-india"
   },
   {
     "keyword": "top B2B supplier directory",
@@ -304,7 +304,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "top-b2b-supplier-directory",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "suppliers-in-india"
   },
   {
     "keyword": "online B2B supplier directory",
@@ -312,7 +312,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "online-b2b-supplier-directory",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "suppliers-in-india"
   },
   {
     "keyword": "B2B supplier directory near me",
@@ -320,7 +320,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Local",
     "priority": "medium",
     "slug": "b2b-supplier-directory-near-me",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "businesses"
   },
   {
     "keyword": "B2B supplier directory in India",
@@ -328,7 +328,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "b2b-supplier-directory-in-india",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "suppliers-in-india"
   },
   {
     "keyword": "B2B supplier directory for buyers",
@@ -336,7 +336,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "b2b-supplier-directory-for-buyers",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "suppliers-in-india"
   },
   {
     "keyword": "B2B supplier directory for businesses",
@@ -344,7 +344,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "b2b-supplier-directory-for-businesses",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "free-business-listing-india"
   },
   {
     "keyword": "B2B supplier directory for small businesses",
@@ -352,7 +352,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "b2b-supplier-directory-for-small-businesses",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "free-business-listing-india"
   },
   {
     "keyword": "B2B supplier directory to find suppliers",
@@ -360,7 +360,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Transactional",
     "priority": "medium",
     "slug": "b2b-supplier-directory-to-find-suppliers",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "suppliers-in-india"
   },
   {
     "keyword": "B2B supplier directory to promote a business",
@@ -368,7 +368,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Transactional",
     "priority": "medium",
     "slug": "b2b-supplier-directory-to-promote-a-business",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "free-business-listing-india"
   },
   {
     "keyword": "best manufacturer directory",
@@ -376,7 +376,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "best-manufacturer-directory",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "manufacturers-in-india"
   },
   {
     "keyword": "top manufacturer directory",
@@ -384,7 +384,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "top-manufacturer-directory",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "manufacturers-in-india"
   },
   {
     "keyword": "online manufacturer directory",
@@ -392,7 +392,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "online-manufacturer-directory",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "manufacturers-in-india"
   },
   {
     "keyword": "manufacturer directory near me",
@@ -400,7 +400,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Local",
     "priority": "medium",
     "slug": "manufacturer-directory-near-me",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "businesses"
   },
   {
     "keyword": "manufacturer directory in India",
@@ -408,7 +408,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "manufacturer-directory-in-india",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "manufacturers-in-india"
   },
   {
     "keyword": "manufacturer directory for buyers",
@@ -416,7 +416,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "manufacturer-directory-for-buyers",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "manufacturers-in-india"
   },
   {
     "keyword": "manufacturer directory for businesses",
@@ -424,7 +424,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "manufacturer-directory-for-businesses",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "free-business-listing-india"
   },
   {
     "keyword": "manufacturer directory for small businesses",
@@ -432,7 +432,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "manufacturer-directory-for-small-businesses",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "free-business-listing-india"
   },
   {
     "keyword": "manufacturer directory to find suppliers",
@@ -440,7 +440,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Transactional",
     "priority": "medium",
     "slug": "manufacturer-directory-to-find-suppliers",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "suppliers-in-india"
   },
   {
     "keyword": "manufacturer directory to promote a business",
@@ -448,7 +448,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Transactional",
     "priority": "medium",
     "slug": "manufacturer-directory-to-promote-a-business",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "free-business-listing-india"
   },
   {
     "keyword": "best wholesale marketplace",
@@ -456,7 +456,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "best-wholesale-marketplace",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "b2b-marketplace-india"
   },
   {
     "keyword": "top wholesale marketplace",
@@ -464,7 +464,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "top-wholesale-marketplace",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "b2b-marketplace-india"
   },
   {
     "keyword": "online wholesale marketplace",
@@ -472,7 +472,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "online-wholesale-marketplace",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "b2b-marketplace-india"
   },
   {
     "keyword": "wholesale marketplace near me",
@@ -480,7 +480,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Local",
     "priority": "medium",
     "slug": "wholesale-marketplace-near-me",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "businesses"
   },
   {
     "keyword": "wholesale marketplace in India",
@@ -488,7 +488,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "wholesale-marketplace-in-india",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "b2b-marketplace-india"
   },
   {
     "keyword": "wholesale marketplace for buyers",
@@ -496,7 +496,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "wholesale-marketplace-for-buyers",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "b2b-marketplace-india"
   },
   {
     "keyword": "wholesale marketplace for businesses",
@@ -504,7 +504,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "wholesale-marketplace-for-businesses",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "free-business-listing-india"
   },
   {
     "keyword": "wholesale marketplace for small businesses",
@@ -512,7 +512,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "wholesale-marketplace-for-small-businesses",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "free-business-listing-india"
   },
   {
     "keyword": "wholesale marketplace to find suppliers",
@@ -520,7 +520,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Transactional",
     "priority": "medium",
     "slug": "wholesale-marketplace-to-find-suppliers",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "suppliers-in-india"
   },
   {
     "keyword": "wholesale marketplace to promote a business",
@@ -528,7 +528,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Transactional",
     "priority": "medium",
     "slug": "wholesale-marketplace-to-promote-a-business",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "free-business-listing-india"
   },
   {
     "keyword": "best local business search",
@@ -536,7 +536,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "best-local-business-search",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "businesses"
   },
   {
     "keyword": "top local business search",
@@ -544,7 +544,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "top-local-business-search",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "businesses"
   },
   {
     "keyword": "online local business search",
@@ -552,7 +552,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "online-local-business-search",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "businesses"
   },
   {
     "keyword": "local business search near me",
@@ -560,7 +560,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Local",
     "priority": "medium",
     "slug": "local-business-search-near-me",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "businesses"
   },
   {
     "keyword": "local business search in India",
@@ -568,7 +568,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "local-business-search-in-india",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "businesses"
   },
   {
     "keyword": "local business search for buyers",
@@ -576,7 +576,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "local-business-search-for-buyers",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "businesses"
   },
   {
     "keyword": "local business search for businesses",
@@ -584,7 +584,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "local-business-search-for-businesses",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "businesses"
   },
   {
     "keyword": "local business search for small businesses",
@@ -592,7 +592,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "local-business-search-for-small-businesses",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "businesses"
   },
   {
     "keyword": "local business search to find suppliers",
@@ -600,7 +600,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Transactional",
     "priority": "medium",
     "slug": "local-business-search-to-find-suppliers",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "businesses"
   },
   {
     "keyword": "local business search to promote a business",
@@ -608,7 +608,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Transactional",
     "priority": "medium",
     "slug": "local-business-search-to-promote-a-business",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "businesses"
   },
   {
     "keyword": "best company listing site",
@@ -640,7 +640,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Local",
     "priority": "medium",
     "slug": "company-listing-site-near-me",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "businesses"
   },
   {
     "keyword": "company listing site in India",
@@ -664,7 +664,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "company-listing-site-for-businesses",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "free-business-listing-india"
   },
   {
     "keyword": "company listing site for small businesses",
@@ -672,7 +672,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "company-listing-site-for-small-businesses",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "free-business-listing-india"
   },
   {
     "keyword": "company listing site to find suppliers",
@@ -680,7 +680,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Transactional",
     "priority": "medium",
     "slug": "company-listing-site-to-find-suppliers",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "suppliers-in-india"
   },
   {
     "keyword": "company listing site to promote a business",
@@ -688,7 +688,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Transactional",
     "priority": "medium",
     "slug": "company-listing-site-to-promote-a-business",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "free-business-listing-india"
   },
   {
     "keyword": "best Indian supplier marketplace",
@@ -696,7 +696,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "best-indian-supplier-marketplace",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "suppliers-in-india"
   },
   {
     "keyword": "top Indian supplier marketplace",
@@ -704,7 +704,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "top-indian-supplier-marketplace",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "suppliers-in-india"
   },
   {
     "keyword": "online Indian supplier marketplace",
@@ -712,7 +712,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "online-indian-supplier-marketplace",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "suppliers-in-india"
   },
   {
     "keyword": "Indian supplier marketplace near me",
@@ -720,7 +720,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Local",
     "priority": "medium",
     "slug": "indian-supplier-marketplace-near-me",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "businesses"
   },
   {
     "keyword": "Indian supplier marketplace in India",
@@ -728,7 +728,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "indian-supplier-marketplace-in-india",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "suppliers-in-india"
   },
   {
     "keyword": "Indian supplier marketplace for buyers",
@@ -736,7 +736,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "indian-supplier-marketplace-for-buyers",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "suppliers-in-india"
   },
   {
     "keyword": "Indian supplier marketplace for businesses",
@@ -744,7 +744,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "indian-supplier-marketplace-for-businesses",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "free-business-listing-india"
   },
   {
     "keyword": "Indian supplier marketplace for small businesses",
@@ -752,7 +752,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "indian-supplier-marketplace-for-small-businesses",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "free-business-listing-india"
   },
   {
     "keyword": "Indian supplier marketplace to find suppliers",
@@ -760,7 +760,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Transactional",
     "priority": "medium",
     "slug": "indian-supplier-marketplace-to-find-suppliers",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "suppliers-in-india"
   },
   {
     "keyword": "Indian supplier marketplace to promote a business",
@@ -768,7 +768,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Transactional",
     "priority": "medium",
     "slug": "indian-supplier-marketplace-to-promote-a-business",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "free-business-listing-india"
   },
   {
     "keyword": "best business discovery platform",
@@ -800,7 +800,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Local",
     "priority": "medium",
     "slug": "business-discovery-platform-near-me",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "businesses"
   },
   {
     "keyword": "business discovery platform in India",
@@ -824,7 +824,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "business-discovery-platform-for-businesses",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "free-business-listing-india"
   },
   {
     "keyword": "business discovery platform for small businesses",
@@ -832,7 +832,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Commercial",
     "priority": "medium",
     "slug": "business-discovery-platform-for-small-businesses",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "free-business-listing-india"
   },
   {
     "keyword": "business discovery platform to find suppliers",
@@ -840,7 +840,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Transactional",
     "priority": "medium",
     "slug": "business-discovery-platform-to-find-suppliers",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "suppliers-in-india"
   },
   {
     "keyword": "business discovery platform to promote a business",
@@ -848,7 +848,7 @@ export const seoKeywordTargets: SeoKeywordTarget[] = [
     "intent": "Transactional",
     "priority": "medium",
     "slug": "business-discovery-platform-to-promote-a-business",
-    "targetSlug": "business-directory-india"
+    "targetSlug": "free-business-listing-india"
   },
   {
     "keyword": "agricultural machinery manufacturers in India",
