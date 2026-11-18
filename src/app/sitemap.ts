@@ -276,11 +276,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         const { data, error } = await supabase.rpc("get_public_businesses_by_category", {
           p_category_id: category.id,
           p_search: null,
-          p_limit: 1,
+          p_limit: 5,
           p_offset: 0,
         });
 
-        if (!error && data && data.length > 0) {
+        if (!error && data && data.length >= 5) {
           categoryPages.push({
             url: `${siteConfig.url}/businesses/category/${encodeURIComponent(slug)}`,
             lastModified: now,
