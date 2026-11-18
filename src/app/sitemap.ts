@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 import { createClient } from "@supabase/supabase-js";
 import { siteConfig } from "@/config/site";
-import { matchesSeoDirectoryPage, SEO_DIRECTORY_MIN_LISTINGS, seoDirectoryPages } from "@/lib/seo/programmatic-directory";
+import { isSeoDirectoryIndexable, matchesSeoDirectoryPage, seoDirectoryPages } from "@/lib/seo/programmatic-directory";
 
 export const revalidate = 3600;
 
@@ -296,7 +296,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   for (const page of seoDirectoryPages) {
     const listingCount = directoryBusinesses.filter((business) => matchesSeoDirectoryPage(business, page)).length;
-    if (listingCount >= SEO_DIRECTORY_MIN_LISTINGS) {
+    if (isSeoDirectoryIndexable(page, listingCount)) {
       seoLandingPages.push({
         url: `${siteConfig.url}/${page.slug}`,
         lastModified: now,
