@@ -1,3 +1,5 @@
+import { seoKeywordTargets } from "./keyword-targets";
+
 export const SEO_DIRECTORY_MIN_LISTINGS = 5;
 
 export type SeoDirectoryPage = {
@@ -10,11 +12,13 @@ export type SeoDirectoryPage = {
   detail: string;
   businessTypes?: string[];
   includeTerms?: string[];
+  includeTermGroups?: string[][];
+  requestedSlug?: string;
   city?: string;
   state?: string;
 };
 
-export const seoDirectoryPages: SeoDirectoryPage[] = [
+const curatedSeoDirectoryPages: SeoDirectoryPage[] = [
   {
     slug: "manufacturers-in-india",
     keyword: "manufacturers in India",
@@ -221,8 +225,151 @@ export const seoDirectoryPages: SeoDirectoryPage[] = [
   },
 ];
 
+const existingDirectorySlugs = new Set(curatedSeoDirectoryPages.map((page) => page.slug));
+
+const productTermSynonyms: Record<string, string[]> = {
+  agricultural: ["agricultural", "agriculture", "farm"],
+  machinery: ["machinery", "machine", "equipment"],
+  blades: ["blade", "blades", "disc", "discs"],
+  lights: ["light", "lighting"],
+  panels: ["panel", "module"],
+  fasteners: ["fastener", "nut", "bolt", "screw"],
+  screws: ["screw"], nuts: ["nut"], bolts: ["bolt"],
+  pipes: ["pipe"], pumps: ["pump"], motors: ["motor"],
+  compressors: ["compressor"], valves: ["valve"],
+  boxes: ["box", "boxes"], granules: ["granule"],
+  textiles: ["textile"], bedsheets: ["bedsheet", "bed sheet"],
+  towels: ["towel"], garments: ["garment"], cosmetics: ["cosmetic"],
+  disposables: ["disposable"], components: ["component"],
+  parts: ["part", "parts", "spare", "spares"],
+  bearings: ["bearing"], profiles: ["profile"], tiles: ["tile"],
+  chemicals: ["chemical"], adhesives: ["adhesive"], batteries: ["battery"],
+  coolers: ["cooler"], implements: ["implement", "implements"],
+  sprayer: ["sprayer", "spray"], harvesting: ["harvesting", "harvester"],
+  packaging: ["packaging", "packing"], moulding: ["moulding", "molding"],
+  aluminium: ["aluminium", "aluminum"], knitted: ["knit", "knitted"],
+  readymade: ["readymade", "ready-made"], tshirt: ["t-shirt", "tshirt", "t shirt"], footwear: ["footwear", "shoe"],
+  woodworking: ["woodworking", "wood"], sanitaryware: ["sanitaryware"],
+};
+
+function getProductTermGroups(product: string): string[][] {
+  const stopWords = new Set(["and", "of", "the", "for"]);
+  return product.toLowerCase().replace(/t-shirt/g, "tshirt").split(/[^a-z0-9]+/).filter((word) => word && !stopWords.has(word))
+    .map((word) => productTermSynonyms[word] ?? [word]);
+}
+
+const generatedProductPages: SeoDirectoryPage[] = Array.from(
+  new Map(
+    seoKeywordTargets
+      .filter((target) => target.cluster === "Industry and product" && target.product && target.role)
+      .map((target) => {
+        const role = target.role!;
+        const roleLabel = role === "manufacturers" ? "manufacturers" : role === "wholesalers" ? "wholesalers" : "suppliers";
+        const businessTypes = role === "manufacturers"
+          ? ["Manufacturer"]
+          : role === "wholesalers"
+            ? ["Wholesaler", "Trader", "Distributor"]
+            : ["Manufacturer", "Trader", "Wholesaler", "Distributor"];
+        const heading = `Find ${target.product} ${roleLabel} in India`;
+        const page: SeoDirectoryPage = {
+          slug: target.targetSlug,
+          keyword: target.keyword,
+          title: `${heading} | Twimzi`,
+          description: `Explore Indian ${target.product} ${roleLabel}. Review relevant public business profiles, locations and contact details on Twimzi.`,
+          heading,
+          intro: `Discover public profiles of Indian businesses associated with ${target.product} ${roleLabel}. Review the business information and product focus each company shares, then contact suitable businesses to confirm their current capabilities and availability.`,
+          detail: role === "manufacturers"
+            ? `When evaluating a ${target.product} manufacturer, confirm exact specifications, materials, quality checks, production capacity, minimum order quantity, lead time, warranty and after-sales support. Request technical documents and a written quotation before placing an order.`
+            : `When sourcing ${target.product}, confirm exact specifications, brand or manufacturer, available stock, minimum order quantity, price validity, dispatch timelines, freight, taxes, return terms and payment conditions. Verify the supplier's business details independently before placing an order.`,
+          businessTypes,
+          includeTermGroups: getProductTermGroups(target.product!),
+        };
+        return [target.targetSlug, page] as const;
+      }),
+  ).values(),
+).filter((page) => !existingDirectorySlugs.has(page.slug));
+
+const generatedDirectoryPages: SeoDirectoryPage[] = [
+  {
+    slug: "business-directory-india",
+    keyword: "business directory India",
+    title: "Business Directory India | Find Companies & Local Businesses | Twimzi",
+    description: "Explore public business profiles across India. Discover manufacturers, suppliers, traders, retailers and service providers on Twimzi.",
+    heading: "Find businesses across India",
+    intro: "Search public business profiles across India and review each company's stated products, services, location and contact options. Use the profiles to shortlist businesses relevant to your requirements.",
+    detail: "Compare the actual products or services, operating location, business description and available contact details. Confirm current availability, specifications, qualifications, commercial terms and delivery or service coverage directly with each business before making a decision.",
+    businessTypes: ["Manufacturer", "Trader", "Wholesaler", "Distributor", "Service Provider", "Professional", "Shop", "Retailer", "Retail Store", "Store"],
+  },
+  {
+    slug: "b2b-marketplace-india",
+    keyword: "B2B marketplace India",
+    title: "B2B Marketplace India | Discover Suppliers & Manufacturers | Twimzi",
+    description: "Explore Indian manufacturers, wholesalers, traders and distributors. Review public business profiles and connect with potential business partners on Twimzi.",
+    heading: "Discover B2B businesses in India",
+    intro: "Use Twimzi to discover public business profiles relevant to sourcing, wholesale trade and business partnerships. Review each profile to understand its stated product focus, location and contact details.",
+    detail: "Before entering a B2B relationship, confirm product specifications, minimum order quantities, production or stock capacity, authorisations, quality documentation, payment terms, logistics and after-sales responsibilities. A directory profile is a discovery starting point, not a certification or endorsement.",
+    businessTypes: ["Manufacturer", "Trader", "Wholesaler", "Distributor"],
+  },
+  {
+    slug: "suppliers-in-india",
+    keyword: "supplier directory India",
+    title: "Suppliers in India | Find Manufacturers, Traders & Wholesalers | Twimzi",
+    description: "Explore public profiles of Indian manufacturers, wholesalers, traders and distributors. Discover suppliers and review their business details on Twimzi.",
+    heading: "Find suppliers in India",
+    intro: "Find businesses that describe themselves as manufacturers, wholesalers, traders or distributors. Use the available profiles to identify potential suppliers and contact them to confirm their product range and supply capability.",
+    detail: "Ask for product specifications, current price validity, minimum order quantity, stock or production capacity, delivery timelines, tax details and written terms. Verify company registrations and references independently before placing an order.",
+    businessTypes: ["Manufacturer", "Trader", "Wholesaler", "Distributor"],
+  },
+  {
+    slug: "wholesalers-in-india",
+    keyword: "wholesaler directory India",
+    title: "Wholesalers in India | Find Bulk Suppliers & Distributors | Twimzi",
+    description: "Discover Indian wholesalers, traders and distributors. Review public profiles and contact businesses for bulk sourcing through Twimzi.",
+    heading: "Find wholesalers in India",
+    intro: "Explore public business profiles for wholesale and distribution businesses in India. Review their stated product categories, locations and contact options to shortlist possible bulk suppliers.",
+    detail: "Confirm minimum order quantities, stock availability, product authenticity, price validity, dispatch schedules, freight, tax invoices, returns and payment terms directly with each business.",
+    businessTypes: ["Wholesaler", "Trader", "Distributor"],
+  },
+  {
+    slug: "professional-services-in-india",
+    keyword: "professional services directory India",
+    title: "Professional Services in India | Find Local Experts | Twimzi",
+    description: "Explore public profiles of professional service businesses in India. Review services, locations and contact details on Twimzi.",
+    heading: "Find professional services in India",
+    intro: "Discover professional businesses and service providers through their public Twimzi profiles. Review the scope and location information each provider shares before contacting them.",
+    detail: "For regulated or specialist services, independently verify qualifications, registrations, licences, relevant experience, fees, confidentiality practices and written engagement terms before sharing sensitive information or making payments.",
+    businessTypes: ["Professional"],
+  },
+  {
+    slug: "local-services-in-india",
+    keyword: "local services directory India",
+    title: "Local Services in India | Find Service Providers | Twimzi",
+    description: "Explore public profiles of local service businesses across India. Discover service descriptions and contact details on Twimzi.",
+    heading: "Find local service providers in India",
+    intro: "Browse public profiles of businesses offering local and professional services. Check each provider's stated location and service details, then contact them to confirm coverage and availability.",
+    detail: "Confirm the exact scope, service area, visit charges, labour and material costs, schedule, warranty, cancellation terms and after-service support. Verify licences and training for safety-critical or regulated work.",
+    businessTypes: ["Service Provider", "Home Service", "Professional"],
+  },
+];
+
+export const seoDirectoryPages: SeoDirectoryPage[] = [
+  ...curatedSeoDirectoryPages,
+  ...generatedProductPages,
+  ...generatedDirectoryPages.filter((page) => !existingDirectorySlugs.has(page.slug)),
+];
+
+export function getSeoKeywordTarget(slug: string) {
+  return seoKeywordTargets.find((target) => target.slug === slug) ?? null;
+}
+
 export function getSeoDirectoryPage(slug: string) {
-  return seoDirectoryPages.find((page) => page.slug === slug) ?? null;
+  const directPage = seoDirectoryPages.find((page) => page.slug === slug);
+  if (directPage) return directPage;
+
+  const target = getSeoKeywordTarget(slug);
+  if (!target) return null;
+  const canonicalPage = seoDirectoryPages.find((page) => page.slug === target.targetSlug);
+  return canonicalPage ? { ...canonicalPage, requestedSlug: slug } : null;
 }
 
 export function matchesSeoDirectoryPage(
@@ -236,9 +383,15 @@ export function matchesSeoDirectoryPage(
   if (page.city && (business.city ?? "").trim().toLowerCase() !== page.city.toLowerCase()) return false;
   if (page.state && (business.state ?? "").trim().toLowerCase() !== page.state.toLowerCase()) return false;
 
-  if (page.includeTerms?.length) {
-    const searchable = `${business.business_name ?? ""} ${business.description ?? ""} ${business.business_type ?? ""}`.toLowerCase();
-    if (!page.includeTerms.some((term) => searchable.includes(term))) return false;
+  const searchable = `${business.business_name ?? ""} ${business.description ?? ""} ${business.business_type ?? ""}`.toLowerCase();
+
+  if (page.includeTerms?.length && !page.includeTerms.some((term) => searchable.includes(term))) return false;
+
+  if (page.includeTermGroups?.length) {
+    const matchesEveryGroup = page.includeTermGroups.every((group) =>
+      group.some((term) => searchable.includes(term)),
+    );
+    if (!matchesEveryGroup) return false;
   }
 
   return true;
