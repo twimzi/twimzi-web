@@ -13,11 +13,11 @@ const routes = [
   "/business-terms", "/marketplace-policy", "/user-content-policy",
   "/intellectual-property-policy", "/messaging-policy", "/data-deletion-policy",
   "/grievance-redressal", "/cookie-policy", "/refund-policy", "/shipping-policy",
-  "/disclaimer",
+  "/disclaimer", "/free-business-listing-india",
 ];
 
 const highPriorityRoutes = new Set([
-  "/", "/businesses", "/products", "/services", "/offers", "/community", "/blog",
+  "/", "/businesses", "/products", "/services", "/offers", "/community", "/blog", "/free-business-listing-india",
 ]);
 
 type PublicBusiness = {
