@@ -62,7 +62,7 @@ async function getCityCategoryBusinesses(citySlug: string, category: string) {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { city: citySlug, category } = await params;
   const { businesses, city, state } = await getCityCategoryBusinesses(citySlug, category);
-  if (businesses.length < 2 || !city) {
+  if (businesses.length < 5 || !city) {
     return { title: "Business listings not found | Twimzi", robots: { index: false, follow: true } };
   }
 
@@ -83,7 +83,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function CityCategoryPage({ params }: PageProps) {
   const { city: citySlug, category } = await params;
   const { businesses, city, state } = await getCityCategoryBusinesses(citySlug, category);
-  if (businesses.length < 2 || !city) notFound();
+  if (businesses.length < 5 || !city) notFound();
 
   const categoryName = titleCase(category);
   const location = [city, state].filter(Boolean).join(", ");
