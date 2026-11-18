@@ -358,9 +358,6 @@ export const seoDirectoryPages: SeoDirectoryPage[] = [
   ...generatedDirectoryPages.filter((page) => !existingDirectorySlugs.has(page.slug)),
 ];
 
-|-$/g, "");
-}
-
 export function getSeoKeywordTarget(slug: string) {
   return seoKeywordTargets.find((target) => target.slug === slug) ?? null;
 }
