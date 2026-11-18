@@ -67,7 +67,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
   const { businesses, location } = await getLocationBusinesses(slug);
 
-  if (!businesses.length || !location) {
+  if (businesses.length < 5 || !location) {
     return { title: "Location Not Found | Twimzi", robots: { index: false, follow: true } };
   }
 
@@ -87,7 +87,7 @@ export default async function BusinessLocationPage({ params }: PageProps) {
   const { slug } = await params;
   const { businesses, location } = await getLocationBusinesses(slug);
 
-  if (!businesses.length || !location) notFound();
+  if (businesses.length < 5 || !location) notFound();
 
   const canonical = `${siteConfig.url}/businesses/location/${encodeURIComponent(slugPart(slug))}`;
 
