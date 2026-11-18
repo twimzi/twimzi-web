@@ -106,7 +106,7 @@ export const seoDirectoryPages: SeoDirectoryPage[] = [
     heading: "Find home services in Ludhiana",
     intro: "Explore service-provider profiles in Ludhiana for household repairs, maintenance and other home services. Review the provider's listed service details and contact them to confirm coverage and availability.",
     detail: "Before booking, confirm the exact work, visit charges, labour and material costs, service area, estimated completion time, warranty on repairs and payment terms. For electrical, gas, structural or other safety-critical work, verify the provider's relevant training and qualifications.",
-    businessTypes: ["Service Provider"],
+    businessTypes: ["Service Provider", "Home Service"],
     includeTerms: ["home", "plumb", "electric", "clean", "repair", "pest", "carpenter", "appliance", "maintenance"],
     city: "Ludhiana",
   },
@@ -128,7 +128,7 @@ export const seoDirectoryPages: SeoDirectoryPage[] = [
     heading: "Find service providers across Punjab",
     intro: "Discover public profiles of service businesses and professionals operating in Punjab. Explore the locations and service descriptions shared by providers to find options relevant to your requirements.",
     detail: "Service availability can vary by city and provider. Confirm the service area, scope, qualifications, estimated fees, schedule, cancellation terms and after-service support directly before engaging a provider.",
-    businessTypes: ["Service Provider", "Professional"],
+    businessTypes: ["Service Provider", "Home Service", "Professional"],
     state: "Punjab",
   },
   {
