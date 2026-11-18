@@ -107,7 +107,7 @@ for (const product of products) for (const spec of roleSpecs) {
 for (const product of products) for (const suffix of ["dealers in India","distributors in India","exporters in India"]) {
   if (targets.length >= 500) break;
   const keyword = `${product} ${suffix}`;
-  const target = slugify(keyword);
+  const target = slugify(`${product} suppliers in India`);
   add(keyword, "Industry and product", "Commercial", "medium", target, product, "suppliers");
 }
 
