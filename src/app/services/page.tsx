@@ -405,7 +405,7 @@ export default async function ServicesPage({
           <div>
             <h2 className="text-xl font-bold text-[var(--color-text)]">What to confirm before booking a service</h2>
             <p className="mt-3 text-sm leading-7 text-[var(--color-text-secondary)]">
-              Confirm the provider's service area, scope of work, availability, visit charges, materials, estimated completion time and payment terms before booking. For regulated or safety-critical work, check relevant licences and qualifications. Service details and prices are supplied by businesses and should be verified directly.
+              Confirm the provider&apos;s service area, scope of work, availability, visit charges, materials, estimated completion time and payment terms before booking. For regulated or safety-critical work, check relevant licences and qualifications. Service details and prices are supplied by businesses and should be verified directly.
             </p>
             <Link href="/businesses" className="mt-4 inline-flex text-sm font-semibold text-[var(--color-primary)] hover:underline">Browse business profiles</Link>
           </div>
