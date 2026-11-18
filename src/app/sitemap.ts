@@ -1,7 +1,8 @@
 import type { MetadataRoute } from "next";
 
 import { createClient } from "@supabase/supabase-js";
-import { siteConfig } from "@/config/site";\nimport { matchesSeoDirectoryPage, SEO_DIRECTORY_MIN_LISTINGS, seoDirectoryPages } from "@/lib/seo/programmatic-directory";
+import { siteConfig } from "@/config/site";
+import { matchesSeoDirectoryPage, SEO_DIRECTORY_MIN_LISTINGS, seoDirectoryPages } from "@/lib/seo/programmatic-directory";
 
 export const revalidate = 3600;
 
@@ -32,6 +33,10 @@ type BusinessLocation = {
 };
 
 type PublicCityCategoryBusiness = {
+  id?: string;
+  slug?: string | null;
+  business_name?: string | null;
+  description?: string | null;
   business_type: string | null;
   city: string | null;
   state: string | null;
@@ -96,7 +101,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const blogPages: MetadataRoute.Sitemap = [];
   const categoryPages: MetadataRoute.Sitemap = [];
   const productPages: MetadataRoute.Sitemap = [];
-  const servicePages: MetadataRoute.Sitemap = [];\n  const directoryPages: MetadataRoute.Sitemap = [];\n  const directoryBusinesses: PublicCityCategoryBusiness[] = [];
+  const servicePages: MetadataRoute.Sitemap = [];
+  const directoryPages: MetadataRoute.Sitemap = [];
+  const directoryBusinesses: PublicCityCategoryBusiness[] = [];
+  const directoryPages: MetadataRoute.Sitemap = [];
+  const directoryBusinesses: PublicCityCategoryBusiness[] = [];
   const locationCounts = new Map<string, number>();
   const cityCategoryCounts = new Map<string, { city: string; category: string; count: number }>();
 
@@ -225,6 +234,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       }
 
       const candidates = data as PublicCityCategoryBusiness[];
+      directoryBusinesses.push(...candidates);
       for (const item of candidates) {
         if (!item.city?.trim() || !item.business_type?.trim()) continue;
         if (slugPart(item.business_type) === "other") continue;
@@ -286,8 +296,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("Unable to generate dynamic sitemap entries:", error);
   }
 
+  for (const page of seoDirectoryPages) {
+    const listingCount = directoryBusinesses.filter((business) => matchesSeoDirectoryPage(business, page)).length;
+    if (listingCount >= SEO_DIRECTORY_MIN_LISTINGS) {
+      directoryPages.push({
+        url: `${siteConfig.url}/directory/${page.slug}`,
+        lastModified: now,
+        changeFrequency: "weekly",
+        priority: 0.65,
+      });
+    }
+  }
+
   const cityCategoryPages: MetadataRoute.Sitemap = [...cityCategoryCounts.values()]
-    .filter((item) => item.count >= 2)
+    .filter((item) => item.count >= 5)
     .map((item) => ({
       url: `${siteConfig.url}/city/${encodeURIComponent(item.city)}/${encodeURIComponent(item.category)}`,
       lastModified: now,
@@ -312,6 +334,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...servicePages,
     ...categoryPages,
     ...locationPages,
+    ...directoryPages,
     ...cityCategoryPages,
   ];
 }
