@@ -358,8 +358,7 @@ export const seoDirectoryPages: SeoDirectoryPage[] = [
   ...generatedDirectoryPages.filter((page) => !existingDirectorySlugs.has(page.slug)),
 ];
 
-function slugifyKeyword(keyword: string): string {
-  return keyword.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+|-$/g, "");
 }
 
 export function getSeoKeywordTarget(slug: string) {
