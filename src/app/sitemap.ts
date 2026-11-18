@@ -104,8 +104,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const servicePages: MetadataRoute.Sitemap = [];
   const directoryPages: MetadataRoute.Sitemap = [];
   const directoryBusinesses: PublicCityCategoryBusiness[] = [];
-  const directoryPages: MetadataRoute.Sitemap = [];
-  const directoryBusinesses: PublicCityCategoryBusiness[] = [];
   const locationCounts = new Map<string, number>();
   const cityCategoryCounts = new Map<string, { city: string; category: string; count: number }>();
 
