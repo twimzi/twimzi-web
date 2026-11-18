@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
 import { createClient } from "@supabase/supabase-js";
-import { siteConfig } from "@/config/site";
+import { siteConfig } from "@/config/site";\nimport { matchesSeoDirectoryPage, SEO_DIRECTORY_MIN_LISTINGS, seoDirectoryPages } from "@/lib/seo/programmatic-directory";
 
 export const revalidate = 3600;
 
@@ -96,7 +96,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const blogPages: MetadataRoute.Sitemap = [];
   const categoryPages: MetadataRoute.Sitemap = [];
   const productPages: MetadataRoute.Sitemap = [];
-  const servicePages: MetadataRoute.Sitemap = [];
+  const servicePages: MetadataRoute.Sitemap = [];\n  const directoryPages: MetadataRoute.Sitemap = [];\n  const directoryBusinesses: PublicCityCategoryBusiness[] = [];
   const locationCounts = new Map<string, number>();
   const cityCategoryCounts = new Map<string, { city: string; category: string; count: number }>();
 
@@ -296,7 +296,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }));
 
   const locationPages: MetadataRoute.Sitemap = [...locationCounts.entries()]
-    .filter(([, count]) => count >= 2)
+    .filter(([, count]) => count >= 5)
     .map(([slug]) => ({
       url: `${siteConfig.url}/businesses/location/${encodeURIComponent(slug)}`,
       lastModified: now,
