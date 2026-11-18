@@ -215,7 +215,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       offset += pageSize;
     }
 
-    // Build city × business-type landing pages only where at least two real,
+    // Build city × business-type landing pages only where at least five real,
     // approved public listings exist. This avoids thin or empty SEO pages.
     let cityCategoryOffset = 0;
     while (true) {
