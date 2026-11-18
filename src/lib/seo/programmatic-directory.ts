@@ -11,6 +11,7 @@ export type SeoDirectoryPage = {
   businessTypes?: string[];
   includeTerms?: string[];
   city?: string;
+  state?: string;
 };
 
 export const seoDirectoryPages: SeoDirectoryPage[] = [
@@ -20,7 +21,7 @@ export const seoDirectoryPages: SeoDirectoryPage[] = [
     title: "Manufacturers in India | Find Indian Manufacturers",
     description: "Explore manufacturer business profiles in India. Discover Indian companies, review their business details and connect directly through Twimzi.",
     heading: "Find manufacturers in India",
-    intro: "Explore public manufacturer profiles from across India on Twimzi. This directory is designed to help buyers, distributors and businesses discover manufacturing companies, understand what they make and reach out using the contact options on each business profile.",
+    intro: "Explore public manufacturer profiles from across India on Twimzi. This directory helps buyers, distributors and businesses discover manufacturing companies, understand what they make and reach out using the contact options on each business profile.",
     detail: "When evaluating a manufacturer, check the products or capabilities listed on its profile, its operating location, business description and available contact details. For a serious purchase, confirm specifications, minimum order quantity, production capacity, quality requirements, lead time, payment terms and delivery arrangements directly with the company. Twimzi helps people discover businesses; buyers should independently verify commercial, technical and compliance information before placing an order.",
     businessTypes: ["Manufacturer"],
   },
@@ -32,7 +33,7 @@ export const seoDirectoryPages: SeoDirectoryPage[] = [
     heading: "Discover wholesale suppliers in India",
     intro: "Find public profiles of Indian businesses that manufacture, trade or supply products in bulk. Twimzi brings business information into one searchable directory so buyers can explore supplier profiles and identify companies relevant to their sourcing requirements.",
     detail: "Before choosing a wholesale supplier, ask for a current product catalogue, specifications, price validity, minimum order quantity, available stock, dispatch timelines and written commercial terms. Request samples where appropriate and verify GST and other relevant registrations independently. Supplier suitability depends on the product, location, order size and service expectations, so compare the actual details rather than relying on a directory listing alone.",
-    businessTypes: ["Manufacturer", "Trader", "Wholesaler"],
+    businessTypes: ["Manufacturer", "Trader", "Wholesaler", "Distributor"],
   },
   {
     slug: "traders-in-india",
@@ -45,6 +46,16 @@ export const seoDirectoryPages: SeoDirectoryPage[] = [
     businessTypes: ["Trader", "Wholesaler", "Distributor"],
   },
   {
+    slug: "distributors-in-india",
+    keyword: "distributors in India",
+    title: "Distributors in India | Find Product Distributors",
+    description: "Explore Indian distributor profiles, product categories and business contact details. Find distribution partners through Twimzi.",
+    heading: "Find distributors in India",
+    intro: "Discover public profiles of businesses involved in product distribution across India. Review their listed business details and product focus to identify potential channel partners, stockists and regional distributors.",
+    detail: "Before appointing or buying from a distributor, confirm territory coverage, brand authorisation, product range, stockholding capacity, sales support, service obligations, credit terms and logistics. Request current references and written terms. A directory profile is a starting point for discovery, not a certification or endorsement.",
+    businessTypes: ["Distributor"],
+  },
+  {
     slug: "service-providers-in-india",
     keyword: "service providers in India",
     title: "Service Providers in India | Find Business Services",
@@ -53,6 +64,72 @@ export const seoDirectoryPages: SeoDirectoryPage[] = [
     intro: "Use Twimzi to explore public profiles of service providers and businesses offering professional or local services. Review each profile to understand the provider's stated services, business location and available ways to get in touch.",
     detail: "Before engaging a service provider, discuss the exact scope of work, deliverables, timelines, location coverage, fees, taxes, cancellation terms and support after completion. Check relevant qualifications, licences, references or insurance where the service requires them. Ask for a written estimate so that expectations are clear before work begins.",
     businessTypes: ["Service Provider", "Professional"],
+  },
+  {
+    slug: "manufacturers-in-ludhiana",
+    keyword: "manufacturers in Ludhiana",
+    title: "Manufacturers in Ludhiana | Local Manufacturing Directory",
+    description: "Discover manufacturing businesses in Ludhiana, Punjab. Explore public company profiles, products and contact information on Twimzi.",
+    heading: "Find manufacturers in Ludhiana",
+    intro: "Explore public profiles of manufacturers based in Ludhiana, Punjab. Use business descriptions and contact details to identify companies relevant to your sourcing, industrial and procurement needs.",
+    detail: "Ludhiana has businesses across engineering, textiles, cycle parts, machinery and other manufacturing segments. Confirm each company's actual product range, factory or office address, capacity, quality systems, certifications, minimum order quantity and delivery terms directly before making a procurement decision.",
+    businessTypes: ["Manufacturer"],
+    city: "Ludhiana",
+  },
+  {
+    slug: "professionals-in-ludhiana",
+    keyword: "professionals in Ludhiana",
+    title: "Professionals in Ludhiana | Find Local Experts",
+    description: "Find professional businesses and experts in Ludhiana, Punjab. Explore public profiles and contact details on Twimzi.",
+    heading: "Discover professionals in Ludhiana",
+    intro: "Browse public profiles of professional service businesses in Ludhiana. Review the services, location and contact information each provider shares before deciding whom to approach.",
+    detail: "For legal, accounting, medical, financial or other specialist work, verify the provider's qualifications, registrations, relevant experience, service scope and fees. Discuss confidentiality, timelines and written engagement terms before sharing sensitive documents or making payments.",
+    businessTypes: ["Professional"],
+    city: "Ludhiana",
+  },
+  {
+    slug: "shops-in-ludhiana",
+    keyword: "shops in Ludhiana",
+    title: "Shops in Ludhiana | Find Local Stores & Retailers",
+    description: "Explore shops and retail businesses in Ludhiana, Punjab. Discover store profiles, product categories and contact details on Twimzi.",
+    heading: "Find shops in Ludhiana",
+    intro: "Discover public profiles of shops and retailers in Ludhiana. Explore the business information and product categories available on each profile, then contact the store to confirm availability and timings.",
+    detail: "Before visiting or ordering, confirm the shop's current address, opening hours, product availability, price, delivery options and return policy directly with the business. Listings and business details may change over time.",
+    businessTypes: ["Shop", "Retailer", "Retail Store", "Store"],
+    city: "Ludhiana",
+  },
+  {
+    slug: "home-services-in-ludhiana",
+    keyword: "home services in Ludhiana",
+    title: "Home Services in Ludhiana | Find Local Service Providers",
+    description: "Find home service providers in Ludhiana, Punjab. Explore public profiles for repairs, maintenance and household services on Twimzi.",
+    heading: "Find home services in Ludhiana",
+    intro: "Explore service-provider profiles in Ludhiana for household repairs, maintenance and other home services. Review the provider's listed service details and contact them to confirm coverage and availability.",
+    detail: "Before booking, confirm the exact work, visit charges, labour and material costs, service area, estimated completion time, warranty on repairs and payment terms. For electrical, gas, structural or other safety-critical work, verify the provider's relevant training and qualifications.",
+    businessTypes: ["Service Provider"],
+    includeTerms: ["home", "plumb", "electric", "clean", "repair", "pest", "carpenter", "appliance", "maintenance"],
+    city: "Ludhiana",
+  },
+  {
+    slug: "businesses-in-amritsar",
+    keyword: "businesses in Amritsar",
+    title: "Businesses in Amritsar | Local Business Directory",
+    description: "Discover businesses in Amritsar, Punjab. Explore local company profiles, products, services and contact information on Twimzi.",
+    heading: "Discover businesses in Amritsar",
+    intro: "Browse public business profiles from Amritsar, Punjab. Explore local companies across business types and categories, review the details they publish and contact businesses directly.",
+    detail: "Use each profile to understand the business's stated products or services and location. Confirm current operating hours, availability, pricing, credentials and service coverage directly with the business before visiting or placing an order.",
+    city: "Amritsar",
+  },
+  {
+    slug: "services-in-punjab",
+    keyword: "services in Punjab",
+    title: "Service Providers in Punjab | Find Local Services",
+    description: "Explore professional and local service providers across Punjab. Compare public business profiles and connect through Twimzi.",
+    heading: "Find service providers across Punjab",
+    intro: "Discover public profiles of service businesses and professionals operating in Punjab. Explore the locations and service descriptions shared by providers to find options relevant to your requirements.",
+    detail: "Service availability can vary by city and provider. Confirm the service area, scope, qualifications, estimated fees, schedule, cancellation terms and after-service support directly before engaging a provider.",
+    businessTypes: ["Service Provider", "Professional"],
+    state: "Punjab",
   },
   {
     slug: "agricultural-machinery-manufacturers-in-india",
@@ -76,6 +153,72 @@ export const seoDirectoryPages: SeoDirectoryPage[] = [
     businessTypes: ["Manufacturer"],
     includeTerms: ["fastener", "nut", "bolt", "screw", "engineering", "thread", "die"],
   },
+  {
+    slug: "solar-panel-manufacturers-in-india",
+    keyword: "solar panel manufacturers in India",
+    title: "Solar Panel Manufacturers in India | Twimzi",
+    description: "Discover Indian solar panel and photovoltaic equipment manufacturers. Review public business profiles and contact companies through Twimzi.",
+    heading: "Find solar panel manufacturers in India",
+    intro: "Explore public manufacturer profiles relevant to solar panels, photovoltaic modules and solar equipment. Use company descriptions and contact details to identify businesses for further product and supplier evaluation.",
+    detail: "Compare module technology, rated output, efficiency, certifications, warranty terms, degradation guarantees, testing documentation and after-sales support. Verify current product specifications and applicable approvals directly with the manufacturer before procurement.",
+    businessTypes: ["Manufacturer"],
+    includeTerms: ["solar", "photovoltaic", "pv module", "solar panel"],
+  },
+  {
+    slug: "packaging-machine-manufacturers-in-india",
+    keyword: "packaging machine manufacturers in India",
+    title: "Packaging Machine Manufacturers in India | Twimzi",
+    description: "Find Indian packaging machinery manufacturers. Explore business profiles for packaging, filling, sealing and processing equipment.",
+    heading: "Packaging machine manufacturers in India",
+    intro: "Discover manufacturer profiles relevant to packaging machinery and industrial packaging equipment. Review listed capabilities and contact companies to discuss machinery for your production requirements.",
+    detail: "Specify the material, pack size, line speed, automation level, power requirements, changeover needs, installation, operator training, spare parts and service response. Request a product demonstration and written technical proposal before selecting equipment.",
+    businessTypes: ["Manufacturer"],
+    includeTerms: ["packaging machine", "packing machine", "filling machine", "sealing machine", "packaging equipment"],
+  },
+  {
+    slug: "led-light-wholesalers-in-india",
+    keyword: "LED light wholesalers in India",
+    title: "LED Light Wholesalers in India | Twimzi",
+    description: "Explore Indian wholesalers and suppliers of LED lights and lighting products. Compare business profiles and contact sellers on Twimzi.",
+    heading: "Find LED light wholesalers in India",
+    intro: "Browse public profiles of businesses associated with wholesale LED lighting and related products. Review product information and contact suppliers to confirm available models and bulk-order terms.",
+    detail: "Check wattage, lumen output, colour temperature, beam angle, driver quality, rated life, warranty, safety certifications, packaging and replacement terms. Ask for samples and a formal bulk quotation before placing an order.",
+    businessTypes: ["Wholesaler", "Trader", "Distributor"],
+    includeTerms: ["led", "lighting", "light", "luminaire"],
+  },
+  {
+    slug: "hydraulic-machinery-suppliers-in-india",
+    keyword: "hydraulic machinery suppliers in India",
+    title: "Hydraulic Machinery Suppliers in India | Twimzi",
+    description: "Discover Indian suppliers of hydraulic machinery, equipment and components. Explore business profiles and contact suppliers on Twimzi.",
+    heading: "Hydraulic machinery suppliers in India",
+    intro: "Explore business profiles relevant to hydraulic machinery, equipment and components. Use the supplier's listed capabilities and contact details to assess whether they serve your application.",
+    detail: "Confirm operating pressure, flow rate, load capacity, fluid compatibility, duty cycle, component standards, maintenance requirements and spare-parts support. Share the application details with suppliers and request technical documentation before ordering.",
+    businessTypes: ["Manufacturer", "Trader", "Wholesaler", "Distributor"],
+    includeTerms: ["hydraulic", "hydraulics", "hydraulic machinery", "hydraulic equipment"],
+  },
+  {
+    slug: "cotton-fabric-wholesalers-in-india",
+    keyword: "cotton fabric wholesalers in India",
+    title: "Cotton Fabric Wholesalers in India | Twimzi",
+    description: "Find Indian cotton fabric wholesalers and textile suppliers. Explore business profiles and contact businesses for bulk sourcing.",
+    heading: "Cotton fabric wholesalers in India",
+    intro: "Discover public business profiles associated with cotton fabrics, textiles and wholesale fabric supply. Review the business details and contact suppliers to discuss fabric requirements and bulk availability.",
+    detail: "Specify fibre composition, weave, GSM, width, colour, finish, shrinkage, colourfastness, certifications, minimum order quantity and lead time. Request swatches or samples and approve written specifications before bulk purchase.",
+    businessTypes: ["Wholesaler", "Trader", "Distributor", "Manufacturer"],
+    includeTerms: ["cotton", "fabric", "textile", "woven", "knit"],
+  },
+  {
+    slug: "industrial-rubber-products-suppliers-in-india",
+    keyword: "industrial rubber products suppliers in India",
+    title: "Industrial Rubber Products Suppliers in India | Twimzi",
+    description: "Explore Indian suppliers and manufacturers of industrial rubber products and components. Review business profiles on Twimzi.",
+    heading: "Industrial rubber products suppliers in India",
+    intro: "Browse public business profiles relevant to industrial rubber products and components. Contact listed businesses to confirm product range, material suitability and supply capability for your application.",
+    detail: "Provide the operating environment, temperature range, pressure, chemical exposure, hardness, dimensions, tolerances and applicable standards. Request material data, test certificates and samples where the application is safety- or performance-critical.",
+    businessTypes: ["Manufacturer", "Trader", "Wholesaler", "Distributor"],
+    includeTerms: ["rubber", "rubber products", "gasket", "hose", "seal", "moulded"],
+  },
 ];
 
 export function getSeoDirectoryPage(slug: string) {
@@ -83,7 +226,7 @@ export function getSeoDirectoryPage(slug: string) {
 }
 
 export function matchesSeoDirectoryPage(
-  business: { business_type?: string | null; business_name?: string | null; description?: string | null; city?: string | null },
+  business: { business_type?: string | null; business_name?: string | null; description?: string | null; city?: string | null; state?: string | null },
   page: SeoDirectoryPage,
 ) {
   if (page.businessTypes?.length && !page.businessTypes.some(
@@ -91,6 +234,7 @@ export function matchesSeoDirectoryPage(
   )) return false;
 
   if (page.city && (business.city ?? "").trim().toLowerCase() !== page.city.toLowerCase()) return false;
+  if (page.state && (business.state ?? "").trim().toLowerCase() !== page.state.toLowerCase()) return false;
 
   if (page.includeTerms?.length) {
     const searchable = `${business.business_name ?? ""} ${business.description ?? ""} ${business.business_type ?? ""}`.toLowerCase();
