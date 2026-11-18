@@ -393,6 +393,24 @@ export default async function ServicesPage({
           </>
         )}
       </section>
+
+      <section className="mx-auto max-w-7xl px-4 pb-14 sm:px-6 lg:px-8">
+        <div className="grid gap-8 border-t border-[var(--color-border)] pt-10 lg:grid-cols-2">
+          <div>
+            <h2 className="text-xl font-bold text-[var(--color-text)]">Find local professionals and service providers</h2>
+            <p className="mt-3 text-sm leading-7 text-[var(--color-text-secondary)]">
+              Twimzi helps people discover service providers, professionals and businesses that publish their services online. Explore available service profiles, compare the descriptions shared by providers and contact a business to discuss your requirements. Service categories may include home maintenance, repairs, professional assistance and other business services, depending on the listings available.
+            </p>
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-[var(--color-text)]">What to confirm before booking a service</h2>
+            <p className="mt-3 text-sm leading-7 text-[var(--color-text-secondary)]">
+              Confirm the provider&apos;s service area, scope of work, availability, visit charges, materials, estimated completion time and payment terms before booking. For regulated or safety-critical work, check relevant licences and qualifications. Service details and prices are supplied by businesses and should be verified directly.
+            </p>
+            <Link href="/businesses" className="mt-4 inline-flex text-sm font-semibold text-[var(--color-primary)] hover:underline">Browse business profiles</Link>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }

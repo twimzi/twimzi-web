@@ -545,6 +545,24 @@ export default async function OffersPage({
           </>
         )}
       </section>
+
+      <section className="mx-auto max-w-7xl px-4 pb-14 sm:px-6 lg:px-8">
+        <div className="grid gap-8 border-t border-[var(--color-border)] pt-10 lg:grid-cols-2">
+          <div>
+            <h2 className="text-xl font-bold text-[var(--color-text)]">Explore offers and deals from local businesses</h2>
+            <p className="mt-3 text-sm leading-7 text-[var(--color-text-secondary)]">
+              Twimzi brings public business promotions into one place so customers can explore available discounts, coupon codes and special offers. Offers may be shared by retailers, service providers, manufacturers and other businesses. Availability depends on the active promotions published by participating businesses.
+            </p>
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-[var(--color-text)]">Check offer terms before you purchase</h2>
+            <p className="mt-3 text-sm leading-7 text-[var(--color-text-secondary)]">
+              Read the offer description, validity dates, minimum order value, redemption limits and terms before using a promotion. Confirm stock, final pricing, delivery, exclusions and redemption instructions directly with the business. Twimzi displays information shared by businesses; the seller remains responsible for fulfilling its offer.
+            </p>
+            <Link href="/businesses" className="mt-4 inline-flex text-sm font-semibold text-[var(--color-primary)] hover:underline">Discover businesses on Twimzi</Link>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
