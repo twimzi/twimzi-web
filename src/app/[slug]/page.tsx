@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { StructuredData } from "@/components/seo/structured-data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { siteConfig } from "@/config/site";
 import {
   getSeoDirectoryPage,
+  getSeoKeywordTarget,
   matchesSeoDirectoryPage,
   SEO_DIRECTORY_MIN_LISTINGS,
 } from "@/lib/seo/programmatic-directory";
@@ -56,7 +57,15 @@ type PageProps = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const page = getSeoDirectoryPage(slug);
-  if (!page) return { title: "Directory page not found | Twimzi", robots: { index: false, follow: true } };
+  if (!page) {
+    const target = getSeoKeywordTarget(slug);
+    return target
+      ? { title: "Redirecting | Twimzi", alternates: { canonical: `${siteConfig.url}/${target.targetSlug}` }, robots: { index: false, follow: true } }
+      : { title: "Directory page not found | Twimzi", robots: { index: false, follow: true } };
+  }
+  if (page.requestedSlug && page.requestedSlug !== page.slug) {
+    return { title: page.title, alternates: { canonical: `${siteConfig.url}/${page.slug}` }, robots: { index: false, follow: true } };
+  }
 
   const businesses = await getBusinesses(page);
   const canonical = `${siteConfig.url}/${page.slug}`;
@@ -74,7 +83,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function SeoDirectoryPage({ params }: PageProps) {
   const { slug } = await params;
   const page = getSeoDirectoryPage(slug);
-  if (!page) notFound();
+  if (!page) {
+    const target = getSeoKeywordTarget(slug);
+    if (target) redirect(`/${target.targetSlug}`);
+    notFound();
+  }
+  if (page.requestedSlug && page.requestedSlug !== page.slug) redirect(`/${page.slug}`);
 
   const businesses = await getBusinesses(page);
   if (businesses.length === 0) notFound();
