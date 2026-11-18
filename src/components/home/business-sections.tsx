@@ -65,14 +65,15 @@ function BusinessCard({ business }: { business: BusinessCardData }) {
   return (
     <article className="twimzi-home-business-card group overflow-hidden rounded-3xl border border-[var(--color-border)] bg-[var(--color-surface)] transition-all duration-300 hover:border-[var(--color-primary)]/40">
       <Link href={getBusinessUrl(business)} className="block">
-        <div className="relative h-32 overflow-hidden bg-[#e8edf2]">
+        <div className="relative h-32 overflow-hidden bg-[#e8edf2]" style={{ position: "relative", height: "8rem", minHeight: "8rem", maxHeight: "8rem", overflow: "hidden" }}>
           {business.coverUrl ? (
             <Image
               src={business.coverUrl}
               alt={`${business.business_name} cover`}
               fill
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              className="object-cover "
+              className="object-cover"
+              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }}
             />
           ) : null}
         </div>
