@@ -1,6 +1,16 @@
 import { seoKeywordTargets } from "./keyword-targets";
 
-export const SEO_DIRECTORY_MIN_LISTINGS = 5;
+export const SEO_DIRECTORY_MIN_LISTINGS = 1;
+
+/**
+ * Indexability is based on page usefulness, not a fixed five-listing quota.
+ * Curated and broad editorial directories may serve as acquisition landing pages
+ * before listings arrive. Generated product pages must have at least one relevant
+ * public listing to avoid creating large sets of empty, near-duplicate pages.
+ */
+export function isSeoDirectoryIndexable(page: SeoDirectoryPage, listingCount: number): boolean {
+  return listingCount > 0 || page.indexWhenEmpty === true;
+}
 
 export type SeoDirectoryPage = {
   slug: string;
@@ -16,6 +26,8 @@ export type SeoDirectoryPage = {
   requestedSlug?: string;
   city?: string;
   state?: string;
+  /** Allow genuinely useful, editorially curated directories to be indexed before their first listing arrives. */
+  indexWhenEmpty?: boolean;
 };
 
 const curatedSeoDirectoryPages: SeoDirectoryPage[] = [
@@ -353,9 +365,9 @@ const generatedDirectoryPages: SeoDirectoryPage[] = [
 ];
 
 export const seoDirectoryPages: SeoDirectoryPage[] = [
-  ...curatedSeoDirectoryPages,
+  ...curatedSeoDirectoryPages.map((page) => ({ ...page, indexWhenEmpty: true })),
   ...generatedProductPages,
-  ...generatedDirectoryPages.filter((page) => !existingDirectorySlugs.has(page.slug)),
+  ...generatedDirectoryPages.filter((page) => !existingDirectorySlugs.has(page.slug)).map((page) => ({ ...page, indexWhenEmpty: true })),
 ];
 
 export function getSeoKeywordTarget(slug: string) {
