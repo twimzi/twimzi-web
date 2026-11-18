@@ -70,9 +70,9 @@ export function HeroSection({
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-80 bg-[radial-gradient(ellipse_at_8%_100%,rgba(142,7,251,0.56),transparent_36%),radial-gradient(ellipse_at_96%_0%,rgba(5,205,252,0.48),transparent_32%),linear-gradient(145deg,transparent_58%,rgba(24,121,253,0.18)_78%,transparent_100%)]" />
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_52%_48%,rgba(24,121,253,0.22),transparent_48%)]" />
       <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#08052F]/35 to-transparent" />
-      <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 z-0 hidden h-[min(76vw,660px)] w-[min(76vw,660px)] -translate-x-1/2 -translate-y-1/2 lg:block" style={{ position: "absolute", left: "50%", top: "50%", width: "min(76vw, 660px)", height: "min(76vw, 660px)", transform: "translate(-50%, -50%)", pointerEvents: "none", zIndex: 0 }}>
+      <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 z-0 hidden h-[min(76vw,660px)] w-[min(76vw,660px)] -translate-x-1/2 -translate-y-1/2 lg:block">
         <div className="absolute inset-0 rounded-full opacity-70 blur-2xl bg-[radial-gradient(circle,rgba(24,121,253,0.48)_0%,rgba(5,205,252,0.2)_58%,transparent_72%)]" />
-        <div className="absolute inset-[5%] overflow-hidden rounded-full border border-cyan-200/70 shadow-[0_0_28px_rgba(5,205,252,0.65),inset_0_0_30px_rgba(24,121,253,0.35)]" style={{ position: "absolute", inset: "5%", width: "90%", height: "90%", borderRadius: "50%", overflow: "hidden" }}>
+        <div className="absolute inset-[5%] overflow-hidden rounded-full border border-cyan-200/70 shadow-[0_0_28px_rgba(5,205,252,0.65),inset_0_0_30px_rgba(24,121,253,0.35)]">
           <Image
             src="https://assets.science.nasa.gov/content/dam/science/esd/eo/images/bmng/bmng-topography-bathymetry/january/world.topo.bathy.200401.3x5400x2700.jpg"
             alt=""
