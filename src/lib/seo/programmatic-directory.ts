@@ -184,7 +184,7 @@ export const seoDirectoryPages: SeoDirectoryPage[] = [
     intro: "Browse public profiles of businesses associated with wholesale LED lighting and related products. Review product information and contact suppliers to confirm available models and bulk-order terms.",
     detail: "Check wattage, lumen output, colour temperature, beam angle, driver quality, rated life, warranty, safety certifications, packaging and replacement terms. Ask for samples and a formal bulk quotation before placing an order.",
     businessTypes: ["Wholesaler", "Trader", "Distributor"],
-    includeTerms: ["led", "lighting", "light", "luminaire"],
+    includeTerms: ["led light", "led lighting", "led bulb", "lighting products"],
   },
   {
     slug: "hydraulic-machinery-suppliers-in-india",
