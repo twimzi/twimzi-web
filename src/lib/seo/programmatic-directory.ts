@@ -1,7 +1,5 @@
 import { seoKeywordTargets } from "./keyword-targets";
 
-export const SEO_DIRECTORY_MIN_LISTINGS = 1;
-
 /**
  * Indexability is based on page usefulness, not a fixed five-listing quota.
  * Curated and broad editorial directories may serve as acquisition landing pages
