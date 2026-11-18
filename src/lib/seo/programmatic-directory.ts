@@ -248,13 +248,13 @@ const productTermSynonyms: Record<string, string[]> = {
   sprayer: ["sprayer", "spray"], harvesting: ["harvesting", "harvester"],
   packaging: ["packaging", "packing"], moulding: ["moulding", "molding"],
   aluminium: ["aluminium", "aluminum"], knitted: ["knit", "knitted"],
-  readymade: ["readymade", "ready-made"], footwear: ["footwear", "shoe"],
+  readymade: ["readymade", "ready-made"], tshirt: ["t-shirt", "tshirt", "t shirt"], footwear: ["footwear", "shoe"],
   woodworking: ["woodworking", "wood"], sanitaryware: ["sanitaryware"],
 };
 
 function getProductTermGroups(product: string): string[][] {
   const stopWords = new Set(["and", "of", "the", "for"]);
-  return product.toLowerCase().split(/[^a-z0-9]+/).filter((word) => word && !stopWords.has(word))
+  return product.toLowerCase().replace(/t-shirt/g, "tshirt").split(/[^a-z0-9]+/).filter((word) => word && !stopWords.has(word))
     .map((word) => productTermSynonyms[word] ?? [word]);
 }
 
