@@ -106,7 +106,7 @@ export default async function HtmlSitemapPage() {
   const seoLandingSlugs = new Set(seoDirectoryPages.map((page) => `/${page.slug}`));
 
   const groups: Array<{ title: string; matches: (href: string) => boolean }> = [
-    { title: "Main Pages", matches: (href) => !/^\/(businesses|products|services|offers|blog|city|directory)\//.test(href) },
+    { title: "Main Pages", matches: (href) => !/^\/(businesses|products|services|offers|blog|city)\//.test(href) && !seoLandingSlugs.has(href) },
     { title: "Business Categories & Locations", matches: (href) => href.startsWith("/businesses/category/") || href.startsWith("/businesses/location/") || href.startsWith("/city/") },
     { title: "Industries & Supplier Pages", matches: (href) => seoLandingSlugs.has(href) },
     { title: "Business Profiles", matches: (href) => /^\/businesses\/[^/]+$/.test(href) },
