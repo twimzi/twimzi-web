@@ -9,7 +9,7 @@ import {
   getSeoDirectoryPage,
   getSeoKeywordTarget,
   matchesSeoDirectoryPage,
-  SEO_DIRECTORY_MIN_LISTINGS,
+  isSeoDirectoryIndexable,
 } from "@/lib/seo/programmatic-directory";
 
 export const revalidate = 3600;
@@ -69,7 +69,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const businesses = await getBusinesses(page);
   const canonical = `${siteConfig.url}/${page.slug}`;
-  const canIndex = businesses.length >= SEO_DIRECTORY_MIN_LISTINGS;
+  const canIndex = isSeoDirectoryIndexable(page, businesses.length);
 
   return {
     title: page.title,
@@ -91,10 +91,8 @@ export default async function SeoDirectoryPage({ params }: PageProps) {
   if (page.requestedSlug && page.requestedSlug !== page.slug) redirect(`/${page.slug}`);
 
   const businesses = await getBusinesses(page);
-  if (businesses.length === 0) notFound();
-
   const canonical = `${siteConfig.url}/${page.slug}`;
-  const canIndex = businesses.length >= SEO_DIRECTORY_MIN_LISTINGS;
+  const canIndex = isSeoDirectoryIndexable(page, businesses.length);
   const collectionSchema = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
@@ -131,7 +129,8 @@ export default async function SeoDirectoryPage({ params }: PageProps) {
 
       <section aria-labelledby="directory-listings-heading">
         <h2 id="directory-listings-heading" className="mb-5 text-2xl font-bold">Explore matching businesses</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {businesses.length > 0 ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {businesses.map((business) => (
             <article key={business.id} className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 transition hover:shadow-md">
               <h3 className="text-lg font-bold">
@@ -144,7 +143,16 @@ export default async function SeoDirectoryPage({ params }: PageProps) {
               {business.description ? <p className="mt-3 line-clamp-3 text-sm leading-6 text-[var(--color-text-secondary)]">{business.description}</p> : null}
             </article>
           ))}
-        </div>
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-dashed border-[var(--color-border)] bg-[var(--color-surface)] p-6 sm:p-8">
+            <h3 className="text-lg font-bold">Be among the first businesses listed here</h3>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--color-text-secondary)]">
+              This Twimzi directory is being built with verified public business profiles. No matching public profiles are available yet. If your business serves this category, add a profile so customers and business buyers can discover you.
+            </p>
+            <Link href="/add-business" className="mt-4 inline-flex rounded-lg bg-[var(--color-primary)] px-5 py-3 text-sm font-bold text-white hover:opacity-90">List your business</Link>
+          </div>
+        )}
       </section>
 
       <section className="mt-12 max-w-4xl">
@@ -162,7 +170,7 @@ export default async function SeoDirectoryPage({ params }: PageProps) {
       </section>
 
       {!canIndex ? (
-        <p className="mt-6 text-xs text-[var(--color-text-muted)]">This emerging directory page is not yet included in search engine sitemaps while its public listing coverage grows.</p>
+        <p className="mt-6 text-xs text-[var(--color-text-muted)]">This emerging product directory is available to visitors, but will be added to search engine sitemaps when its first relevant public business profile is published.</p>
       ) : null}
 
       <StructuredData data={breadcrumbSchema} />
