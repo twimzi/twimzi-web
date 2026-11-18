@@ -102,7 +102,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const categoryPages: MetadataRoute.Sitemap = [];
   const productPages: MetadataRoute.Sitemap = [];
   const servicePages: MetadataRoute.Sitemap = [];
-  const directoryPages: MetadataRoute.Sitemap = [];
+  const seoLandingPages: MetadataRoute.Sitemap = [];
   const directoryBusinesses: PublicCityCategoryBusiness[] = [];
   const locationCounts = new Map<string, number>();
   const cityCategoryCounts = new Map<string, { city: string; category: string; count: number }>();
@@ -297,8 +297,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const page of seoDirectoryPages) {
     const listingCount = directoryBusinesses.filter((business) => matchesSeoDirectoryPage(business, page)).length;
     if (listingCount >= SEO_DIRECTORY_MIN_LISTINGS) {
-      directoryPages.push({
-        url: `${siteConfig.url}/directory/${page.slug}`,
+      seoLandingPages.push({
+        url: `${siteConfig.url}/${page.slug}`,
         lastModified: now,
         changeFrequency: "weekly",
         priority: 0.65,
@@ -332,7 +332,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...servicePages,
     ...categoryPages,
     ...locationPages,
-    ...directoryPages,
+    ...seoLandingPages,
     ...cityCategoryPages,
   ];
 }
