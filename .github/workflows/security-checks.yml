@@ -16,7 +16,6 @@ jobs:
   dependency-audit:
     name: Dependency vulnerability audit
     runs-on: ubuntu-latest
-    permissions:
     steps:
       - name: Checkout pull request branch
         uses: actions/checkout@v4
