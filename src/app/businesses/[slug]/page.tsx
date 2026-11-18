@@ -674,7 +674,7 @@ export default async function BusinessDetailPage({
       <main className="min-h-screen bg-[var(--color-background)]">
       {/* HERO */}
       <section className="relative overflow-hidden">
-        <div className="relative h-64 overflow-hidden bg-[var(--color-surface-muted)] sm:h-80 lg:h-[380px]">
+        <div className="relative h-64 overflow-hidden bg-[var(--color-surface-muted)] sm:h-80 lg:h-[380px]" style={{ position: "relative", height: "clamp(16rem, 24vw, 23.75rem)", minHeight: "16rem", maxHeight: "23.75rem", overflow: "hidden" }}>
           {coverUrl ? (
             <>
               {/* Use the cover as a true full-width background; do not render a narrow contained copy over it. */}
@@ -685,6 +685,7 @@ export default async function BusinessDetailPage({
                 priority
                 sizes="100vw"
                 className="object-cover object-center"
+                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }}
               />
               <div className="absolute inset-0 bg-black/10" />
             </>
