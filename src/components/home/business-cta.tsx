@@ -6,7 +6,8 @@ export function BusinessCta() {
     <section className="py-12 sm:py-14">
       <Container>
         <div className="twimzi-home-cta relative overflow-hidden rounded-[2rem] px-7 py-12 text-white sm:px-12 lg:flex lg:items-center lg:justify-between">
-          <div aria-hidden="true" className="pointer-events-none absolute -right-10 -top-24 h-64 w-64 rounded-full bg-[#8E07FB]/25 blur-3xl" />\n          <div className="relative z-10 max-w-2xl">
+          <div aria-hidden="true" className="pointer-events-none absolute -right-10 -top-24 h-64 w-64 rounded-full bg-[#8E07FB]/25 blur-3xl" />
+          <div className="relative z-10 max-w-2xl">
             <p className="twimzi-home-cta-eyebrow text-sm font-bold uppercase tracking-[.16em]">
               For business owners
             </p>
