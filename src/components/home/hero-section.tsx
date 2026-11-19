@@ -66,8 +66,8 @@ export function HeroSection({
 }: HeroSectionProps) {
   return (
     <section className="twimzi-home-hero relative isolate overflow-hidden bg-white text-slate-900">
-      <div className="relative z-10 mx-auto grid min-h-[640px] w-full max-w-[1760px] grid-cols-1 items-center gap-10 px-5 py-12 sm:px-8 lg:min-h-[560px] lg:grid-cols-1 lg:gap-10 lg:px-12 lg:py-14 xl:min-h-[640px] xl:grid-cols-[minmax(0,1fr)_minmax(420px,1fr)_minmax(380px,.9fr)] xl:gap-10 xl:px-12 xl:py-16">
-          <div>
+      <div className="relative z-10 mx-auto grid min-h-[640px] w-full max-w-[1760px] grid-cols-1 items-center gap-10 px-5 py-12 sm:px-8 lg:min-h-[560px] lg:grid-cols-1 lg:gap-10 lg:px-12 lg:py-14 xl:min-h-[640px] xl:grid-cols-[minmax(0,.95fr)_minmax(440px,1fr)_minmax(380px,.9fr)] xl:grid-rows-[auto_1fr] xl:gap-10 xl:px-12 xl:py-16">
+          <div className="mt-0 w-full max-w-[760px] xl:col-span-3 xl:row-start-1">
             <div className="mt-8 max-w-[760px] rounded-[1.75rem] border border-white/45 bg-white/95 p-2.5 text-slate-900 shadow-[0_0_0_4px_rgba(142,7,251,0.18),0_18px_60px_rgba(2,13,58,0.28)]">
               <form action="/explore" method="get" className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <div className="relative min-w-0 flex-1">
@@ -83,7 +83,9 @@ export function HeroSection({
                 <Button type="submit" className="min-h-14 w-full rounded-full sm:w-36">Search</Button>
               </form>
             </div>
+          </div>
 
+          <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/40 bg-white/5 px-4 py-2 text-sm font-semibold text-white shadow-sm backdrop-blur-sm">
               <MapPin aria-hidden="true" size={18} strokeWidth={2.3} />
               Discover local. Grow local.
