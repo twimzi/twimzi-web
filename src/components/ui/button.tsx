@@ -31,6 +31,9 @@ const styles: Record<ButtonVariant, string> = {
 
   ghost:
     "text-[var(--color-text-secondary)] hover:bg-[var(--color-secondary)] hover:text-[var(--color-primary-dark)]",
+
+  commerce:
+    "bg-[#0064e0] text-white hover:bg-[#0457cb] active:bg-[#0457cb]",
 };
 
 export function Button({
