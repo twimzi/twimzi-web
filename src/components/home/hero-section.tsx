@@ -85,7 +85,7 @@ export function HeroSection({
               offers and opportunities around you.
             </p>
 
-            <div className="mt-8 max-w-[900px] rounded-[1.75rem] border border-white/45 bg-white/95 p-2.5 text-slate-900 shadow-[0_0_0_4px_rgba(142,7,251,0.18),0_18px_60px_rgba(2,13,58,0.28)]">
+            <div className="mt-8 max-w-[760px] rounded-[1.75rem] border border-white/45 bg-white/95 p-2.5 text-slate-900 shadow-[0_0_0_4px_rgba(142,7,251,0.18),0_18px_60px_rgba(2,13,58,0.28)]">
               <form action="/explore" method="get" className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <div className="relative min-w-0 flex-1">
                   <label className="sr-only" htmlFor="hero-search">Search businesses, products or services</label>
@@ -126,7 +126,7 @@ export function HeroSection({
               height={1024}
               priority
               sizes="(min-width: 1280px) 58vw, 0px"
-              className="pointer-events-none absolute left-[-70px] top-1/2 z-0 h-auto w-[640px] max-w-none -translate-y-1/2 object-contain drop-shadow-[0_24px_35px_rgba(25,75,150,0.12)]"
+              className="pointer-events-none absolute left-[-190px] top-1/2 z-0 h-auto w-[540px] max-w-none -translate-y-1/2 object-contain drop-shadow-[0_24px_35px_rgba(25,75,150,0.12)]"
             />
             <div className="twimzi-home-discovery-panel relative z-10 ml-auto w-full max-w-[450px] rounded-[30px] border border-white/75 bg-white/95 p-5 text-slate-900 shadow-[0_32px_90px_rgba(1,14,40,0.35)] backdrop-blur-xl sm:p-6">
               <div className="flex items-center justify-between">
