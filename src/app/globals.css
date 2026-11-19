@@ -538,3 +538,147 @@ header button:focus-visible {
   outline: 3px solid rgba(24, 121, 253, .28);
   outline-offset: 3px;
 }
+
+
+/* ============================================================
+   TWIMZI × META-INSPIRED DESIGN SYSTEM
+   One consistent system; Meta patterns adapted to Twimzi branding.
+   Marketing CTAs are ink-black. Cobalt is reserved for commerce.
+   ============================================================ */
+:root {
+  --meta-canvas: #ffffff;
+  --meta-surface-soft: #f1f4f7;
+  --meta-ink: #0a1317;
+  --meta-ink-secondary: #444950;
+  --meta-steel: #5d6c7b;
+  --meta-hairline: #dee3e9;
+  --meta-cobalt: #0064e0;
+  --meta-cobalt-pressed: #0457cb;
+  --meta-card-radius: 32px;
+  --meta-control-radius: 100px;
+  --meta-section-space: clamp(48px, 6vw, 80px);
+}
+html { scroll-padding-top: 5rem; }
+body {
+  background: var(--meta-canvas);
+  color: var(--meta-ink);
+  font-family: var(--font-poppins), Montserrat, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+}
+h1, h2, h3, h4 {
+  color: var(--meta-ink);
+  letter-spacing: -0.035em;
+}
+main section { scroll-margin-top: 5rem; }
+.twimzi-card {
+  border: 1px solid var(--meta-hairline);
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: none;
+  transition: border-color 180ms ease, transform 180ms ease;
+}
+.twimzi-card:hover { border-color: #b9c2cc; box-shadow: none; }
+.twimzi-home-category-card,
+.twimzi-home-business-card,
+.twimzi-home-stories {
+  border-radius: 24px;
+  box-shadow: none;
+}
+.twimzi-home-business-card:hover,
+.twimzi-home-category-card:hover {
+  transform: translateY(-2px);
+  box-shadow: none;
+}
+.twimzi-home-business-card img { border-radius: 24px 24px 0 0; }
+.twimzi-home-cta { box-shadow: none; border-radius: 32px; }
+.twimzi-section-heading {
+  color: var(--meta-ink);
+  font-size: clamp(28px, 3vw, 36px);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.04em;
+}
+.twimzi-section-copy {
+  color: var(--meta-ink-secondary);
+  font-size: 16px;
+  line-height: 1.5;
+}
+input, textarea, select {
+  border-radius: 8px;
+}
+input:focus, textarea:focus, select:focus {
+  border-color: var(--meta-cobalt);
+  outline-color: rgba(0, 100, 224, .22);
+}
+header {
+  background: rgba(255,255,255,.96);
+  border-color: var(--meta-hairline);
+  box-shadow: 0 1px 0 rgba(10,19,23,.04);
+}
+header nav a {
+  border-radius: 100px !important;
+  font-weight: 600;
+}
+header nav a[aria-current="page"] {
+  background: var(--meta-surface-soft) !important;
+  color: var(--meta-ink) !important;
+}
+header nav a:hover {
+  background: var(--meta-surface-soft);
+  color: var(--meta-ink);
+}
+.twimzi-home-hero {
+  background: #fff !important;
+  color: var(--meta-ink) !important;
+}
+.twimzi-home-hero::before,
+.twimzi-home-hero::after { display: none !important; }
+.twimzi-home-hero > div[aria-hidden="true"] { display: none !important; }
+.twimzi-home-hero h1 {
+  color: var(--meta-ink) !important;
+  font-size: clamp(44px, 5.3vw, 64px);
+  font-weight: 500;
+  line-height: 1.16;
+  letter-spacing: -0.05em;
+}
+.twimzi-home-hero h1 span {
+  color: var(--meta-ink) !important;
+  background: none !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+.twimzi-home-hero p { color: var(--meta-ink-secondary) !important; }
+.twimzi-home-hero .twimzi-home-discovery-panel {
+  border: 1px solid var(--meta-hairline);
+  border-radius: 32px;
+  box-shadow: none;
+}
+.twimzi-home-hero .twimzi-home-discovery-panel a {
+  border-radius: 24px;
+  border-color: var(--meta-hairline);
+  box-shadow: none;
+}
+.twimzi-home-hero .twimzi-home-discovery-panel a:hover {
+  border-color: #b9c2cc;
+  box-shadow: none;
+}
+.twimzi-home-hero .twimzi-home-discovery-panel a > div:first-child {
+  border-radius: 16px;
+}
+.twimzi-home-hero .twimzi-home-discovery-panel p:first-child {
+  color: var(--meta-cobalt) !important;
+}
+.twimzi-home-hero .mt-8.grid { color: var(--meta-ink-secondary) !important; }
+.twimzi-home-hero .mt-8.grid svg { color: var(--meta-cobalt) !important; }
+.twimzi-home-hero form > div { border-radius: 100px; }
+.twimzi-home-hero form input { border-radius: 100px; }
+.twimzi-home-hero form input:focus { outline: 2px solid rgba(0,100,224,.22); }
+.twimzi-home-hero button { border-radius: 100px !important; }
+.twimzi-home-hero > div.relative.z-10 { min-height: 620px; }
+@media (max-width: 1023px) {
+  .twimzi-home-hero > div.relative.z-10 { min-height: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .twimzi-card, .twimzi-home-category-card, .twimzi-home-business-card {
+    transition: none !important;
+  }
+}

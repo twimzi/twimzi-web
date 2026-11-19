@@ -19,10 +19,10 @@ const mainNavigation = [
 ] as const;
 
 const actionLinkClass =
-  "rounded-full px-4 py-3 text-sm font-semibold text-[var(--color-text-secondary)] transition hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary-dark)]";
+  "rounded-full px-4 py-3 text-sm font-semibold text-[#1c1e21] transition hover:bg-[#f1f4f7] hover:text-black";
 
 const primaryLinkClass =
-  "inline-flex min-h-12 items-center rounded-full bg-[var(--color-primary)] px-7 py-3 text-sm font-bold text-white transition hover:bg-[var(--color-primary-dark)]";
+  "inline-flex min-h-12 items-center rounded-full bg-black px-7 py-3 text-sm font-bold text-white transition hover:bg-[#444950]";
 
 export function Header() {
   const pathname = usePathname();
@@ -165,8 +165,8 @@ export function Header() {
                 href={item.href}
                 className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
                   isActive
-                    ? "bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]"
-                    : "text-[var(--color-text-secondary)] hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary-dark)]"
+                    ? "bg-[#f1f4f7] text-[#0a1317]"
+                    : "text-[#444950] hover:bg-[#f1f4f7] hover:text-[#0a1317]"
                 }`}
               >
                 {item.label}
