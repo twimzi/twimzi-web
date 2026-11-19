@@ -1332,3 +1332,12 @@ header nav a:hover {
     align-self: center !important;
   }
 }
+
+
+/* Move the complete left hero content group down without moving the globe or discovery panel. */
+@media (min-width: 1280px) {
+  .twimzi-home-hero > div.relative.z-10 > div:first-child,
+  .twimzi-home-hero > div.relative.z-10 > div:nth-child(2) {
+    transform: translateY(40px) !important;
+  }
+}
