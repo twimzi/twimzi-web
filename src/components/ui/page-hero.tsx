@@ -50,7 +50,7 @@ export function PageHero({
               {eyebrow}
             </div>
 
-            <h1 className="mt-6 max-w-4xl text-4xl font-extrabold tracking-tight text-[var(--color-text)] sm:text-5xl lg:text-[3.6rem] lg:leading-[1.05]">
+            <h1 className="mt-6 max-w-4xl text-4xl font-extrabold tracking-tight twimzi-gradient-heading sm:text-5xl lg:text-[3.6rem] lg:leading-[1.05]">
               {title}
             </h1>
 

@@ -3,15 +3,15 @@ import { Container } from "@/components/ui/container";
 
 export function BusinessCta() {
   return (
-    <section className="py-20">
+    <section className="py-12 sm:py-14">
       <Container>
-        <div className="twimzi-home-cta relative overflow-hidden rounded-[2rem] bg-[linear-gradient(115deg,#020D3A_0%,#11165B_48%,#3D16A5_100%)] px-7 py-12 text-white sm:px-12 lg:flex lg:items-center lg:justify-between">
-          <div className="max-w-2xl">
-            <p className="text-sm font-semibold uppercase tracking-[.16em] text-cyan-200">
+        <div className="twimzi-home-cta relative overflow-hidden rounded-[2rem] px-7 py-12 text-white sm:px-12 lg:flex lg:items-center lg:justify-between">
+          <div aria-hidden="true" className="pointer-events-none absolute -right-10 -top-24 h-64 w-64 rounded-full bg-[#8E07FB]/25 blur-3xl" />\n          <div className="relative z-10 max-w-2xl">
+            <p className="twimzi-home-cta-eyebrow text-sm font-bold uppercase tracking-[.16em]">
               For business owners
             </p>
 
-            <h2 className="mt-3 text-3xl font-bold sm:text-4xl">
+            <h2 className="twimzi-gradient-heading mt-3 text-3xl font-bold sm:text-4xl">
               Put your business on the local map.
             </h2>
 
@@ -23,7 +23,7 @@ export function BusinessCta() {
 
           <Link
             href="/add-business"
-            className="mt-8 inline-flex min-h-11 items-center justify-center rounded-lg bg-[var(--color-primary-gradient)] px-5 py-2.5 text-sm font-bold text-white shadow-lg transition hover:brightness-110 lg:mt-0"
+            className="relative z-10 mt-8 inline-flex min-h-14 items-center justify-center rounded-full bg-white px-7 py-3 text-sm font-extrabold text-[#101747] shadow-lg transition hover:bg-[#eef6ff] lg:mt-0"
           >
             Register Your Business
           </Link>

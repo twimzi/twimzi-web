@@ -5,7 +5,7 @@ import { Container } from "@/components/ui/container";
 
 export function AndroidAppSection() {
   return (
-    <section className="py-20">
+    <section className="py-12 sm:py-14">
       <Container>
         <div className="twimzi-home-cta relative overflow-hidden rounded-[2rem] bg-[linear-gradient(115deg,#020D3A_0%,#11165B_48%,#3D16A5_100%)] px-7 py-12 text-white sm:px-12 lg:px-16">
 <div
@@ -21,7 +21,7 @@ export function AndroidAppSection() {
                 <span>Coming Soon</span>
               </div>
 
-              <h2 className="mt-5 text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
+              <h2 className="twimzi-gradient-heading mt-5 text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
                 Twimzi is coming to Android.
               </h2>
 
@@ -33,7 +33,7 @@ export function AndroidAppSection() {
               {/* Android CTA */}
               <Link
                 href="/"
-                className="mt-7 inline-flex items-center gap-3 rounded-lg bg-white px-6 py-4 transition-colors hover:bg-slate-100"
+                className="mt-7 inline-flex items-center gap-3 rounded-full bg-white px-6 py-4 transition-colors hover:bg-[#eef6ff]"
               >
                 <span
                   aria-hidden="true"
@@ -64,7 +64,7 @@ export function AndroidAppSection() {
                   </svg>
                 </span>
 
-                <span className="text-sm font-extrabold text-emerald-600 sm:text-base">
+                <span className="twimzi-gradient-text text-sm font-extrabold sm:text-base">
                   Android App Coming Soon
                 </span>
               </Link>
