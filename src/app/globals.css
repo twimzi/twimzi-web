@@ -1295,3 +1295,9 @@ header nav a:hover {
 .twimzi-home-hero > div.relative.z-10 > div:first-child > div:first-child {
   margin-top: 0 !important;
 }
+
+.twimzi-home-hero > div.relative.z-10 > div:nth-child(2) > p {
+  color: #536078 !important;
+  font-size: 17px !important;
+  line-height: 1.7 !important;
+}
