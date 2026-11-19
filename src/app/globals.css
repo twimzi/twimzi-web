@@ -1301,3 +1301,34 @@ header nav a:hover {
   font-size: 17px !important;
   line-height: 1.7 !important;
 }
+
+
+/* Twimzi hero: tighten search-to-content spacing and add a soft brand-tinted canvas. */
+.twimzi-home-hero {
+  background:
+    radial-gradient(ellipse at 52% 34%, rgba(24,121,253,.075) 0%, rgba(24,121,253,0) 34%),
+    radial-gradient(ellipse at 8% 18%, rgba(142,7,251,.065) 0%, rgba(142,7,251,0) 32%),
+    radial-gradient(ellipse at 92% 76%, rgba(5,205,252,.07) 0%, rgba(5,205,252,0) 30%),
+    linear-gradient(115deg, #fcfaff 0%, #f8fbff 48%, #f5fcff 100%) !important;
+}
+@media (min-width: 1280px) {
+  .twimzi-home-hero > div.relative.z-10 {
+    min-height: 0 !important;
+    grid-template-rows: auto auto !important;
+    align-items: start !important;
+    align-content: start !important;
+    row-gap: 10px !important;
+    padding-top: 36px !important;
+    padding-bottom: 64px !important;
+  }
+  .twimzi-home-hero > div.relative.z-10 > div:first-child {
+    margin-top: 0 !important;
+  }
+  .twimzi-home-hero > div.relative.z-10 > div:first-child > div:first-child {
+    margin-top: 0 !important;
+  }
+  .twimzi-home-hero > div.relative.z-10 > div:nth-child(3),
+  .twimzi-home-hero > div.relative.z-10 > div:nth-child(4) {
+    align-self: center !important;
+  }
+}
