@@ -19,10 +19,10 @@ const mainNavigation = [
 ] as const;
 
 const actionLinkClass =
-  "rounded-lg px-4 py-2 text-sm font-medium text-[var(--color-text-secondary)] transition hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary-dark)]";
+  "rounded-full px-4 py-3 text-sm font-semibold text-[var(--color-text-secondary)] transition hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary-dark)]";
 
 const primaryLinkClass =
-  "rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--color-primary-dark)]";
+  "inline-flex min-h-12 items-center rounded-full bg-[var(--color-primary)] px-7 py-3 text-sm font-bold text-white transition hover:bg-[var(--color-primary-dark)]";
 
 export function Header() {
   const pathname = usePathname();
@@ -130,7 +130,7 @@ export function Header() {
     : "/add-business";
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[var(--color-border)] bg-white/95 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-[var(--color-border)] bg-white/95 shadow-[0_1px_3px_rgba(15,23,42,0.035)] backdrop-blur">
       <div className="mx-auto flex h-16 w-full max-w-[1600px] items-center gap-6 px-5 sm:px-8 xl:px-10">
         <Link
           href="/"
@@ -149,7 +149,7 @@ export function Header() {
         </Link>
 
         <nav
-          className="hidden min-w-0 flex-1 items-center justify-center gap-1.5 lg:flex xl:gap-2"
+          className="hidden min-w-0 flex-1 items-center justify-center gap-1 lg:flex xl:gap-1.5"
           aria-label="Main navigation"
         >
           {mainNavigation.map((item) => {
@@ -205,7 +205,7 @@ export function Header() {
                 type="button"
                 onClick={handleLogout}
                 disabled={isSigningOut}
-                className="rounded-lg border border-[var(--color-border)] px-4 py-2 text-sm font-medium text-[var(--color-text-secondary)] transition hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary-dark)] disabled:cursor-not-allowed disabled:opacity-60"
+                className="min-h-12 rounded-full border border-[var(--color-border)] px-5 py-3 text-sm font-semibold text-[var(--color-text-secondary)] transition hover:bg-[var(--color-primary-light)] hover:text-[var(--color-primary-dark)] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isSigningOut ? "Signing out..." : "Logout"}
               </button>
