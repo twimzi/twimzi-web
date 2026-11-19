@@ -42,7 +42,7 @@ export function Button({
   return (
     <button
       type={type}
-      className={`inline-flex min-h-11 items-center justify-center rounded-[var(--radius-lg)] px-5 py-2.5 text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--color-primary)]/15 disabled:cursor-not-allowed disabled:opacity-50 ${styles[variant]} ${className}`}
+      className={`inline-flex min-h-12 items-center justify-center rounded-full px-7 py-3 text-sm font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--color-primary)]/15 disabled:cursor-not-allowed disabled:opacity-50 ${styles[variant]} ${className}`}
       {...props}
     >
       {children}
