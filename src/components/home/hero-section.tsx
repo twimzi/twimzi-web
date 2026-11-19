@@ -66,8 +66,24 @@ export function HeroSection({
 }: HeroSectionProps) {
   return (
     <section className="twimzi-home-hero relative isolate overflow-hidden bg-white text-slate-900">
-      <div className="relative z-10 mx-auto grid min-h-[640px] w-full max-w-[1760px] grid-cols-1 items-center gap-10 px-5 py-12 sm:px-8 lg:min-h-[560px] lg:grid-cols-1 lg:gap-10 lg:px-12 lg:py-14 xl:min-h-[640px] xl:grid-cols-[minmax(0,1.1fr)_minmax(380px,.9fr)] xl:gap-10 xl:px-12 xl:py-16">
+      <div className="relative z-10 mx-auto grid min-h-[640px] w-full max-w-[1760px] grid-cols-1 items-center gap-10 px-5 py-12 sm:px-8 lg:min-h-[560px] lg:grid-cols-1 lg:gap-10 lg:px-12 lg:py-14 xl:min-h-[640px] xl:grid-cols-[minmax(0,1fr)_minmax(420px,1fr)_minmax(380px,.9fr)] xl:gap-10 xl:px-12 xl:py-16">
           <div>
+            <div className="mt-8 max-w-[760px] rounded-[1.75rem] border border-white/45 bg-white/95 p-2.5 text-slate-900 shadow-[0_0_0_4px_rgba(142,7,251,0.18),0_18px_60px_rgba(2,13,58,0.28)]">
+              <form action="/explore" method="get" className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <div className="relative min-w-0 flex-1">
+                  <label className="sr-only" htmlFor="hero-search">Search businesses, products or services</label>
+                  <Search aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={19} />
+                  <input id="hero-search" name="q" type="search" className="min-h-14 w-full rounded-full bg-slate-50 pl-12 pr-4 text-sm outline-none transition placeholder:text-slate-500 focus:ring-2 focus:ring-[var(--color-primary)]/25" placeholder="Search businesses, products or services" />
+                </div>
+                <div className="relative sm:w-48 sm:shrink-0">
+                  <label className="sr-only" htmlFor="hero-location">Your location</label>
+                  <MapPin aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                  <input id="hero-location" name="location" type="text" className="min-h-14 w-full rounded-full bg-slate-50 pl-11 pr-4 text-sm outline-none transition placeholder:text-slate-500 focus:ring-2 focus:ring-[var(--color-primary)]/25" placeholder="Your location" />
+                </div>
+                <Button type="submit" className="min-h-14 w-full rounded-full sm:w-36">Search</Button>
+              </form>
+            </div>
+
             <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/40 bg-white/5 px-4 py-2 text-sm font-semibold text-white shadow-sm backdrop-blur-sm">
               <MapPin aria-hidden="true" size={18} strokeWidth={2.3} />
               Discover local. Grow local.
@@ -84,22 +100,6 @@ export function HeroSection({
               {siteConfig.tagline}. Discover businesses, products, services,
               offers and opportunities around you.
             </p>
-
-            <div className="mt-8 max-w-[760px] rounded-[1.75rem] border border-white/45 bg-white/95 p-2.5 text-slate-900 shadow-[0_0_0_4px_rgba(142,7,251,0.18),0_18px_60px_rgba(2,13,58,0.28)]">
-              <form action="/explore" method="get" className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <div className="relative min-w-0 flex-1">
-                  <label className="sr-only" htmlFor="hero-search">Search businesses, products or services</label>
-                  <Search aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={19} />
-                  <input id="hero-search" name="q" type="search" className="min-h-14 w-full rounded-full bg-slate-50 pl-12 pr-4 text-sm outline-none transition placeholder:text-slate-500 focus:ring-2 focus:ring-[var(--color-primary)]/25" placeholder="Search businesses, products or services" />
-                </div>
-                <div className="relative sm:w-48 sm:shrink-0">
-                  <label className="sr-only" htmlFor="hero-location">Your location</label>
-                  <MapPin aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-                  <input id="hero-location" name="location" type="text" className="min-h-14 w-full rounded-full bg-slate-50 pl-11 pr-4 text-sm outline-none transition placeholder:text-slate-500 focus:ring-2 focus:ring-[var(--color-primary)]/25" placeholder="Your location" />
-                </div>
-                <Button type="submit" className="min-h-14 w-full rounded-full sm:w-36">Search</Button>
-              </form>
-            </div>
 
             <div className="mt-7 flex flex-wrap gap-3">
               <Link href="/explore">
@@ -118,16 +118,19 @@ export function HeroSection({
             </div>
           </div>
 
-          <div className="twimzi-hero-discovery-wrap relative hidden min-h-[600px] items-center justify-center xl:flex">
+          <div className="relative hidden min-h-[600px] items-center justify-center xl:flex">
             <Image
               src="/images/twimzi-global-logistics-clean.webp"
               alt="A globe connected by global air, road and rail transport, representing Twimzi’s global business reach"
               width={1536}
               height={1024}
               priority
-              sizes="(min-width: 1280px) 58vw, 0px"
-              className="pointer-events-none absolute left-[-190px] top-1/2 z-0 h-auto w-[540px] max-w-none -translate-y-1/2 object-contain drop-shadow-[0_24px_35px_rgba(25,75,150,0.12)]"
+              sizes="(min-width: 1280px) 40vw, 0px"
+              className="pointer-events-none relative z-0 h-auto w-[700px] max-w-none object-contain drop-shadow-[0_24px_35px_rgba(25,75,150,0.12)]"
             />
+          </div>
+
+          <div className="relative hidden min-h-[600px] items-center justify-center xl:flex">
             <div className="twimzi-home-discovery-panel relative z-10 ml-auto w-full max-w-[450px] rounded-[30px] border border-white/75 bg-white/95 p-5 text-slate-900 shadow-[0_32px_90px_rgba(1,14,40,0.35)] backdrop-blur-xl sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -188,6 +191,7 @@ export function HeroSection({
                 })}
               </div>
             </div>
+          </div>
           </div>
         </div>
     </section>
