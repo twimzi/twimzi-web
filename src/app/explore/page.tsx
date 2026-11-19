@@ -278,7 +278,7 @@ export default async function Explore({
 
   return (
     <>
-      <section className="relative isolate overflow-hidden border-b border-[var(--color-border)] bg-[var(--color-background)]">
+      <section className="twimzi-directory-hero relative isolate overflow-hidden border-b border-[var(--color-border)] bg-[var(--color-background)]">
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-blue-50/80 via-transparent to-cyan-50/60" aria-hidden="true" />
         <Container>
           <div className="relative grid min-h-[330px] items-center gap-8 py-12 sm:py-14 lg:grid-cols-[1.1fr_.9fr] lg:py-16">
@@ -287,7 +287,7 @@ export default async function Explore({
                 <span className="h-2 w-2 rounded-full bg-[var(--color-primary)]" aria-hidden="true" />
                 Explore Twimzi
               </span>
-              <h1 className="mt-5 text-4xl font-extrabold leading-tight tracking-tight text-[var(--color-text)] sm:text-5xl lg:text-[3.4rem]">
+              <h1 className="twimzi-gradient-heading mt-5 text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-[3.4rem]">
                 {search && locationSearch
                   ? `Results for "${search}" in ${locationSearch}`
                   : search

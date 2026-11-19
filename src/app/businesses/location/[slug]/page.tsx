@@ -121,7 +121,7 @@ export default async function BusinessLocationPage({ params }: PageProps) {
 
       <header className="mb-10 max-w-3xl">
         <p className="text-sm font-bold uppercase tracking-widest text-[var(--color-primary)]">Explore by location</p>
-        <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-[var(--color-text)] sm:text-4xl">
+        <h1 className="twimzi-gradient-heading mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">
           Businesses in {location}
         </h1>
         <p className="mt-4 text-base leading-7 text-[var(--color-text-secondary)]">

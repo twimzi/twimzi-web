@@ -413,7 +413,7 @@ export default async function OffersPage({
 
   return (
     <main className="min-h-[calc(100vh-4rem)] bg-[var(--color-background)]">
-      <section className="relative overflow-hidden border-b border-[var(--color-border-light)] bg-[var(--color-secondary)]">
+      <section className="twimzi-directory-hero relative overflow-hidden border-b border-[var(--color-border-light)] bg-[var(--color-secondary)]">
         <div className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
           <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-28 h-72 w-72 rounded-full bg-[var(--color-primary-light)] opacity-80 blur-3xl" />
           <div aria-hidden="true" className="pointer-events-none absolute -bottom-32 -left-24 h-64 w-64 rounded-full bg-[var(--color-accent-light)] opacity-70 blur-3xl" />
@@ -425,7 +425,7 @@ export default async function OffersPage({
               Offer Discovery
             </div>
 
-            <h1 className="mt-3 text-3xl font-bold tracking-tight text-[var(--color-text)] sm:text-4xl">
+            <h1 className="twimzi-gradient-heading mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
               Discover Offers on Twimzi
             </h1>
 

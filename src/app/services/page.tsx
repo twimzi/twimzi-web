@@ -235,7 +235,7 @@ export default async function ServicesPage({
 
   return (
     <main className="min-h-[calc(100vh-4rem)] bg-[var(--color-background)]">
-      <section className="border-b border-[var(--color-border)] bg-white">
+      <section className="twimzi-directory-hero border-b border-[var(--color-border)] bg-white">
         <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
           <div className="max-w-3xl">
             <div className="flex items-center gap-2 text-sm font-semibold text-[var(--color-text-muted)]">
@@ -243,7 +243,7 @@ export default async function ServicesPage({
               Service Discovery
             </div>
 
-            <h1 className="mt-3 text-3xl font-bold tracking-tight text-[var(--color-text)] sm:text-4xl">
+            <h1 className="twimzi-gradient-heading mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
               Discover Services on Twimzi
             </h1>
 
