@@ -108,22 +108,20 @@ export default function CommunityStories({ stories }: Props) {
 
   return (
     <>
-      <section aria-labelledby="community-stories-heading" className="twimzi-home-stories mb-8 rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6">
-        <div className="mb-4 flex items-end justify-between gap-3">
+      <section aria-labelledby="community-stories-heading" className="twimzi-home-stories mb-6 border-0 bg-transparent p-0 shadow-none">
+        <div className="mb-3 flex items-center justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-700">Fresh from local businesses</p>
-            <h2 id="community-stories-heading" className="mt-1 text-xl font-bold text-slate-950">Stories</h2>
+            <h2 id="community-stories-heading" className="text-xl font-bold tracking-tight text-slate-950">Stories</h2>
           </div>
-          <span className="text-xs text-slate-500">Available for 24 hours</span>
         </div>
         <div className="flex gap-4 overflow-x-auto pb-2">
           {groups.map((group) => {
             const latestStory = group.stories[0];
             return (
               <button key={group.key} type="button" onClick={() => openGroup(group)} className="group flex w-[88px] shrink-0 flex-col items-center gap-2 text-center" aria-label={`View ${group.stories.length} stor${group.stories.length === 1 ? "y" : "ies"} from ${group.businessName}`}>
-                <span className="relative rounded-full bg-gradient-to-tr from-orange-500 via-rose-500 to-teal-500 p-[3px] transition group-hover:scale-105">
-                  <span className="block rounded-full bg-white p-[3px]">
-                    <span className="block h-[66px] w-[66px] overflow-hidden rounded-full bg-slate-100">
+                <span className="relative rounded-2xl bg-gradient-to-tr from-orange-500 via-rose-500 to-teal-500 p-[3px] transition group-hover:scale-[1.03]">
+                  <span className="block rounded-xl bg-white p-[3px]">
+                    <span className="block h-[76px] w-[76px] overflow-hidden rounded-lg bg-slate-100">
                       <img src={latestStory.imageUrl} alt="" className="h-full w-full object-cover" loading="lazy" />
                     </span>
                   </span>
