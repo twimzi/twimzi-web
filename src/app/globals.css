@@ -484,7 +484,7 @@ h1, h2, h3, h4 {
   display: none !important;
 }
 .twimzi-home-hero h1 {
-  color: var(--color-accent-secondary);
+  color: var(--color-primary-dark);
   letter-spacing: -0.055em;
 }
 .twimzi-home-hero h1 span {
