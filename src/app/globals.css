@@ -1232,7 +1232,7 @@ header nav a:hover {
 }
 @media (min-width: 1280px) {
   .twimzi-home-hero > div.relative.z-10 {
-    grid-template-columns: minmax(0, 1.08fr) minmax(420px, .92fr) !important;
+    grid-template-columns: minmax(0, .95fr) minmax(440px, 1fr) minmax(380px, .9fr) !important;
     gap: clamp(32px, 3.5vw, 56px) !important;
   }
 }
