@@ -126,7 +126,7 @@ export function HeroSection({
               height={1024}
               priority
               sizes="(min-width: 1280px) 40vw, 0px"
-              className="pointer-events-none relative z-0 h-auto w-[700px] max-w-none object-contain drop-shadow-[0_24px_35px_rgba(25,75,150,0.12)]"
+              className="pointer-events-none relative z-0 h-auto w-[600px] max-w-none object-contain drop-shadow-[0_24px_35px_rgba(25,75,150,0.12)]"
             />
           </div>
 
@@ -191,7 +191,6 @@ export function HeroSection({
                 })}
               </div>
             </div>
-          </div>
           </div>
         </div>
     </section>
