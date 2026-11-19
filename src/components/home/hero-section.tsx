@@ -126,7 +126,7 @@ export function HeroSection({
               height={1024}
               priority
               sizes="(min-width: 1280px) 58vw, 0px"
-              className="pointer-events-none absolute left-[-40px] top-1/2 z-0 h-auto w-[640px] max-w-none -translate-y-1/2 object-contain drop-shadow-[0_24px_35px_rgba(25,75,150,0.12)]"
+              className="pointer-events-none absolute left-[-70px] top-1/2 z-0 h-auto w-[640px] max-w-none -translate-y-1/2 object-contain drop-shadow-[0_24px_35px_rgba(25,75,150,0.12)]"
             />
             <div className="twimzi-home-discovery-panel relative z-10 ml-auto w-full max-w-[450px] rounded-[30px] border border-white/75 bg-white/95 p-5 text-slate-900 shadow-[0_32px_90px_rgba(1,14,40,0.35)] backdrop-blur-xl sm:p-6">
               <div className="flex items-center justify-between">
