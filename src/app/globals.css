@@ -7,14 +7,14 @@
   --color-primary-darker: #020D3A;
   --color-primary-light: #E8F2FF;
   --color-primary-soft: #F2F7FF;
-  --color-secondary: #F4F6FC;
+  --color-secondary: #F3F5F8;
   --color-secondary-dark: #E7ECF7;
   --color-accent: #8E07FB;
   --color-accent-dark: #7000D6;
   --color-accent-secondary: #05CDFC;
   --color-accent-light: #F3E8FF;
   --color-accent-soft: #E8FAFF;
-  --color-background: #F7F9FF;
+  --color-background: #FFFFFF;
   --color-surface: #FFFFFF;
   --color-surface-soft: #F1F4FC;
   --color-surface-muted: #E8EDF7;
@@ -424,4 +424,96 @@ a.border-purple-600 {
   .twimzi-home-hero::after { animation: none; }
   .twimzi-home-category-card,
   .twimzi-home-business-card { transition: none; }
+}
+
+
+/* ============================================================
+   TWIMZI REFINED DESIGN SYSTEM
+   AT&T-inspired restraint, adapted to Twimzi's own brand palette.
+   ============================================================ */
+:root {
+  --twimzi-canvas: #ffffff;
+  --twimzi-ink: #172033;
+  --twimzi-ink-soft: #475569;
+  --twimzi-ink-muted: #64748b;
+  --twimzi-hairline: #e2e8f0;
+  --twimzi-card-radius: 16px;
+  --twimzi-control-radius: 28px;
+  --twimzi-control-height: 48px;
+  --twimzi-display-tracking: -0.045em;
+}
+body {
+  background: var(--twimzi-canvas);
+  color: var(--twimzi-ink);
+}
+h1, h2, h3, h4 {
+  letter-spacing: -0.035em;
+}
+.twimzi-card {
+  border: 1px solid var(--twimzi-hairline);
+  border-radius: var(--twimzi-card-radius);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .025), 0 5px 18px rgba(15, 23, 42, .035);
+}
+.twimzi-card:hover {
+  border-color: var(--color-border-strong);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, .065);
+}
+.twimzi-pill-button {
+  min-height: var(--twimzi-control-height);
+  border-radius: var(--twimzi-control-radius);
+  padding-inline: 2rem;
+  font-weight: 700;
+}
+.twimzi-section-heading {
+  color: var(--twimzi-ink);
+  font-size: clamp(1.5rem, 2.2vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -.04em;
+  line-height: 1.15;
+}
+.twimzi-section-copy {
+  color: var(--twimzi-ink-soft);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+.twimzi-home-hero {
+  background: #fff !important;
+  color: var(--twimzi-ink) !important;
+}
+.twimzi-home-hero > div[aria-hidden="true"]:nth-child(-n+4) {
+  display: none !important;
+}
+.twimzi-home-hero h1 {
+  color: var(--color-accent-secondary);
+  letter-spacing: -0.055em;
+}
+.twimzi-home-hero h1 span {
+  background: none !important;
+  color: var(--color-primary) !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+.twimzi-home-hero p {
+  color: var(--twimzi-ink-soft) !important;
+}
+.twimzi-home-hero > div.relative.z-10 {
+  min-height: 600px;
+}
+.twimzi-home-hero > div.relative.z-10 > div:first-child > div:first-child {
+  border-color: var(--color-border) !important;
+  background: var(--color-surface-soft) !important;
+  color: var(--color-primary-dark) !important;
+  box-shadow: none !important;
+}
+.twimzi-home-hero .twimzi-home-discovery-panel {
+  border-color: var(--twimzi-hairline);
+  box-shadow: 0 12px 36px rgba(15, 23, 42, .08);
+}
+@media (max-width: 1023px) {
+  .twimzi-home-hero > div.relative.z-10 {
+    min-height: auto;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .twimzi-home-hero::before,
+  .twimzi-home-hero::after { animation: none !important; }
 }
