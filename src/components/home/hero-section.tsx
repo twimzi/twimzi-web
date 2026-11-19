@@ -1,6 +1,5 @@
 
 import Link from "next/link";
-import Image from "next/image";
 
 import { ArrowRight, Compass, Flame, MapPin, Megaphone, Package, Search, Star, Store, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -65,41 +64,10 @@ export function HeroSection({
   interestingItems = fallbackItems,
 }: HeroSectionProps) {
   return (
-    <section className="twimzi-home-hero relative isolate overflow-hidden bg-[#020D3A] text-white">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_0%_12%,rgba(142,7,251,0.72),transparent_34%),radial-gradient(ellipse_at_100%_82%,rgba(5,205,252,0.64),transparent_36%),radial-gradient(ellipse_at_72%_18%,rgba(24,121,253,0.38),transparent_40%),linear-gradient(118deg,#08052F_0%,#020D3A_42%,#071B64_72%,#07113D_100%)]" />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-80 bg-[radial-gradient(ellipse_at_8%_100%,rgba(142,7,251,0.56),transparent_36%),radial-gradient(ellipse_at_96%_0%,rgba(5,205,252,0.48),transparent_32%),linear-gradient(145deg,transparent_58%,rgba(24,121,253,0.18)_78%,transparent_100%)]" />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_52%_48%,rgba(24,121,253,0.22),transparent_48%)]" />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#08052F]/35 to-transparent" />
-      <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 z-0 hidden h-[min(76vw,660px)] w-[min(76vw,660px)] -translate-x-1/2 -translate-y-1/2 lg:block">
-        <div className="absolute inset-0 rounded-full opacity-70 blur-2xl bg-[radial-gradient(circle,rgba(24,121,253,0.48)_0%,rgba(5,205,252,0.2)_58%,transparent_72%)]" />
-        <div className="absolute inset-[5%] overflow-hidden rounded-full border border-cyan-200/70 shadow-[0_0_28px_rgba(5,205,252,0.65),inset_0_0_30px_rgba(24,121,253,0.35)]">
-          <Image
-            src="https://assets.science.nasa.gov/content/dam/science/esd/eo/images/bmng/bmng-topography-bathymetry/january/world.topo.bathy.200401.3x5400x2700.jpg"
-            alt=""
-            fill
-            priority
-            fetchPriority="high"
-            quality={65}
-            sizes="(min-width: 1024px) 500px, 0px"
-            className="object-cover"
-          />
-          <div className="absolute inset-0 rounded-full bg-[linear-gradient(115deg,rgba(2,13,58,.08),rgba(2,13,58,.22)),radial-gradient(ellipse_at_35%_28%,rgba(255,255,255,0.16),transparent_34%),radial-gradient(ellipse_at_78%_75%,rgba(2,13,58,0.7),transparent_58%)]" />
-          <svg viewBox="0 0 600 600" className="absolute inset-0 h-full w-full" fill="none">
-            <g stroke="#63E7FF" strokeWidth="2.5" strokeOpacity=".78">
-              <path d="M85 280 Q280 55 480 245" />
-              <path d="M95 390 Q310 170 510 375" />
-              <path d="M145 155 Q350 500 490 270" />
-              <path d="M65 330 Q300 550 535 315" strokeOpacity=".48" />
-            </g>
-            <g fill="#D7FBFF" stroke="#05CDFC" strokeWidth="4">
-              <circle cx="85" cy="280" r="7"/><circle cx="480" cy="245" r="8"/>
-              <circle cx="95" cy="390" r="6"/><circle cx="510" cy="375" r="8"/>
-              <circle cx="145" cy="155" r="6"/><circle cx="490" cy="270" r="7"/>
-            </g>
-          </svg>
-        </div>
-        <div className="absolute inset-[2%] rounded-full border border-cyan-300/25" />
-      </div>
+    <section className="twimzi-home-hero relative isolate overflow-hidden bg-white text-slate-900">
+      <div aria-hidden="true" className="twimzi-hero-backdrop pointer-events-none absolute inset-0" />
+      <div aria-hidden="true" className="twimzi-hero-orbit twimzi-hero-orbit-one pointer-events-none absolute" />
+      <div aria-hidden="true" className="twimzi-hero-orbit twimzi-hero-orbit-two pointer-events-none absolute" />
       <div className="relative z-10 mx-auto grid min-h-[640px] w-full max-w-[1760px] grid-cols-1 items-center gap-10 px-5 py-12 sm:px-8 lg:min-h-[560px] lg:grid-cols-1 lg:gap-10 lg:px-12 lg:py-14 xl:min-h-[640px] xl:grid-cols-[minmax(0,1.1fr)_minmax(380px,.9fr)] xl:gap-10 xl:px-12 xl:py-16">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/40 bg-white/5 px-4 py-2 text-sm font-semibold text-white shadow-sm backdrop-blur-sm">
@@ -152,7 +120,10 @@ export function HeroSection({
             </div>
           </div>
 
-          <div className="relative hidden min-h-[560px] items-center justify-center xl:flex">
+          <div className="twimzi-hero-discovery-wrap relative hidden min-h-[560px] items-center justify-center xl:flex">
+            <div aria-hidden="true" className="twimzi-floating-tile twimzi-floating-tile-store"><Store size={25} /></div>
+            <div aria-hidden="true" className="twimzi-floating-tile twimzi-floating-tile-package"><Package size={25} /></div>
+            <div aria-hidden="true" className="twimzi-floating-tile twimzi-floating-tile-tag"><Tag size={25} /></div>
             <div className="twimzi-home-discovery-panel relative z-10 ml-auto w-full max-w-[570px] rounded-[30px] border border-white/75 bg-white/95 p-5 text-slate-900 shadow-[0_32px_90px_rgba(1,14,40,0.35)] backdrop-blur-xl sm:p-6">
               <div className="flex items-center justify-between">
                 <div>

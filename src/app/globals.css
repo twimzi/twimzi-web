@@ -821,3 +821,271 @@ header nav a:hover {
   min-height: 48px;
   border-radius: 999px !important;
 }
+
+
+/* ============================================================
+   TWIMZI HOMEPAGE HERO — PREMIUM FLOATING GLASS DIRECTION
+   Content, discovery data, search and navigation remain unchanged.
+   ============================================================ */
+.twimzi-home-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  color: #101936 !important;
+  background: #fff !important;
+}
+.twimzi-home-hero .twimzi-hero-backdrop {
+  z-index: -2;
+  display: block !important;
+  background:
+    radial-gradient(ellipse at 5% 8%, rgba(142,7,251,.105), transparent 34%),
+    radial-gradient(ellipse at 94% 88%, rgba(5,205,252,.13), transparent 38%),
+    radial-gradient(ellipse at 56% 42%, rgba(24,121,253,.045), transparent 48%),
+    linear-gradient(115deg, #fff 0%, #fdfcff 48%, #f7fcff 100%);
+}
+.twimzi-home-hero .twimzi-hero-backdrop::before,
+.twimzi-home-hero .twimzi-hero-backdrop::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  left: -8%;
+  width: 116%;
+  height: 150px;
+  border-radius: 50%;
+  border: 1px solid rgba(142,7,251,.10);
+  transform: rotate(-3deg);
+}
+.twimzi-home-hero .twimzi-hero-backdrop::before {
+  bottom: -112px;
+  background: linear-gradient(90deg, rgba(142,7,251,.11), rgba(24,121,253,.06), rgba(5,205,252,.12));
+  box-shadow: 0 -14px 50px rgba(142,7,251,.045);
+}
+.twimzi-home-hero .twimzi-hero-backdrop::after {
+  bottom: -138px;
+  left: -4%;
+  background: rgba(255,255,255,.44);
+  transform: rotate(2deg);
+}
+.twimzi-home-hero .twimzi-hero-orbit {
+  z-index: -1;
+  display: block !important;
+  width: 430px;
+  height: 430px;
+  border: 1px solid rgba(142,7,251,.08);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.twimzi-home-hero .twimzi-hero-orbit-one {
+  right: -190px;
+  top: -270px;
+  box-shadow: 0 0 0 32px rgba(142,7,251,.025), 0 0 0 66px rgba(24,121,253,.02);
+}
+.twimzi-home-hero .twimzi-hero-orbit-two {
+  left: -300px;
+  bottom: -340px;
+  border-color: rgba(5,205,252,.12);
+  box-shadow: 0 0 0 36px rgba(5,205,252,.025), 0 0 0 72px rgba(142,7,251,.02);
+}
+.twimzi-home-hero > div.relative.z-10 {
+  min-height: 680px !important;
+  padding-top: clamp(56px, 6vw, 88px) !important;
+  padding-bottom: clamp(56px, 6vw, 88px) !important;
+}
+.twimzi-home-hero h1 {
+  max-width: 13ch;
+  color: transparent !important;
+  background: linear-gradient(100deg, #8E07FB 0%, #1879FD 52%, #05CDFC 100%) !important;
+  background-clip: text !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  font-size: clamp(46px, 5vw, 68px) !important;
+  font-weight: 750 !important;
+  line-height: 1.04 !important;
+  letter-spacing: -.058em !important;
+  text-wrap: balance;
+}
+.twimzi-home-hero h1 span {
+  display: block;
+  color: transparent !important;
+  background: linear-gradient(100deg, #8E07FB 0%, #1879FD 52%, #05CDFC 100%) !important;
+  background-clip: text !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+.twimzi-home-hero > div.relative.z-10 > div:first-child > div:first-child {
+  border: 1px solid rgba(24,121,253,.13) !important;
+  background: rgba(255,255,255,.74) !important;
+  color: #1757d8 !important;
+  box-shadow: 0 8px 24px rgba(24,121,253,.07) !important;
+}
+.twimzi-home-hero > div.relative.z-10 > div:first-child > p {
+  color: #34425e !important;
+}
+.twimzi-home-hero .twimzi-hero-discovery-wrap {
+  min-height: 560px;
+}
+.twimzi-home-hero .twimzi-home-discovery-panel {
+  position: relative;
+  z-index: 2;
+  width: min(100%, 590px);
+  padding: 28px !important;
+  border: 1px solid rgba(255,255,255,.94) !important;
+  border-radius: 34px !important;
+  background: rgba(255,255,255,.76) !important;
+  box-shadow:
+    0 28px 90px rgba(49,72,140,.12),
+    inset 0 1px 0 rgba(255,255,255,.95) !important;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+.twimzi-home-hero .twimzi-home-discovery-panel > div:first-child {
+  margin-bottom: 2px;
+}
+.twimzi-home-hero .twimzi-home-discovery-panel h2 {
+  color: #111a35 !important;
+  font-size: 21px !important;
+  letter-spacing: -.045em;
+}
+.twimzi-home-hero .twimzi-home-discovery-panel > div:nth-child(2) {
+  margin-top: 18px !important;
+  gap: 12px !important;
+}
+.twimzi-home-hero .twimzi-home-discovery-panel a {
+  min-height: 84px;
+  padding: 14px 16px !important;
+  border: 1px solid rgba(215,224,242,.92) !important;
+  border-radius: 23px !important;
+  background: rgba(255,255,255,.82) !important;
+  box-shadow: 0 4px 14px rgba(40,65,125,.035);
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+.twimzi-home-hero .twimzi-home-discovery-panel a:hover {
+  transform: translateY(-2px);
+  border-color: rgba(24,121,253,.28) !important;
+  box-shadow: 0 12px 24px rgba(40,65,125,.08) !important;
+}
+.twimzi-home-hero .twimzi-home-discovery-panel a > div:first-child {
+  width: 52px;
+  height: 52px;
+  border-radius: 17px !important;
+  background: linear-gradient(145deg, #f2e8ff, #e7f5ff) !important;
+  color: #276bfa !important;
+}
+.twimzi-home-hero .twimzi-home-discovery-panel a > div:nth-child(2) p:first-child {
+  color: #2868e9 !important;
+  font-size: 10px;
+  letter-spacing: .075em;
+}
+.twimzi-home-hero .twimzi-home-discovery-panel a > div:nth-child(2) p:nth-child(2) {
+  color: #202b45 !important;
+}
+.twimzi-home-hero .twimzi-home-discovery-panel a > div:nth-child(2) p:nth-child(3) {
+  color: #68758d !important;
+}
+.twimzi-home-hero .twimzi-home-discovery-panel a > svg {
+  color: #2874f5 !important;
+}
+.twimzi-home-hero .twimzi-floating-tile {
+  position: absolute;
+  z-index: 1;
+  display: grid;
+  width: 62px;
+  height: 62px;
+  place-items: center;
+  border: 1px solid rgba(255,255,255,.9);
+  border-radius: 21px;
+  background: rgba(255,255,255,.78);
+  color: #1879fd;
+  box-shadow: 0 16px 38px rgba(80,75,180,.12);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+.twimzi-home-hero .twimzi-floating-tile-store {
+  top: 6%;
+  left: -2%;
+  color: #8e07fb;
+  transform: rotate(-9deg);
+}
+.twimzi-home-hero .twimzi-floating-tile-package {
+  top: 44%;
+  left: -5%;
+  color: #1879fd;
+  transform: rotate(8deg);
+}
+.twimzi-home-hero .twimzi-floating-tile-tag {
+  right: -1%;
+  bottom: 8%;
+  color: #05aeca;
+  transform: rotate(-7deg);
+}
+.twimzi-home-hero .twimzi-home-discovery-panel > div:first-child > span {
+  background: #edf3ff !important;
+  color: #2868e9 !important;
+}
+.twimzi-home-hero form > div:first-child {
+  border: 1px solid rgba(223,230,245,.8);
+  border-radius: 999px;
+  background: rgba(248,250,255,.92);
+}
+.twimzi-home-hero form input {
+  min-height: 58px !important;
+  background: transparent !important;
+}
+.twimzi-home-hero form > div:nth-child(2) {
+  border: 1px solid rgba(223,230,245,.8);
+  border-radius: 999px;
+  background: rgba(248,250,255,.92);
+}
+.twimzi-home-hero form button {
+  background: linear-gradient(105deg, #8e07fb 0%, #1879fd 58%, #05cdfc 100%) !important;
+  box-shadow: 0 9px 22px rgba(24,121,253,.22);
+}
+.twimzi-home-hero > div.relative.z-10 > div:first-child > div.mt-7 a:last-child button {
+  border-color: #dce4f2 !important;
+  background: rgba(255,255,255,.82) !important;
+  color: #15213e !important;
+}
+.twimzi-home-hero .mt-8.grid {
+  color: #33415d !important;
+}
+.twimzi-home-hero .mt-8.grid svg {
+  color: #1879fd !important;
+}
+@media (min-width: 1280px) {
+  .twimzi-home-hero > div.relative.z-10 {
+    grid-template-columns: minmax(0, 1.08fr) minmax(440px, .92fr) !important;
+    gap: clamp(36px, 4vw, 72px) !important;
+  }
+}
+@media (max-width: 1279px) {
+  .twimzi-home-hero > div.relative.z-10 {
+    grid-template-columns: minmax(0, 1fr) !important;
+    min-height: auto !important;
+  }
+  .twimzi-home-hero .twimzi-hero-discovery-wrap {
+    display: none !important;
+  }
+}
+@media (max-width: 767px) {
+  .twimzi-home-hero > div.relative.z-10 {
+    padding-top: 48px !important;
+    padding-bottom: 64px !important;
+  }
+  .twimzi-home-hero h1 {
+    font-size: clamp(40px, 11vw, 54px) !important;
+  }
+  .twimzi-home-hero .twimzi-home-discovery-panel {
+    padding: 18px !important;
+    border-radius: 26px !important;
+  }
+  .twimzi-home-hero .twimzi-floating-tile { display: none; }
+  .twimzi-home-hero .mt-8.grid {
+    gap: 12px;
+    text-align: left;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .twimzi-home-hero .twimzi-home-discovery-panel a {
+    transition: none !important;
+  }
+}
