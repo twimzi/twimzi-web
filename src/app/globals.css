@@ -517,3 +517,24 @@ h1, h2, h3, h4 {
   .twimzi-home-hero::before,
   .twimzi-home-hero::after { animation: none !important; }
 }
+
+.twimzi-home-hero .mt-8.grid {
+  color: var(--twimzi-ink-soft) !important;
+}
+.twimzi-home-hero .mt-8.grid svg {
+  color: var(--color-primary) !important;
+}
+.twimzi-home-hero button {
+  min-height: 48px;
+  border-radius: 28px !important;
+  font-weight: 700;
+}
+.twimzi-home-hero a:has(> button) {
+  border-radius: 28px;
+}
+.twimzi-home-hero button:focus-visible,
+header a:focus-visible,
+header button:focus-visible {
+  outline: 3px solid rgba(24, 121, 253, .28);
+  outline-offset: 3px;
+}
