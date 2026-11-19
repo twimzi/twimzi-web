@@ -100,7 +100,7 @@ export function HeroSection({
         </div>
         <div className="absolute inset-[2%] rounded-full border border-cyan-300/25" />
       </div>
-      <div className="relative z-10 mx-auto grid min-h-[640px] w-full max-w-[1760px] grid-cols-1 items-center gap-10 px-5 py-12 sm:px-8 lg:min-h-[min(780px,calc(100svh-5rem))] lg:grid-cols-[minmax(0,1.35fr)_minmax(440px,.85fr)] lg:gap-12 lg:px-12 lg:py-16 xl:gap-16">
+      <div className="relative z-10 mx-auto grid min-h-[640px] w-full max-w-[1760px] grid-cols-1 items-center gap-10 px-5 py-12 sm:px-8 lg:min-h-[560px] lg:grid-cols-1 lg:gap-10 lg:px-12 lg:py-14 xl:min-h-[640px] xl:grid-cols-[minmax(0,1.1fr)_minmax(380px,.9fr)] xl:gap-10 xl:px-12 xl:py-16">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/40 bg-white/5 px-4 py-2 text-sm font-semibold text-white shadow-sm backdrop-blur-sm">
               <MapPin aria-hidden="true" size={18} strokeWidth={2.3} />
@@ -152,7 +152,7 @@ export function HeroSection({
             </div>
           </div>
 
-          <div className="relative hidden min-h-[600px] items-center justify-center lg:flex">
+          <div className="relative hidden min-h-[560px] items-center justify-center xl:flex">
             <div className="twimzi-home-discovery-panel relative z-10 ml-auto w-full max-w-[570px] rounded-[30px] border border-white/75 bg-white/95 p-5 text-slate-900 shadow-[0_32px_90px_rgba(1,14,40,0.35)] backdrop-blur-xl sm:p-6">
               <div className="flex items-center justify-between">
                 <div>

@@ -39,7 +39,7 @@ export function PageHero({
       />
 
       <Container>
-        <div className="relative py-14 sm:py-16 lg:py-20">
+        <div className="relative py-12 sm:py-14 lg:py-16">
           <div className="max-w-4xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-[var(--color-primary)]/20 bg-white/90 px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-[var(--color-primary-dark)] shadow-[var(--shadow-sm)] backdrop-blur">
               <span
