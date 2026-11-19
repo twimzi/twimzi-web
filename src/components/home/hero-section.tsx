@@ -65,9 +65,6 @@ export function HeroSection({
 }: HeroSectionProps) {
   return (
     <section className="twimzi-home-hero relative isolate overflow-hidden bg-white text-slate-900">
-      <div aria-hidden="true" className="twimzi-hero-backdrop pointer-events-none absolute inset-0" />
-      <div aria-hidden="true" className="twimzi-hero-orbit twimzi-hero-orbit-one pointer-events-none absolute" />
-      <div aria-hidden="true" className="twimzi-hero-orbit twimzi-hero-orbit-two pointer-events-none absolute" />
       <div className="relative z-10 mx-auto grid min-h-[640px] w-full max-w-[1760px] grid-cols-1 items-center gap-10 px-5 py-12 sm:px-8 lg:min-h-[560px] lg:grid-cols-1 lg:gap-10 lg:px-12 lg:py-14 xl:min-h-[640px] xl:grid-cols-[minmax(0,1.1fr)_minmax(380px,.9fr)] xl:gap-10 xl:px-12 xl:py-16">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-cyan-300/40 bg-white/5 px-4 py-2 text-sm font-semibold text-white shadow-sm backdrop-blur-sm">
@@ -121,9 +118,6 @@ export function HeroSection({
           </div>
 
           <div className="twimzi-hero-discovery-wrap relative hidden min-h-[560px] items-center justify-center xl:flex">
-            <div aria-hidden="true" className="twimzi-floating-tile twimzi-floating-tile-store"><Store size={25} /></div>
-            <div aria-hidden="true" className="twimzi-floating-tile twimzi-floating-tile-package"><Package size={25} /></div>
-            <div aria-hidden="true" className="twimzi-floating-tile twimzi-floating-tile-tag"><Tag size={25} /></div>
             <div className="twimzi-home-discovery-panel relative z-10 ml-auto w-full max-w-[570px] rounded-[30px] border border-white/75 bg-white/95 p-5 text-slate-900 shadow-[0_32px_90px_rgba(1,14,40,0.35)] backdrop-blur-xl sm:p-6">
               <div className="flex items-center justify-between">
                 <div>

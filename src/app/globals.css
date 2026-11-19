@@ -1089,3 +1089,164 @@ header nav a:hover {
     transition: none !important;
   }
 }
+
+
+/* ============================================================
+   TWIMZI HOMEPAGE HERO — REFINED PREMIUM PASS
+   Deliberately restrained: no floating ornaments, heavy glow or
+   faux-glass effects. Preserve all existing content and actions.
+   ============================================================ */
+.twimzi-home-hero {
+  background: #fff !important;
+  color: #172033 !important;
+}
+.twimzi-home-hero > div.relative.z-10 {
+  min-height: 610px !important;
+  padding-top: clamp(52px, 5vw, 72px) !important;
+  padding-bottom: clamp(52px, 5vw, 72px) !important;
+}
+.twimzi-home-hero h1 {
+  font-size: clamp(44px, 4.7vw, 64px) !important;
+  line-height: 1.08 !important;
+  letter-spacing: -.052em !important;
+  font-weight: 700 !important;
+  max-width: 13ch;
+  background-image: linear-gradient(100deg, #7426d9 0%, #2868d9 72%, #2499d0 100%) !important;
+}
+.twimzi-home-hero h1 span {
+  background-image: linear-gradient(100deg, #7426d9 0%, #2868d9 72%, #2499d0 100%) !important;
+}
+.twimzi-home-hero > div.relative.z-10 > div:first-child > div:first-child {
+  border: 1px solid #e3e8f4 !important;
+  background: #f7f8fc !important;
+  color: #315cc6 !important;
+  box-shadow: none !important;
+  font-weight: 600;
+}
+.twimzi-home-hero > div.relative.z-10 > div:first-child > p {
+  color: #536078 !important;
+  font-size: 17px !important;
+  line-height: 1.7 !important;
+}
+.twimzi-home-hero .twimzi-home-discovery-panel {
+  width: min(100%, 570px);
+  padding: 24px !important;
+  border: 1px solid #e5e9f1 !important;
+  border-radius: 24px !important;
+  background: #fff !important;
+  box-shadow: 0 12px 36px rgba(22, 39, 76, .07) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.twimzi-home-hero .twimzi-home-discovery-panel h2 {
+  color: #172033 !important;
+  font-size: 20px !important;
+  font-weight: 650 !important;
+  letter-spacing: -.035em !important;
+}
+.twimzi-home-hero .twimzi-home-discovery-panel > div:nth-child(2) {
+  margin-top: 18px !important;
+  gap: 10px !important;
+}
+.twimzi-home-hero .twimzi-home-discovery-panel a {
+  min-height: 78px;
+  padding: 12px 14px !important;
+  border: 1px solid #edf0f5 !important;
+  border-radius: 16px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+.twimzi-home-hero .twimzi-home-discovery-panel a:hover {
+  transform: none !important;
+  border-color: #cbd8f5 !important;
+  background: #fbfcff !important;
+  box-shadow: none !important;
+}
+.twimzi-home-hero .twimzi-home-discovery-panel a > div:first-child {
+  width: 44px;
+  height: 44px;
+  border-radius: 13px !important;
+  background: #f0f4ff !important;
+  color: #3269df !important;
+}
+.twimzi-home-hero .twimzi-home-discovery-panel a > div:nth-child(2) p:first-child {
+  color: #3269df !important;
+  font-size: 10px;
+  letter-spacing: .06em;
+}
+.twimzi-home-hero .twimzi-home-discovery-panel a > div:nth-child(2) p:nth-child(2) {
+  color: #253149 !important;
+  font-weight: 600;
+}
+.twimzi-home-hero .twimzi-home-discovery-panel a > div:nth-child(2) p:nth-child(3) {
+  color: #69758a !important;
+}
+.twimzi-home-hero .twimzi-home-discovery-panel a > svg {
+  color: #3269df !important;
+}
+.twimzi-home-hero .twimzi-home-discovery-panel > div:first-child > span {
+  background: #f0f4ff !important;
+  color: #3269df !important;
+}
+.twimzi-home-hero form {
+  gap: 8px !important;
+}
+.twimzi-home-hero form > div:first-child,
+.twimzi-home-hero form > div:nth-child(2) {
+  border: 1px solid #e2e7f0 !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+}
+.twimzi-home-hero form input {
+  min-height: 54px !important;
+  background: transparent !important;
+}
+.twimzi-home-hero form button {
+  min-height: 54px !important;
+  border-radius: 12px !important;
+  background: #2868d9 !important;
+  box-shadow: none !important;
+}
+.twimzi-home-hero form button:hover {
+  background: #1e56bd !important;
+}
+.twimzi-home-hero > div.relative.z-10 > div:first-child > div.mt-7 a:first-child button {
+  background: #2868d9 !important;
+  box-shadow: none !important;
+}
+.twimzi-home-hero > div.relative.z-10 > div:first-child > div.mt-7 a:first-child button:hover {
+  background: #1e56bd !important;
+}
+.twimzi-home-hero > div.relative.z-10 > div:first-child > div.mt-7 a:last-child button {
+  border: 1px solid #dce3ee !important;
+  background: #fff !important;
+  color: #253149 !important;
+  box-shadow: none !important;
+}
+.twimzi-home-hero .mt-8.grid {
+  color: #536078 !important;
+}
+.twimzi-home-hero .mt-8.grid svg {
+  color: #2868d9 !important;
+}
+@media (min-width: 1280px) {
+  .twimzi-home-hero > div.relative.z-10 {
+    grid-template-columns: minmax(0, 1.08fr) minmax(420px, .92fr) !important;
+    gap: clamp(32px, 3.5vw, 56px) !important;
+  }
+}
+@media (max-width: 1279px) {
+  .twimzi-home-hero > div.relative.z-10 {
+    min-height: auto !important;
+  }
+}
+@media (max-width: 767px) {
+  .twimzi-home-hero > div.relative.z-10 {
+    padding-top: 44px !important;
+    padding-bottom: 48px !important;
+  }
+  .twimzi-home-hero h1 {
+    font-size: clamp(38px, 10vw, 50px) !important;
+  }
+}
