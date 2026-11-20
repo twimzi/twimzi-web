@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -45,7 +44,6 @@ function getInterestingItemIcon(item: HeroInterestingItem) {
 export function HeroSection({ interestingItems = fallbackItems }: HeroSectionProps) {
   return (
     <section className="twimzi-home-hero relative isolate overflow-hidden text-slate-900">
-      <div className="twimzi-hero-pattern pointer-events-none absolute inset-0" aria-hidden="true" />
       <div className="twimzi-home-hero-inner relative z-10 mx-auto w-full">
         <div className="twimzi-hero-search rounded-2xl border border-white/90 bg-white/95 p-1.5 shadow-[0_10px_30px_rgba(38,74,145,.08)]">
           <form action="/explore" method="get" className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_190px_136px]">
@@ -88,19 +86,6 @@ export function HeroSection({ interestingItems = fallbackItems }: HeroSectionPro
             <div className="flex items-center gap-2"><Package aria-hidden="true" className="text-[#1879FD]" size={19} /><span>Products &amp; services</span></div>
             <div className="flex items-center gap-2"><Tag aria-hidden="true" className="text-[#1879FD]" size={19} /><span>Local offers</span></div>
           </div>
-        </div>
-
-        <div className="twimzi-home-hero-art relative flex min-w-0 items-center justify-center" aria-label="Twimzi global business and logistics network">
-          <div className="twimzi-hero-art-glow pointer-events-none absolute inset-[10%] rounded-full" aria-hidden="true" />
-          <Image
-            src="/images/twimzi-earth-hero.jpg"
-            alt="Earth with global business connections and transport representing Twimzi's worldwide reach"
-            width={1200}
-            height={900}
-            priority
-            sizes="(min-width: 1280px) 30vw, (min-width: 768px) 45vw, 100vw"
-            className="relative z-[1] h-auto w-full object-contain drop-shadow-[0_22px_34px_rgba(25,75,150,.13)]"
-          />
         </div>
 
         <aside className="twimzi-home-hero-discoveries relative w-full min-w-0 rounded-[26px] border border-white/90 bg-white/95 p-5 text-slate-900 shadow-[0_18px_48px_rgba(30,68,130,.10)] sm:p-6">
