@@ -48,6 +48,7 @@ async function createNews(formData:FormData) {
   if(!sourceName||!/^https:\/\//i.test(sourceUrl)) throw new Error("A source name and secure HTTPS source URL are required.");
   if(image&&!(/^https:\/\//i.test(image)||(/^\/(?!\/)/.test(image)))) throw new Error("Image must be an HTTPS URL or local site path.");
   if(!["draft","published","scheduled"].includes(status)) throw new Error("Invalid publication status.");
+  if(status!=="draft"&&(content.split(/\\s+/).length<300||!primaryKeyword||keyTakeaways.length<3||businessImpact.length<100||actionPoints.length<2||faq.length<3)) throw new Error("Before publishing: write at least 300 useful words, add a primary search phrase, 3 source-supported takeaways, a meaningful business impact analysis, 2 practical actions and 3 specific FAQs.");
   const {supabase,user}=await requireSuperAdmin();
   const publishedAt=status==="draft"?null:publishAt?new Date(publishAt + "+05:30").toISOString():status==="published"?new Date().toISOString():null;
   if(status!=="draft"&&!publishedAt) throw new Error("Choose a publication date and time.");
