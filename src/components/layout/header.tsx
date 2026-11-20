@@ -17,6 +17,7 @@ const mainNavigation = [
   { label: "Offers", href: "/offers" },
   { label: "Community", href: "/community" },
   { label: "Blog", href: "/blog" },
+  { label: "Business News", href: "/news" },
 ] as const;
 
 const actionLinkClass =
