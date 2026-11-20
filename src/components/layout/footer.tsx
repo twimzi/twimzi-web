@@ -12,6 +12,7 @@ const discoverLinks = [
   { label: "Services", href: "/services" },
   { label: "Offers", href: "/offers" },
   { label: "Community", href: "/community" },
+  { label: "Business News", href: "/news" },
 ];
 
 const businessLinks = [
