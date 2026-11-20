@@ -50,7 +50,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const title = item.meta_title?.trim() || item.title;
   const description = item.meta_description?.trim() || item.summary;
   return {
-    title: `${title.replace(/(?:\\s*\\|\\s*Twimzi)+$/i, "")} | Twimzi Business News`,
+    title: `${title.replace(/(?:\s*\\|\s*Twimzi)+$/i, "")} | Twimzi Business News`,
     description,
     alternates: { canonical: `/news/${item.slug}` },
     openGraph: {
@@ -72,7 +72,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 }
 
 function renderInline(text: string) {
-  const parts = text.split(/(\\*\\*.*?\\*\\*|\\*.*?\\*|__.*?__)/g);
+  const parts = text.split(/(\*\*.*?\*\*|\*.*?\*|__.*?__)/g);
   return parts.map((part, index) => {
     if ((part.startsWith("**") && part.endsWith("**")) || (part.startsWith("__") && part.endsWith("__"))) {
       return <strong key={index} className="font-bold text-[#263d70]">{part.slice(2, -2)}</strong>;
@@ -85,7 +85,7 @@ function renderInline(text: string) {
 }
 
 function renderMarkdown(content: string) {
-  return content.replace(/\\r\\n?/g, "\\n").split(/\\n\\s*\\n/).map((block, index) => {
+  return content.replace(/\r\n?/g, "\n").split(/\n\s*\n/).map((block, index) => {
     const value = block.trim();
     if (!value) return null;
     if (value.startsWith("### ")) {
@@ -106,35 +106,35 @@ function renderMarkdown(content: string) {
     if (value.startsWith("> ")) {
       return (
         <blockquote key={index} className="my-7 rounded-r-2xl border-l-4 border-[#1879FD] bg-[#E8F2FF] px-5 py-4 text-base font-medium leading-8 text-[#263d70]">
-          {renderInline(value.replace(/^>\\s?/gm, "").replace(/\\n/g, " "))}
+          {renderInline(value.replace(/^>\s?/gm, "").replace(/\n/g, " "))}
         </blockquote>
       );
     }
-    if (/^[-*]\\s+/.test(value)) {
+    if (/^[-*]\s+/.test(value)) {
       return (
         <ul key={index} className="my-6 space-y-3 pl-1">
-          {value.split("\\n").map((line, itemIndex) => (
+          {value.split("\n").map((line, itemIndex) => (
             <li key={itemIndex} className="flex items-start gap-3 text-base leading-8 text-slate-700">
               <span className="mt-[13px] h-2 w-2 shrink-0 rounded-full bg-gradient-to-r from-[#8E07FB] to-[#1879FD]" />
-              <span>{renderInline(line.replace(/^[-*]\\s+/, ""))}</span>
+              <span>{renderInline(line.replace(/^[-*]\s+/, ""))}</span>
             </li>
           ))}
         </ul>
       );
     }
-    if (/^\\d+\\.\\s+/.test(value)) {
+    if (/^\d+\\.\s+/.test(value)) {
       return (
         <ol key={index} className="my-6 space-y-3 pl-1">
-          {value.split("\\n").map((line, itemIndex) => (
+          {value.split("\n").map((line, itemIndex) => (
             <li key={itemIndex} className="flex items-start gap-3 text-base leading-8 text-slate-700">
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F3E8FF] text-xs font-extrabold text-[#7000D6]">{itemIndex + 1}</span>
-              <span>{renderInline(line.replace(/^\\d+\\.\\s+/, ""))}</span>
+              <span>{renderInline(line.replace(/^\d+\\.\s+/, ""))}</span>
             </li>
           ))}
         </ol>
       );
     }
-    return <p key={index} className="my-5 text-[1.02rem] leading-[2] text-slate-700">{renderInline(value.replace(/\\n/g, " "))}</p>;
+    return <p key={index} className="my-5 text-[1.02rem] leading-[2] text-slate-700">{renderInline(value.replace(/\n/g, " "))}</p>;
   });
 }
 
@@ -159,7 +159,7 @@ export default async function BusinessNewsArticle({ params }: { params: Promise<
 
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,#F8FAFF_0%,#FFFFFF_420px)]">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, "\\\\u003c") }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, "\\u003c") }} />
       <div className="border-b border-slate-200/80 bg-white/90">
         <div className="mx-auto max-w-4xl px-4 py-4 sm:px-6">
           <Link href="/news" className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 transition hover:text-[#7000D6]">
