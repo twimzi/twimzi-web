@@ -35,7 +35,7 @@ async function getNews(slug: string): Promise<NewsItem | null> {
   if (!supabase) return null;
   const { data, error } = await supabase
     .from("business_news")
-    .select("id,title,slug,category,summary,content,source_name,source_url,featured_image_url,meta_title,meta_description,published_at,primary_keyword,secondary_keywords,key_takeaways,business_impact,action_points,key_figures,faq,related_links")
+    .select("id,title,slug,category,summary,content,source_name,source_url,featured_image_url,meta_title,meta_description,published_at,editorial_updated_at,primary_keyword,secondary_keywords,key_takeaways,business_impact,action_points,key_figures,faq,related_links")
     .eq("slug", slug)
     .in("status", ["published", "scheduled"])
     .lte("published_at", new Date().toISOString())
@@ -144,13 +144,20 @@ export default async function BusinessNewsArticle({ params }: { params: Promise<
   const item = await getNews(slug);
   if (!item) notFound();
   const url = `${siteConfig.url}/news/${item.slug}`;
-  const wordCount = item.content.trim().split(/\\s+/).length;\n  const faqStructuredData = item.faq?.length ? { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: item.faq.map((entry) => ({ "@type": "Question", name: entry.question, acceptedAnswer: { "@type": "Answer", text: entry.answer } })) } : null;\n  const breadcrumbStructuredData = { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: siteConfig.url }, { "@type": "ListItem", position: 2, name: "Business News", item: `${siteConfig.url}/news` }, { "@type": "ListItem", position: 3, name: item.title, item: url }] };\n  const structuredData = {
+  const wordCount = item.content.trim().split(/\s+/).length;
+  const faqStructuredData = item.faq?.length ? { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: item.faq.map((entry) => ({ "@type": "Question", name: entry.question, acceptedAnswer: { "@type": "Answer", text: entry.answer } })) } : null;
+  const breadcrumbStructuredData = { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: siteConfig.url }, { "@type": "ListItem", position: 2, name: "Business News", item: `${siteConfig.url}/news` }, { "@type": "ListItem", position: 3, name: item.title, item: url }] };
+  const structuredData = {
     "@context": "https://schema.org",
     "@type": "NewsArticle",
-    headline: item.title,\n    wordCount,\n    dateModified: item.editorial_updated_at ?? item.published_at,\n    keywords: [item.primary_keyword, ...(item.secondary_keywords ?? [])].filter(Boolean),\n    articleSection: item.category,\n    hasPart: (item.faq ?? []).map((entry) => ({ "@type": "Question", name: entry.question, acceptedAnswer: { "@type": "Answer", text: entry.answer } })),
+    headline: item.title,
+    wordCount,
+    keywords: [item.primary_keyword, ...(item.secondary_keywords ?? [])].filter(Boolean),
+    articleSection: item.category,
+    hasPart: (item.faq ?? []).map((entry) => ({ "@type": "Question", name: entry.question, acceptedAnswer: { "@type": "Answer", text: entry.answer } })),
     description: item.meta_description?.trim() || item.summary,
     datePublished: item.published_at,
-    dateModified: item.published_at,
+    dateModified: item.editorial_updated_at ?? item.published_at,
     mainEntityOfPage: url,
     image: item.featured_image_url ? [item.featured_image_url] : undefined,
     author: { "@type": "Organization", name: "Twimzi Business Desk", url: siteConfig.url },
