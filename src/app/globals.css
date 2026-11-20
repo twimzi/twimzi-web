@@ -1490,3 +1490,61 @@ main a[class*="bg-blue-600"],
 main a[class*="bg-indigo-600"],
 main a[class*="bg-purple-600"] { color: #FFFFFF !important; }
 main :is(.focus\:ring-blue-300,.focus\:ring-blue-500) { --tw-ring-color: rgba(24,121,253,.3); }
+
+
+/* Blog article typography: keep editorial headings visibly on-brand and
+   enforce real vertical rhythm between independently rendered paragraphs. */
+.blog-article-content {
+  color: #344365;
+  font-size: 17px;
+  line-height: 1.9;
+}
+.blog-article-content > p {
+  display: block;
+  margin-block: 0 1.45rem !important;
+  color: #344365 !important;
+  font-size: 17px !important;
+  line-height: 1.9 !important;
+}
+.blog-article-content > p + p {
+  margin-top: .15rem !important;
+}
+.blog-article-content > h2 {
+  display: table;
+  max-width: 100%;
+  margin: 3rem 0 1.35rem !important;
+  padding-bottom: .65rem;
+  border-bottom: 1px solid #E4D8FF;
+  background: linear-gradient(100deg, #8E07FB 0%, #1879FD 55%, #05CDFC 100%) !important;
+  background-clip: text !important;
+  -webkit-background-clip: text !important;
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+  font-size: clamp(1.55rem, 2.5vw, 2rem) !important;
+  font-weight: 800 !important;
+  line-height: 1.25 !important;
+}
+.blog-article-content > h3 {
+  margin: 2.1rem 0 .9rem !important;
+  color: #7000D6 !important;
+  -webkit-text-fill-color: #7000D6 !important;
+  font-size: clamp(1.2rem, 2vw, 1.5rem) !important;
+  font-weight: 800 !important;
+  line-height: 1.35 !important;
+}
+.blog-article-content > ul,
+.blog-article-content > ol {
+  margin-block: 1.35rem 1.7rem !important;
+}
+.blog-article-content > blockquote {
+  margin-block: 1.8rem !important;
+}
+@media (max-width: 640px) {
+  .blog-article-content { font-size: 16px; line-height: 1.85; }
+  .blog-article-content > p {
+    margin-bottom: 1.2rem !important;
+    font-size: 16px !important;
+    line-height: 1.85 !important;
+  }
+  .blog-article-content > h2 { margin-top: 2.3rem !important; }
+}
