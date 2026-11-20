@@ -201,7 +201,7 @@ function renderContent(content: string) {
       index += 1;
     }
     if (paragraph.length) {
-      elements.push(<p key={key} className="my-5 text-[16px] leading-8 text-[#344365] sm:text-[17px]">{renderInline(paragraph.join(" "), String(key))}</p>);
+      elements.push(<p key={key} className="blog-article-paragraph my-6 text-[16px] leading-8 text-[#344365] sm:text-[17px]">{renderInline(paragraph.join(" "), String(key))}</p>);
     } else {
       index += 1;
     }
