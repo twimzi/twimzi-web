@@ -1712,3 +1712,48 @@ main :is(.focus\:ring-blue-300,.focus\:ring-blue-500) { --tw-ring-color: rgba(24
     padding-bottom: 30px !important;
   }
 }
+
+
+/* Correct responsive hero placement: keep discovery beside the copy on
+   tablet/desktop; stack only on narrow phones. */
+@media (min-width: 768px) {
+  .twimzi-home-hero > div.relative.z-10 {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.08fr) minmax(320px, .92fr) !important;
+    align-items: center !important;
+    column-gap: clamp(24px, 3vw, 52px) !important;
+    row-gap: 24px !important;
+    padding-top: clamp(28px, 3.5vw, 48px) !important;
+    padding-bottom: clamp(30px, 3.5vw, 48px) !important;
+  }
+  .twimzi-home-hero > div.relative.z-10 > div:first-child {
+    min-width: 0 !important;
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+  }
+  .twimzi-home-hero > div.relative.z-10 > aside {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    justify-self: end !important;
+    align-self: center !important;
+    width: 100% !important;
+    max-width: 470px !important;
+    margin: 0 !important;
+  }
+  .twimzi-home-hero .twimzi-hero-search {
+    max-width: 100% !important;
+  }
+}
+@media (max-width: 767px) {
+  .twimzi-home-hero > div.relative.z-10 {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 28px !important;
+  }
+  .twimzi-home-hero > div.relative.z-10 > aside {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+    justify-self: stretch !important;
+    max-width: 100% !important;
+  }
+}
