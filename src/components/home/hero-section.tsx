@@ -45,6 +45,18 @@ export function HeroSection({ interestingItems = fallbackItems }: HeroSectionPro
   return (
     <section className="twimzi-home-hero relative isolate overflow-hidden text-slate-900">
       <div className="twimzi-home-hero-inner relative z-10 mx-auto w-full">
+        <div className="twimzi-home-hero-main min-w-0"> min-w-0">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#D7E2E8] bg-white px-4 py-2.5 text-sm font-semibold text-[#14243D]">
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF1E5] text-[#F28A28]"><Flame aria-hidden="true" size={16} /></span>
+            <span>Digital Operating System for <span className="text-[#0D9488]">Every Local Business</span></span>
+          </div>
+          <h1 className="mt-4 max-w-[14ch] text-4xl font-extrabold leading-[1.04] tracking-[-0.045em] text-[#14243D] sm:text-5xl xl:text-[4rem]">
+            Your local world,
+            <span className="block bg-gradient-to-r from-[#0D9488] to-[#075E63] bg-clip-text text-transparent">all in one place.</span>
+          </h1>
+          <p className="mt-4 max-w-xl text-base leading-7 text-[#526176] sm:text-lg sm:leading-8">
+            Discover local businesses, products, services, offers and opportunities around you.
+          </p>
         <div className="twimzi-hero-search rounded-2xl border border-white/90 bg-white/95 p-1.5 shadow-[0_10px_30px_rgba(38,74,145,.08)]">
           <form action="/explore" method="get" className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_190px_136px]">
             <div className="relative min-w-0">
@@ -60,31 +72,18 @@ export function HeroSection({ interestingItems = fallbackItems }: HeroSectionPro
             <Button type="submit" className="h-13 w-full rounded-xl">Search</Button>
           </form>
         </div>
-
-        <div className="twimzi-home-hero-main min-w-0">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#E8D9FF] bg-white/90 px-3.5 py-2 text-xs font-bold tracking-wide text-[#7000D6] shadow-sm">
-            <span className="h-2 w-2 rounded-full bg-gradient-to-r from-[#8E07FB] to-[#05CDFC]" />
-            Discover local. Grow local.
-          </div>
-          <h1 className="mt-4 max-w-[14ch] text-4xl font-extrabold leading-[1.04] tracking-[-0.045em] text-[#020D3A] sm:text-5xl xl:text-[4rem]">
-            Your local world,
-            <span className="block bg-gradient-to-r from-[#8E07FB] via-[#1879FD] to-[#05CDFC] bg-clip-text text-transparent">all in one place.</span>
-          </h1>
-          <p className="mt-4 max-w-xl text-base leading-7 text-[#53627E] sm:text-lg sm:leading-8">
-            {siteConfig.tagline}. Discover businesses, products, services, offers and opportunities around you.
-          </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link href="/explore">
-              <Button className="min-h-13 gap-2 rounded-full px-6"><Compass aria-hidden="true" size={19} />Explore Twimzi<ArrowRight aria-hidden="true" size={17} /></Button>
+              <Button className="min-h-13 gap-2 rounded-full bg-[#0D9488] px-6 text-white hover:bg-[#087F75]"><Compass aria-hidden="true" size={19} />Explore Twimzi<ArrowRight aria-hidden="true" size={17} /></Button>
             </Link>
             <Link href="/add-business">
               <Button variant="outline" className="min-h-13 gap-2 rounded-full border-slate-200 bg-white px-6 text-[#020D3A] hover:bg-white"><Store aria-hidden="true" size={19} />Add Your Business</Button>
             </Link>
           </div>
           <div className="mt-7 flex flex-wrap gap-x-6 gap-y-3 text-sm font-semibold text-[#53627E]">
-            <div className="flex items-center gap-2"><Store aria-hidden="true" className="text-[#1879FD]" size={19} /><span>Local businesses</span></div>
-            <div className="flex items-center gap-2"><Package aria-hidden="true" className="text-[#1879FD]" size={19} /><span>Products &amp; services</span></div>
-            <div className="flex items-center gap-2"><Tag aria-hidden="true" className="text-[#1879FD]" size={19} /><span>Local offers</span></div>
+            <div className="flex items-center gap-2"><Store aria-hidden="true" className="text-[#0D9488]" size={19} /><span>Local businesses</span></div>
+            <div className="flex items-center gap-2"><Package aria-hidden="true" className="text-[#0D9488]" size={19} /><span>Products &amp; services</span></div>
+            <div className="flex items-center gap-2"><Tag aria-hidden="true" className="text-[#0D9488]" size={19} /><span>Local offers</span></div>
           </div>
         </div>
 
