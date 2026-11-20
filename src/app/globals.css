@@ -1415,3 +1415,35 @@ header a[href="/add-business"]:hover {
     width: min(78vw, 1250px) !important;
   }
 }
+
+
+/* Blog article hero: explicit high-contrast title styles for every dynamic article. */
+.twimzi-blog-article-header {
+  color: #ffffff !important;
+  background: #071126 !important;
+}
+.twimzi-blog-article-header h1 {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, .18);
+}
+.twimzi-blog-article-header p {
+  color: #e7edf8 !important;
+}
+.twimzi-blog-article-header .text-blue-200 {
+  color: #bfdbfe !important;
+}
+.twimzi-blog-article-header .text-slate-300,
+.twimzi-blog-article-header .text-slate-400 {
+  color: #cbd5e1 !important;
+}
+header a[href="/add-business"] {
+  background: linear-gradient(105deg, #8e07fb 0%, #1879fd 58%, #05cdfc 100%) !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+header a[href="/add-business"]:hover {
+  filter: brightness(1.06);
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
