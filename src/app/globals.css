@@ -1548,3 +1548,91 @@ main :is(.focus\:ring-blue-300,.focus\:ring-blue-500) { --tw-ring-color: rgba(24
   }
   .blog-article-content > h2 { margin-top: 2.3rem !important; }
 }
+
+
+/* Rebuilt homepage hero: eliminate legacy offsets and fill the canvas with subtle motion. */
+.twimzi-home-hero {
+  min-height: 0 !important;
+  background:
+    radial-gradient(ellipse at 18% 24%, rgba(142,7,251,.13), transparent 34%),
+    radial-gradient(ellipse at 78% 78%, rgba(5,205,252,.15), transparent 36%),
+    linear-gradient(112deg, #fbf9ff 0%, #f6f9ff 48%, #effbff 100%) !important;
+}
+.twimzi-home-hero::before {
+  content: none !important;
+}
+.twimzi-hero-pattern {
+  z-index: 0;
+  opacity: .62;
+  background-image:
+    radial-gradient(circle at 14% 26%, rgba(142,7,251,.23) 0 1.2px, transparent 1.8px),
+    radial-gradient(circle at 82% 32%, rgba(24,121,253,.22) 0 1.2px, transparent 1.8px),
+    radial-gradient(circle at 72% 78%, rgba(5,205,252,.26) 0 1.4px, transparent 2px),
+    radial-gradient(ellipse at 50% 50%, transparent 42%, rgba(24,121,253,.07) 72%, transparent 74%);
+  background-size: 34px 34px, 42px 42px, 48px 48px, 100% 100%;
+  mask-image: linear-gradient(110deg, #000 0%, rgba(0,0,0,.4) 52%, #000 100%);
+  animation: twimzi-pattern-breathe 9s ease-in-out infinite alternate;
+}
+.twimzi-hero-art-glow {
+  background:
+    radial-gradient(circle, rgba(24,121,253,.15) 0%, rgba(5,205,252,.10) 42%, rgba(142,7,251,.06) 64%, transparent 74%);
+  filter: blur(22px);
+  animation: twimzi-art-pulse 7s ease-in-out infinite alternate;
+}
+@keyframes twimzi-pattern-breathe {
+  0% { opacity: .32; transform: translate3d(0,0,0); }
+  100% { opacity: .72; transform: translate3d(0,-8px,0); }
+}
+@keyframes twimzi-art-pulse {
+  0% { opacity: .55; transform: scale(.94); }
+  100% { opacity: 1; transform: scale(1.06); }
+}
+@media (min-width: 1280px) {
+  .twimzi-home-hero > div.relative.z-10 {
+    display: block !important;
+    min-height: 0 !important;
+    padding-top: 38px !important;
+    padding-bottom: 44px !important;
+  }
+  .twimzi-home-hero > div.relative.z-10 > div:first-child {
+    margin: 0 !important;
+    transform: none !important;
+  }
+  .twimzi-home-hero > div.relative.z-10 > div:nth-child(2) {
+    display: grid !important;
+    grid-template-columns: minmax(0,1.03fr) minmax(360px,.98fr) minmax(340px,.88fr) !important;
+    align-items: center !important;
+    gap: clamp(22px,2vw,36px) !important;
+    margin-top: 22px !important;
+    transform: none !important;
+  }
+  .twimzi-home-hero > div.relative.z-10 > div:nth-child(2) > div:nth-child(1) {
+    grid-column: 1 !important;
+  }
+  .twimzi-home-hero > div.relative.z-10 > div:nth-child(2) > div:nth-child(2) {
+    grid-column: 2 !important;
+    min-height: 0 !important;
+  }
+  .twimzi-home-hero > div.relative.z-10 > div:nth-child(2) > div:nth-child(3) {
+    grid-column: 3 !important;
+    align-self: center !important;
+    transform: none !important;
+  }
+}
+@media (min-width: 768px) and (max-width: 1279px) {
+  .twimzi-home-hero > div.relative.z-10 > div:nth-child(2) {
+    display: grid !important;
+    grid-template-columns: minmax(0,1fr) minmax(0,1fr) !important;
+    align-items: center !important;
+    gap: 24px !important;
+  }
+  .twimzi-home-hero > div.relative.z-10 > div:nth-child(2) > div:nth-child(3) {
+    grid-column: 1 / -1 !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .twimzi-hero-pattern,
+  .twimzi-hero-art-glow {
+    animation: none !important;
+  }
+}
