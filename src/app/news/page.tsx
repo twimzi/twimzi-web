@@ -110,7 +110,7 @@ function NewsCard({ item }: { item: NewsItem }) {
       <div className="flex flex-1 flex-col p-5 sm:p-6">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium text-slate-500">
           <span className="inline-flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5 text-slate-400" />{formatDate(item.published_at)}</span>
-          <span className="inline-flex items-center gap-1.5"><Clock3 className="h-3.5 w-3.5 text-slate-400" />{readingTime(item.summary)} min read</span>
+          <span className="inline-flex items-center gap-1.5"><Clock3 className="h-3.5 w-3.5 text-slate-400" />{item.reading_time_minutes} min read</span>
         </div>
         <h3 className="mt-4 text-[19px] font-extrabold leading-snug tracking-[-0.025em] text-[#14243D] transition group-hover:text-[#1455C7]">
           <Link href={`/news/${item.slug}`}>{item.title}</Link>
@@ -137,7 +137,7 @@ export default async function BusinessNewsPage({ searchParams }: { searchParams:
   if (supabase) {
     let request = supabase
       .from("business_news")
-      .select("id,title,slug,category,summary,source_name,source_url,featured_image_url,published_at")
+      .select("id,title,slug,category,summary,source_name,source_url,featured_image_url,published_at,reading_time_minutes")
       .in("status", ["published", "scheduled"])
       .lte("published_at", new Date().toISOString())
       .order("published_at", { ascending: false })
@@ -245,7 +245,7 @@ export default async function BusinessNewsPage({ searchParams }: { searchParams:
                 <div className="flex flex-wrap items-center gap-3 text-xs font-semibold text-slate-500">
                   <span className={`rounded-full border px-3 py-1.5 ${categoryTone(featured.category).pill}`}>{featured.category}</span>
                   <span>{formatDate(featured.published_at)}</span>
-                  <span className="inline-flex items-center gap-1"><Clock3 className="h-3.5 w-3.5" />{readingTime(featured.summary)} min read</span>
+                  <span className="inline-flex items-center gap-1"><Clock3 className="h-3.5 w-3.5" />{featured.reading_time_minutes} min read</span>
                 </div>
                 <h3 className="mt-5 text-[1.7rem] font-extrabold leading-[1.15] tracking-[-0.04em] text-[#14243D] sm:text-3xl">
                   <Link href={`/news/${featured.slug}`} className="transition hover:text-[#1455C7]">{featured.title}</Link>
