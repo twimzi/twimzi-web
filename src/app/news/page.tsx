@@ -4,7 +4,7 @@ import {
   ArrowRight, ArrowUpRight, Bookmark, BriefcaseBusiness, CalendarDays, CheckCircle2,
   Clock3, Factory, Globe2, Newspaper, Search, ShieldCheck, Sparkles, TrendingUp,
 } from "lucide-react";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";\nimport { NewsActions } from "@/components/news/news-actions";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -115,7 +115,7 @@ function NewsCard({ item, index }: { item: NewsItem; index: number }) {
           <Link href={`/news/${item.slug}`}>{item.title}</Link>
         </h3>
         <p className="mt-3 line-clamp-3 text-sm leading-7 text-slate-600">{item.summary}</p>
-        <div className="mt-auto flex items-center justify-between gap-3 border-t border-slate-100 pt-5 mt-5">
+        <div className="mt-auto flex flex-col gap-4 border-t border-slate-100 pt-5 mt-5"><NewsActions compact item={{slug:item.slug,title:item.title,summary:item.summary,category:item.category,publishedAt:item.published_at,url:`/news/${item.slug}`}} /><div className="flex items-center justify-between gap-3">
           <span className="inline-flex min-w-0 items-center gap-1.5 truncate text-xs font-semibold text-slate-500"><ShieldCheck className="h-3.5 w-3.5 shrink-0 text-emerald-600" />{item.source_name}</span>
           <span className="inline-flex shrink-0 items-center gap-1 text-sm font-bold text-[#1879FD] transition group-hover:gap-2">Read <ArrowUpRight className="h-4 w-4" /></span>
         </div>
@@ -248,7 +248,7 @@ export default async function BusinessNewsPage({ searchParams }: { searchParams:
                   <Link href={`/news/${featured.slug}`} className="transition hover:text-[#1455C7]">{featured.title}</Link>
                 </h3>
                 <p className="mt-5 text-[15px] leading-8 text-slate-600">{featured.summary}</p>
-                <div className="mt-7 flex flex-wrap items-center justify-between gap-4 border-t border-slate-100 pt-5">
+                <div className="mt-7 flex flex-col gap-4 border-t border-slate-100 pt-5"><NewsActions item={{slug:featured.slug,title:featured.title,summary:featured.summary,category:featured.category,publishedAt:featured.published_at,url:`/news/${featured.slug}`}} /><div className="flex flex-wrap items-center justify-between gap-4">
                   <span className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500"><CheckCircle2 className="h-4 w-4 text-emerald-600" /> Source: {featured.source_name}</span>
                   <Link href={`/news/${featured.slug}`} className="inline-flex items-center gap-2 rounded-xl bg-[#14243D] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#1455C7]">Explore story <ArrowRight className="h-4 w-4" /></Link>
                 </div>
