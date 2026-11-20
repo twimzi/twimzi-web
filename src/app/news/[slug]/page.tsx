@@ -128,7 +128,7 @@ function renderMarkdown(content: string) {
           {value.split("\n").map((line, itemIndex) => (
             <li key={itemIndex} className="flex items-start gap-3 text-base leading-8 text-slate-700">
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F3E8FF] text-xs font-extrabold text-[#7000D6]">{itemIndex + 1}</span>
-              <span>{renderInline(line.replace(/^\d+\\.\s+/, ""))}</span>
+              <span>{renderInline(line.replace(/^\d+\.\s+/, ""))}</span>
             </li>
           ))}
         </ol>
