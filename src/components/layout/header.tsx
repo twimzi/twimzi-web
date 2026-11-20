@@ -22,7 +22,7 @@ const actionLinkClass =
   "rounded-full px-4 py-3 text-sm font-semibold text-[#1c1e21] transition hover:bg-[#f1f4f7] hover:text-black";
 
 const primaryLinkClass =
-  "inline-flex min-h-12 items-center rounded-full bg-black px-7 py-3 text-sm font-bold text-white transition hover:bg-[#444950]";
+  "inline-flex min-h-12 items-center rounded-full bg-[image:var(--color-primary-gradient)] px-7 py-3 text-sm font-bold !text-white transition hover:brightness-110";
 
 export function Header() {
   const pathname = usePathname();
