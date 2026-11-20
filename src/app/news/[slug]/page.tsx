@@ -171,6 +171,7 @@ export default async function BusinessNewsArticle({ params }: { params: Promise<
   const { slug } = await params;
   const item = await getNews(slug);
   if (!item) notFound();
+  const relatedNews = await getRelatedNews(item.category, item.slug);
   const url = `${siteConfig.url}/news/${item.slug}`;
   const wordCount = item.content.trim().split(/\s+/).length;
   const faqStructuredData = item.faq?.length ? { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: item.faq.map((entry) => ({ "@type": "Question", name: entry.question, acceptedAnswer: { "@type": "Answer", text: entry.answer } })) } : null;
