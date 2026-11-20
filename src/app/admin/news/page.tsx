@@ -59,7 +59,7 @@ async function deleteNews(formData:FormData) {
 }
 function dateLabel(value:string|null) { return value?new Intl.DateTimeFormat("en-IN",{dateStyle:"medium",timeStyle:"short",timeZone:"Asia/Kolkata"}).format(new Date(value)):"Not scheduled"; }
 
-export default async function AdminNewsPage({searchParams}:{searchParams:Promise<{created?:string;deleted?:string}>}) {
+export default async function AdminNewsPage({searchParams}:{searchParams:Promise<{created?:string;deleted?:string;saved?:string}>}) {
   const params=await searchParams;
   const {supabase}=await requireSuperAdmin();
   const {data,error}=await supabase.from("business_news").select("id,title,slug,category,summary,source_name,status,published_at,updated_at").order("updated_at",{ascending:false}).limit(200);
@@ -67,7 +67,7 @@ export default async function AdminNewsPage({searchParams}:{searchParams:Promise
   const counts={total:items.length,published:items.filter(x=>x.status==="published"&&x.published_at&&new Date(x.published_at)<=new Date()).length,drafts:items.filter(x=>x.status==="draft").length,scheduled:items.filter(x=>x.status==="scheduled"||(x.status==="published"&&x.published_at&&new Date(x.published_at)>new Date())).length};
   return <div className="pb-12">
     <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-sm font-semibold text-[var(--color-primary)]">Content & Growth</p><h1 className="mt-1 text-3xl font-extrabold tracking-tight">Business News Manager</h1><p className="mt-2 text-sm text-[var(--color-text-muted)]">Create, edit, schedule and publish source-linked business news updates.</p></div><Link href="/news" target="_blank" className="rounded-xl border border-[var(--color-border)] bg-white px-4 py-2.5 text-sm font-bold">View public news ↗</Link></div>
-    {params.created==="1"&&<p className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-800">News article created.</p>}
+    {(params.created==="1"||params.saved==="1")&&<p className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-800">{params.saved==="1"?"News article updated successfully.":"News article created successfully."}</p>}
     {params.deleted==="1"&&<p className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-800">News article deleted.</p>}
     {error&&<p className="mt-5 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">Could not load news: {error.message}</p>}
     <div className="mt-7 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{[["Total articles",counts.total],["Published",counts.published],["Drafts",counts.drafts],["Scheduled",counts.scheduled]].map(([label,value])=><div key={label} className="rounded-2xl border border-[var(--color-border)] bg-white p-5"><p className="text-sm text-[var(--color-text-muted)]">{label}</p><p className="mt-2 text-3xl font-extrabold">{value}</p></div>)}</div>
