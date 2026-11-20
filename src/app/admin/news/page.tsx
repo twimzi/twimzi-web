@@ -40,7 +40,7 @@ async function createNews(formData:FormData) {
   if(image&&!(/^https:\/\//i.test(image)||(/^\/(?!\/)/.test(image)))) throw new Error("Image must be an HTTPS URL or local site path.");
   if(!["draft","published","scheduled"].includes(status)) throw new Error("Invalid publication status.");
   const {supabase,user}=await requireSuperAdmin();
-  const publishedAt=status==="draft"?null:publishAt?new Date(publishAt).toISOString():status==="published"?new Date().toISOString():null;
+  const publishedAt=status==="draft"?null:publishAt?new Date(publishAt + "+05:30").toISOString():status==="published"?new Date().toISOString():null;
   if(status!=="draft"&&!publishedAt) throw new Error("Choose a publication date and time.");
   const {error}=await supabase.from("business_news").insert({title,slug,category,summary,content,source_name:sourceName,source_url:sourceUrl,featured_image_url:image||null,meta_title:metaTitle||null,meta_description:metaDescription||null,status,published_at:publishedAt,created_by:user.id});
   if(error) throw new Error(error.code==="23505"?"This news URL slug already exists.":error.message);
