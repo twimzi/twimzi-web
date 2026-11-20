@@ -31,6 +31,7 @@ type NewsItem = {
   source_url: string;
   featured_image_url: string | null;
   published_at: string;
+  reading_time_minutes: number;
 };
 
 const categories = [
@@ -50,10 +51,6 @@ function formatDate(value: string) {
   return new Intl.DateTimeFormat("en-IN", {
     day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kolkata",
   }).format(new Date(value));
-}
-
-function readingTime(summary: string) {
-  return Math.max(1, Math.ceil(summary.trim().split(/\s+/).length / 180));
 }
 
 function categoryTone(category: string) {
