@@ -350,13 +350,14 @@ export default async function ProductsPage({
                 </h2>
               </div>
 
-              <Link
-                href="/businesses"
-                className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--color-text)] hover:text-[var(--color-primary)]"
-              >
-                <Store className="h-4 w-4" />
-                Browse Businesses
-              </Link>
+              <div className="flex flex-wrap items-center gap-4">
+                <Link href="/products/prices" className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--color-primary)] hover:underline">
+                  <Tag className="h-4 w-4" /> Explore Product Prices <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link href="/businesses" className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--color-text)] hover:text-[var(--color-primary)]">
+                  <Store className="h-4 w-4" /> Browse Businesses
+                </Link>
+              </div>
             </div>
 
             {products.length === 0 ? (
