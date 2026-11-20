@@ -108,30 +108,53 @@ export default function CommunityStories({ stories }: Props) {
 
   return (
     <>
-      <section aria-labelledby="community-stories-heading" className="twimzi-home-stories mx-auto mb-3 w-full max-w-7xl border-0 bg-white px-4 py-3 sm:px-8 lg:px-10">
-        <div className="mb-2 flex items-center justify-between gap-3">
-          <div>
-            <h2 id="community-stories-heading" className="text-lg font-extrabold tracking-tight text-[#020D3A]">Stories</h2>
+      <section
+        aria-labelledby="community-stories-heading"
+        className="twimzi-home-stories mx-auto mb-3 w-full max-w-7xl border-0 bg-transparent px-4 py-4 sm:px-8 lg:px-10"
+      >
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <span className="h-5 w-1 rounded-full bg-gradient-to-b from-[#8E07FB] via-[#1879FD] to-[#05CDFC]" aria-hidden="true" />
+            <h2 id="community-stories-heading" className="text-lg font-bold tracking-tight text-[#14243D] sm:text-xl">
+              Stories
+            </h2>
           </div>
+          <span className="text-xs font-medium text-slate-500">
+            {groups.length} {groups.length === 1 ? "business" : "businesses"}
+          </span>
         </div>
-        <div className="flex gap-3 overflow-x-auto pb-1">
+
+        <div className="flex gap-5 overflow-x-auto pb-2 [scrollbar-width:thin]">
           {groups.map((group) => {
             const latestStory = group.stories[0];
             return (
-              <button key={group.key} type="button" onClick={() => openGroup(group)} className="group flex w-[84px] shrink-0 flex-col items-center gap-1.5 text-center" aria-label={`View ${group.stories.length} stor${group.stories.length === 1 ? "y" : "ies"} from ${group.businessName}`}>
-                <span className="relative rounded-2xl bg-gradient-to-tr from-orange-500 via-rose-500 to-teal-500 p-[3px] transition group-hover:scale-[1.03]">
-                  <span className="block rounded-xl bg-white p-[3px]">
-                    <span className="block h-[68px] w-[68px] overflow-hidden rounded-lg bg-slate-100">
-                      <img src={latestStory.imageUrl} alt="" className="h-full w-full object-cover" loading="lazy" />
+              <button
+                key={group.key}
+                type="button"
+                onClick={() => openGroup(group)}
+                className="group flex w-[88px] shrink-0 flex-col items-center gap-2 rounded-2xl p-1 text-center transition duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1879FD] focus-visible:ring-offset-2"
+                aria-label={`View ${group.stories.length} stor${group.stories.length === 1 ? "y" : "ies"} from ${group.businessName}`}
+              >
+                <span className="relative block rounded-[20px] bg-gradient-to-br from-[#8E07FB] via-[#1879FD] to-[#05CDFC] p-[2px] shadow-[0_4px_14px_rgba(24,121,253,0.12)] transition duration-200 group-hover:shadow-[0_8px_22px_rgba(24,121,253,0.2)]">
+                  <span className="block rounded-[18px] bg-white p-[3px]">
+                    <span className="block h-[76px] w-[76px] overflow-hidden rounded-[15px] bg-slate-100">
+                      <img
+                        src={latestStory.imageUrl}
+                        alt=""
+                        className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                        loading="lazy"
+                      />
                     </span>
                   </span>
                   {group.stories.length > 1 && (
-                    <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-white bg-[#1879FD] px-1 text-[10px] font-bold text-white">
+                    <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-white bg-[#1879FD] px-1 text-[10px] font-bold text-white shadow-sm">
                       {group.stories.length}
                     </span>
                   )}
                 </span>
-                <span className="w-full truncate text-xs font-medium text-slate-700">{group.businessName}</span>
+                <span className="w-full truncate text-xs font-semibold text-[#334155] transition group-hover:text-[#1879FD]">
+                  {group.businessName}
+                </span>
               </button>
             );
           })}
