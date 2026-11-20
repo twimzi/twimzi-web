@@ -34,6 +34,7 @@ const sections = [
       ["Featured", "/admin/featured"],
       ["Offers", "/admin/offers"],
       ["Blog", "/admin/blog"],
+      ["Business News", "/admin/news"],
     ],
   ],
   [
