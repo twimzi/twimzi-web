@@ -219,126 +219,123 @@ export default async function CommunityPage({
   const [posts, stories] = await Promise.all([getCommunityPosts(search), getCommunityStories()]);
 
   return (
-    <main className="min-h-screen bg-slate-50">
-      <section className="border-b border-slate-200 bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-          <div className="max-w-3xl">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#1879FD]">
-              Twimzi Community
-            </p>
-
-            <h1 className="mt-3 text-3xl font-bold tracking-tight text-[#020D3A] sm:text-4xl">
-              Discover what local businesses are sharing
-            </h1>
-
-            <p className="mt-4 text-base leading-7 text-slate-600">
-              Explore business updates, announcements, offers, news and
-              other public posts from businesses on Twimzi.
-            </p>
+    <main className="twimzi-community-page min-h-screen bg-[#F7F8FC]">
+      <section className="relative isolate overflow-hidden border-b border-[#E7EAF3] bg-white">
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
+          <div className="absolute -left-24 -top-32 h-80 w-80 rounded-full bg-[#8E07FB]/10 blur-3xl" />
+          <div className="absolute right-0 top-0 h-96 w-96 rounded-full bg-[#05CDFC]/10 blur-3xl" />
+          <div className="absolute inset-0 opacity-[0.24] [background-image:radial-gradient(#8E07FB_0.7px,transparent_0.7px)] [background-size:24px_24px]" />
+        </div>
+        <div className="mx-auto max-w-7xl px-4 pb-8 pt-9 sm:px-6 sm:pb-10 sm:pt-12 lg:px-8">
+          <div className="flex flex-col gap-7 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-2xl">
+              <span className="inline-flex items-center gap-2 rounded-full border border-[#E7D8FF] bg-white/85 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.16em] text-[#7000D6] shadow-sm">
+                <span className="h-2 w-2 rounded-full bg-gradient-to-r from-[#8E07FB] to-[#05CDFC]" />
+                Twimzi Community
+              </span>
+              <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-[#020D3A] sm:text-4xl lg:text-[2.75rem]">
+                Your community, <span className="bg-gradient-to-r from-[#8E07FB] via-[#1879FD] to-[#05CDFC] bg-clip-text text-transparent">in the loop.</span>
+              </h1>
+              <p className="mt-3 max-w-xl text-base leading-7 text-[#53627E] sm:text-lg">
+                Discover updates, announcements, offers and stories shared by businesses around you.
+              </p>
+            </div>
+            <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto lg:items-center">
+              <form method="get" className="flex min-w-0 flex-1 gap-2 rounded-2xl border border-[#E2E8F3] bg-white p-1.5 shadow-[0_8px_30px_rgba(29,54,100,0.06)] lg:w-[390px] lg:flex-none">
+                <input
+                  type="search"
+                  name="q"
+                  defaultValue={search}
+                  placeholder="Search businesses..."
+                  aria-label="Search businesses"
+                  className="h-11 min-w-0 flex-1 rounded-xl border-0 bg-transparent px-3 text-sm text-[#020D3A] outline-none placeholder:text-[#94A3B8] focus:ring-0"
+                />
+                <button type="submit" className="h-11 shrink-0 rounded-xl bg-gradient-to-r from-[#8E07FB] via-[#1879FD] to-[#05CDFC] px-5 text-sm font-bold text-white shadow-sm transition hover:brightness-105">
+                  Search
+                </button>
+                {search && (
+                  <Link href="/community" className="inline-flex h-11 items-center rounded-xl px-3 text-sm font-semibold text-[#64748B] transition hover:bg-[#F3F7FF] hover:text-[#1879FD]">
+                    Clear
+                  </Link>
+                )}
+              </form>
+              <div className="shrink-0">
+                <CommunityCreateAction />
+              </div>
+            </div>
           </div>
-
-          <div className="mt-6 flex justify-end">
-            <CommunityCreateAction />
-          </div>
-
-          <form
-            method="get"
-            className="mt-3 flex flex-col gap-3 sm:flex-row"
-          >
-            <input
-              type="search"
-              name="q"
-              defaultValue={search}
-              placeholder="Search businesses..."
-              aria-label="Search businesses"
-              className="h-12 flex-1 rounded-2xl border border-slate-300 bg-white px-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#1879FD] focus:ring-4 focus:ring-blue-100"
-            />
-
-            <button
-              type="submit"
-              className="h-12 rounded-2xl bg-[#1879FD] px-6 text-sm font-semibold text-white transition hover:bg-[#1268df]"
-            >
-              Search
-            </button>
-
-            {search && (
-              <Link
-                href="/community"
-                className="inline-flex h-12 items-center justify-center rounded-2xl border border-slate-300 bg-white px-6 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
-              >
-                Clear
-              </Link>
-            )}
-          </form>
         </div>
       </section>
 
-      <section className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
-        <CommunityStories stories={stories} />
-        <div className="mb-6 flex items-end justify-between gap-4">
-          <div>
-            <h2 className="text-xl font-bold text-[#020D3A]">
-              Latest from businesses
-            </h2>
-
-            <p className="mt-1 text-sm text-slate-500">
-              Public business content from across Twimzi.
-            </p>
-          </div>
-
-          <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-[#1879FD]">
-            {posts.length} {posts.length === 1 ? "post" : "posts"}
-          </span>
-        </div>
-
-        {posts.length > 0 ? (
-          <div className="space-y-5">
-            {posts.map((post) => (
-              <BusinessPostCard
-                key={post.id}
-                post={post}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="rounded-3xl border border-slate-200 bg-white px-6 py-16 text-center shadow-sm">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-[#1879FD]">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                className="h-7 w-7"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z"
-                />
-              </svg>
+      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+        <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_320px] xl:gap-10">
+          <div className="min-w-0">
+            <div className="mb-8 rounded-3xl border border-[#E5EAF4] bg-white p-5 shadow-[0_10px_34px_rgba(27,49,88,0.045)] sm:p-6">
+              <CommunityStories stories={stories} />
             </div>
 
-            <h3 className="mt-5 text-lg font-bold text-[#020D3A]">
-              No community posts found
-            </h3>
+            <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#1879FD]">Community feed</p>
+                <h2 className="mt-1 text-2xl font-extrabold tracking-tight text-[#020D3A]">Latest from businesses</h2>
+                <p className="mt-1 text-sm leading-6 text-[#64748B]">Public updates and conversations from across Twimzi.</p>
+              </div>
+              <span className="inline-flex items-center gap-2 rounded-full border border-[#DCE8FF] bg-[#F1F6FF] px-3.5 py-2 text-xs font-bold text-[#1879FD]">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#1879FD]" />
+                {posts.length} {posts.length === 1 ? "post" : "posts"}
+              </span>
+            </div>
 
-            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
-              {search
-                ? "Try another business search or clear the search to explore the latest posts."
-                : "Business updates and community posts will appear here as businesses publish them."}
-            </p>
-
-            {search && (
-              <Link
-                href="/community"
-                className="mt-6 inline-flex rounded-xl bg-[#1879FD] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#1268df]"
-              >
-                Explore all posts
-              </Link>
+            {posts.length > 0 ? (
+              <div className="space-y-6">
+                {posts.map((post) => (
+                  <BusinessPostCard key={post.id} post={post} />
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-3xl border border-dashed border-[#CBD6E8] bg-white px-6 py-16 text-center shadow-sm">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#F0E4FF] to-[#E4F8FF] text-[#1879FD]">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" className="h-7 w-7" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z" />
+                  </svg>
+                </div>
+                <h3 className="mt-5 text-lg font-bold text-[#020D3A]">No community posts found</h3>
+                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#64748B]">
+                  {search
+                    ? "Try another business search or clear the search to explore the latest posts."
+                    : "Business updates and community posts will appear here as businesses publish them."}
+                </p>
+                {search && (
+                  <Link href="/community" className="mt-6 inline-flex rounded-xl bg-gradient-to-r from-[#8E07FB] to-[#1879FD] px-5 py-3 text-sm font-bold text-white transition hover:brightness-105">
+                    Explore all posts
+                  </Link>
+                )}
+              </div>
             )}
           </div>
-        )}
+
+          <aside className="space-y-5 lg:sticky lg:top-24">
+            <div className="overflow-hidden rounded-3xl border border-[#E4E9F3] bg-white shadow-[0_12px_36px_rgba(27,49,88,0.06)]">
+              <div className="h-1.5 bg-gradient-to-r from-[#8E07FB] via-[#1879FD] to-[#05CDFC]" />
+              <div className="p-5">
+                <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#1879FD]">Made for local discovery</p>
+                <h2 className="mt-2 text-xl font-extrabold leading-tight text-[#020D3A]">Good things happen when businesses share.</h2>
+                <p className="mt-2 text-sm leading-6 text-[#64748B]">Follow stories, explore business updates and keep up with offers from your community.</p>
+                <div className="mt-5 flex items-center justify-between border-t border-[#EEF1F7] pt-4">
+                  <span className="text-sm font-semibold text-[#344365]">Explore the feed</span>
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F1F6FF] text-[#1879FD]" aria-hidden="true">→</span>
+                </div>
+              </div>
+            </div>
+            <div className="rounded-3xl border border-[#E4E9F3] bg-gradient-to-br from-[#F8F1FF] via-white to-[#EFFBFF] p-5">
+              <p className="text-sm font-bold text-[#020D3A]">Have something to share?</p>
+              <p className="mt-1 text-sm leading-6 text-[#64748B]">Publish a business update or add a story for your audience.</p>
+              <div className="mt-4">
+                <CommunityCreateAction />
+              </div>
+            </div>
+          </aside>
+        </div>
       </section>
     </main>
   );
