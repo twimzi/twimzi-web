@@ -34,7 +34,7 @@ async function getNews(slug: string): Promise<NewsItem | null> {
   if (!supabase) return null;
   const { data, error } = await supabase
     .from("business_news")
-    .select("id,title,slug,category,summary,content,source_name,source_url,featured_image_url,meta_title,meta_description,published_at")
+    .select("id,title,slug,category,summary,content,source_name,source_url,featured_image_url,meta_title,meta_description,published_at,primary_keyword,secondary_keywords,key_takeaways,business_impact,action_points,key_figures,faq,related_links")
     .eq("slug", slug)
     .in("status", ["published", "scheduled"])
     .lte("published_at", new Date().toISOString())
@@ -146,7 +146,7 @@ export default async function BusinessNewsArticle({ params }: { params: Promise<
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "NewsArticle",
-    headline: item.title,
+    headline: item.title,\n    keywords: [item.primary_keyword, ...(item.secondary_keywords ?? [])].filter(Boolean),\n    articleSection: item.category,\n    hasPart: (item.faq ?? []).map((entry) => ({ "@type": "Question", name: entry.question, acceptedAnswer: { "@type": "Answer", text: entry.answer } })),
     description: item.meta_description?.trim() || item.summary,
     datePublished: item.published_at,
     dateModified: item.published_at,
@@ -182,12 +182,18 @@ export default async function BusinessNewsArticle({ params }: { params: Promise<
               <span className="inline-flex items-center gap-2"><CalendarDays className="h-4 w-4 text-[#1879FD]" />{new Intl.DateTimeFormat("en-IN", { dateStyle: "long", timeZone: "Asia/Kolkata" }).format(new Date(item.published_at))}</span>
               <span>By Twimzi Business Desk</span>
             </div>
-            <p className="mt-7 rounded-2xl border-l-4 border-[#05CDFC] bg-[#F0FBFF] px-5 py-4 text-lg leading-8 text-[#344365]">
+            <p className="news-summary mt-7 rounded-2xl border-l-4 border-[#05CDFC] bg-[#F0FBFF] px-5 py-4 text-lg leading-8 text-[#344365]">
               {item.summary}
             </p>
           </div>
         </header>
         {item.featured_image_url && <img src={item.featured_image_url} alt={item.title} className="mt-8 max-h-[480px] w-full rounded-2xl object-cover shadow-sm" />}
+        {(item.key_takeaways?.length || item.key_figures?.length) ? (
+          <section className="mt-8 grid gap-5 lg:grid-cols-[1.05fr_.95fr]">
+            {item.key_takeaways && item.key_takeaways.length > 0 && <div className="rounded-[24px] border border-violet-100 bg-gradient-to-br from-[#F7F0FF] to-white p-6 sm:p-7"><p className="text-xs font-extrabold uppercase tracking-[.16em] text-[#7000D6]">The essentials</p><h2 className="mt-2 text-xl font-extrabold text-[#263d70]">Key takeaways</h2><ul className="mt-5 space-y-3">{item.key_takeaways.map((entry,index)=><li key={index} className="flex gap-3 text-sm leading-7 text-slate-700"><span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-gradient-to-r from-[#8E07FB] to-[#1879FD]"/><span>{typeof entry==="string"?entry:entry.text}</span></li>)}</ul></div>}
+            {item.key_figures && item.key_figures.length > 0 && <div className="rounded-[24px] border border-cyan-100 bg-gradient-to-br from-[#EAFBFF] to-white p-6 sm:p-7"><p className="text-xs font-extrabold uppercase tracking-[.16em] text-cyan-800">Numbers that matter</p><h2 className="mt-2 text-xl font-extrabold text-[#263d70]">Key figures</h2><div className="mt-5 grid gap-3 sm:grid-cols-2">{item.key_figures.map((figure,index)=><div key={index} className="rounded-2xl border border-white bg-white/90 p-4 shadow-sm"><p className="text-xs font-semibold text-slate-500">{figure.label}</p><p className="mt-1 text-2xl font-extrabold tracking-tight text-[#1455C7]">{figure.value}</p>{figure.context&&<p className="mt-2 text-xs leading-5 text-slate-500">{figure.context}</p>}</div>)}</div></div>}
+          </section>
+        ) : null}
         <section className="mt-8 overflow-hidden rounded-[26px] border border-[#E5EAF5] bg-white shadow-[0_8px_30px_rgba(38,55,100,0.045)]">
           <div className="flex items-center gap-3 border-b border-[#E9EDF7] bg-gradient-to-r from-[#F7F0FF] via-[#F2F7FF] to-[#EEFBFF] px-6 py-5 sm:px-9">
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#1879FD] shadow-sm"><Newspaper className="h-5 w-5" /></span>
@@ -198,6 +204,10 @@ export default async function BusinessNewsArticle({ params }: { params: Promise<
           </div>
           <div className="px-6 py-5 sm:px-9 sm:py-8">{renderMarkdown(item.content)}</div>
         </section>
+        {item.business_impact && <section className="mt-8 rounded-[24px] border border-[#DCEBFF] bg-gradient-to-br from-[#F0F7FF] to-white p-6 sm:p-8"><p className="text-xs font-extrabold uppercase tracking-[.15em] text-[#1879FD]">What it means for business</p><h2 className="mt-2 text-2xl font-extrabold text-[#263d70]">Business impact</h2><p className="mt-4 whitespace-pre-line text-[15px] leading-8 text-slate-700">{item.business_impact}</p></section>}
+        {item.action_points && item.action_points.length > 0 && <section className="mt-7 rounded-[24px] border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-6 sm:p-8"><p className="text-xs font-extrabold uppercase tracking-[.15em] text-emerald-700">Practical next steps</p><h2 className="mt-2 text-2xl font-extrabold text-[#263d70]">What businesses can do now</h2><div className="mt-5 grid gap-3 sm:grid-cols-2">{item.action_points.map((point,index)=><div key={index} className="rounded-2xl border border-emerald-100 bg-white p-4"><div className="flex items-center gap-2"><span className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-xs font-extrabold text-emerald-800">{index+1}</span><h3 className="font-bold text-[#263d70]">{point.title}</h3></div><p className="mt-2 text-sm leading-6 text-slate-600">{point.detail}</p></div>)}</div></section>}
+        {item.faq && item.faq.length > 0 && <section className="mt-8 rounded-[24px] border border-violet-100 bg-white p-6 sm:p-8"><p className="text-xs font-extrabold uppercase tracking-[.15em] text-[#7000D6]">Straight answers</p><h2 className="mt-2 text-2xl font-extrabold text-[#263d70]">Frequently asked questions</h2><div className="mt-5 divide-y divide-slate-100">{item.faq.map((entry,index)=><div key={index} className="py-5 first:pt-0 last:pb-0"><h3 className="font-bold text-[#263d70]">{entry.question}</h3><p className="mt-2 text-sm leading-7 text-slate-600">{entry.answer}</p></div>)}</div></section>}
+        {item.related_links && item.related_links.length > 0 && <section className="mt-7 rounded-[24px] border border-slate-200 bg-white p-6"><h2 className="text-lg font-extrabold text-[#263d70]">Related official resources</h2><ul className="mt-3 space-y-2">{item.related_links.map((link,index)=><li key={index}><a href={link.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-semibold text-[#1455C7] hover:underline">{link.title} <ExternalLink className="h-3.5 w-3.5"/></a>{link.publisher&&<span className="ml-2 text-xs text-slate-500">{link.publisher}</span>}</li>)}</ul></section>}
         <section className="mt-7 overflow-hidden rounded-[24px] border border-[#DCEBFF] bg-gradient-to-br from-[#F1E9FF] via-[#EEF5FF] to-[#EAFBFF] p-6 sm:p-8">
           <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[#7000D6]">Original source</p>
           <h2 className="mt-2 text-xl font-bold text-[#263d70]">{item.source_name}</h2>
