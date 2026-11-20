@@ -12,7 +12,6 @@ import {
   Tag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { siteConfig } from "@/config/site";
 
 export type HeroInterestingItem = {
   icon: string;
@@ -45,7 +44,7 @@ export function HeroSection({ interestingItems = fallbackItems }: HeroSectionPro
   return (
     <section className="twimzi-home-hero relative isolate overflow-hidden text-slate-900">
       <div className="twimzi-home-hero-inner relative z-10 mx-auto w-full">
-        <div className="twimzi-home-hero-main min-w-0"> min-w-0">
+        <div className="twimzi-home-hero-main min-w-0">
           <div className="inline-flex items-center gap-2 rounded-full border border-[#D7E2E8] bg-white px-4 py-2.5 text-sm font-semibold text-[#14243D]">
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#FFF1E5] text-[#F28A28]"><Flame aria-hidden="true" size={16} /></span>
             <span>Digital Operating System for <span className="text-[#0D9488]">Every Local Business</span></span>
