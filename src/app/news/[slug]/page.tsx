@@ -143,10 +143,10 @@ export default async function BusinessNewsArticle({ params }: { params: Promise<
   const item = await getNews(slug);
   if (!item) notFound();
   const url = `${siteConfig.url}/news/${item.slug}`;
-  const structuredData = {
+  const wordCount = item.content.trim().split(/\\s+/).length;\n  const faqStructuredData = item.faq?.length ? { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: item.faq.map((entry) => ({ "@type": "Question", name: entry.question, acceptedAnswer: { "@type": "Answer", text: entry.answer } })) } : null;\n  const breadcrumbStructuredData = { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: siteConfig.url }, { "@type": "ListItem", position: 2, name: "Business News", item: `${siteConfig.url}/news` }, { "@type": "ListItem", position: 3, name: item.title, item: url }] };\n  const structuredData = {
     "@context": "https://schema.org",
     "@type": "NewsArticle",
-    headline: item.title,\n    keywords: [item.primary_keyword, ...(item.secondary_keywords ?? [])].filter(Boolean),\n    articleSection: item.category,\n    hasPart: (item.faq ?? []).map((entry) => ({ "@type": "Question", name: entry.question, acceptedAnswer: { "@type": "Answer", text: entry.answer } })),
+    headline: item.title,\n    wordCount,\n    dateModified: item.editorial_updated_at ?? item.published_at,\n    keywords: [item.primary_keyword, ...(item.secondary_keywords ?? [])].filter(Boolean),\n    articleSection: item.category,\n    hasPart: (item.faq ?? []).map((entry) => ({ "@type": "Question", name: entry.question, acceptedAnswer: { "@type": "Answer", text: entry.answer } })),
     description: item.meta_description?.trim() || item.summary,
     datePublished: item.published_at,
     dateModified: item.published_at,
@@ -180,7 +180,7 @@ export default async function BusinessNewsArticle({ params }: { params: Promise<
             </h1>
             <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-500">
               <span className="inline-flex items-center gap-2"><CalendarDays className="h-4 w-4 text-[#1879FD]" />{new Intl.DateTimeFormat("en-IN", { dateStyle: "long", timeZone: "Asia/Kolkata" }).format(new Date(item.published_at))}</span>
-              <span>By Twimzi Business Desk</span>\n              <span className="w-full"><NewsActions item={{slug:item.slug,title:item.title,summary:item.summary,category:item.category,publishedAt:item.published_at,url:`/news/${item.slug}`}} /></span>
+              <span>By Twimzi Business Desk</span>\n              <span>{wordCount.toLocaleString("en-IN")} words</span>\n              <span className="w-full"><NewsActions item={{slug:item.slug,title:item.title,summary:item.summary,category:item.category,publishedAt:item.published_at,url:`/news/${item.slug}`}} /></span>
             </div>
             <p className="news-summary mt-7 rounded-2xl border-l-4 border-[#05CDFC] bg-[#F0FBFF] px-5 py-4 text-lg leading-8 text-[#344365]">
               {item.summary}
