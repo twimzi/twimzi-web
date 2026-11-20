@@ -1,110 +1,54 @@
 import Link from "next/link";
 import Image from "next/image";
-
+import { Bell, Smartphone, ArrowUpRight } from "lucide-react";
 import { Container } from "@/components/ui/container";
 
 export function AndroidAppSection() {
   return (
-    <section className="py-12 sm:py-14">
+    <section className="py-10 sm:py-12">
       <Container>
-        <div className="twimzi-home-cta relative overflow-hidden rounded-[2rem] bg-[linear-gradient(115deg,#020D3A_0%,#11165B_48%,#3D16A5_100%)] px-7 py-12 text-white sm:px-12 lg:px-16">
-<div
-            aria-hidden="true"
-            className="absolute -bottom-32 -left-20 h-72 w-72 rounded-full bg-[rgba(5,205,252,0.20)] blur-3xl"
-          />
+        <div className="relative isolate overflow-hidden rounded-[2rem] border border-[#e7ddff] bg-[linear-gradient(115deg,#fbf7ff_0%,#f7f9ff_52%,#effbff_100%)] px-6 py-9 shadow-[0_18px_55px_rgba(83,63,160,0.08)] sm:px-10 sm:py-11 lg:px-14">
+          <div aria-hidden="true" className="pointer-events-none absolute -right-20 -top-28 -z-10 h-80 w-80 rounded-full bg-[#8E07FB]/10 blur-3xl" />
+          <div aria-hidden="true" className="pointer-events-none absolute -bottom-36 left-[34%] -z-10 h-72 w-72 rounded-full bg-[#05CDFC]/15 blur-3xl" />
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 opacity-40 [background-image:radial-gradient(#8E07FB_0.7px,transparent_0.7px)] [background-size:22px_22px] [mask-image:linear-gradient(90deg,black,transparent_65%)]" />
 
-          <div className="relative grid items-center gap-10 lg:grid-cols-[1fr_auto]">
-            <div className="max-w-2xl">
-              {/* Coming Soon */}
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/5 px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-white">
-                <span className="h-2 w-2 rounded-full bg-white" />
-                <span>Coming Soon</span>
+          <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_260px]">
+            <div className="max-w-3xl">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#d9c8ff] bg-white/80 px-3.5 py-2 text-[11px] font-extrabold uppercase tracking-[0.16em] text-[#6d28d9] shadow-sm">
+                <span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#8E07FB] opacity-30" /><span className="relative inline-flex h-2 w-2 rounded-full bg-[#8E07FB]" /></span>
+                Coming soon
               </div>
 
-              <h2 className="twimzi-gradient-heading mt-5 text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
-                Twimzi is coming to Android.
+              <h2 className="mt-5 max-w-3xl text-3xl font-black leading-[1.08] tracking-[-0.045em] text-[#101747] sm:text-4xl lg:text-[2.8rem]">
+                Twimzi is coming to <span className="bg-gradient-to-r from-[#8E07FB] via-[#1879FD] to-[#05CDFC] bg-clip-text text-transparent">Android.</span>
               </h2>
-
-              <p className="mt-5 text-base leading-7 text-white/80 sm:text-lg">
-                Discover local businesses, products, services, offers and
-                updates wherever you go — right from the Twimzi mobile app.
+              <p className="mt-4 max-w-2xl text-base leading-7 text-[#53617d] sm:text-lg sm:leading-8">
+                Discover local businesses, products, services, offers and updates wherever you go — right from the Twimzi mobile app.
               </p>
 
-              {/* Android CTA */}
-              <Link
-                href="/"
-                className="mt-7 inline-flex items-center gap-3 rounded-full bg-white px-6 py-4 transition-colors hover:bg-[#eef6ff]"
-              >
-                <span
-                  aria-hidden="true"
-                  className="flex h-7 w-7 shrink-0 items-center justify-center"
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    className="h-7 w-7"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M13.2 11.8 5.4 4.1c-.3.3-.4.8-.4 1.4v13c0 .6.1 1.1.4 1.4l7.8-7.7Z"
-                      fill="#34A853"
-                    />
-                    <path
-                      d="m15.8 14.4-2.6-2.6-7.8 7.7c.4.4 1 .4 1.6.1l8.8-5.2Z"
-                      fill="#FBBC04"
-                    />
-                    <path
-                      d="m15.8 9.6-8.8-5.2c-.6-.3-1.2-.3-1.6.1l7.8 7.7 2.6-2.6Z"
-                      fill="#EA4335"
-                    />
-                    <path
-                      d="m18.7 11.3-2.9-1.7-2.6 2.6 2.6 2.6 2.9-1.7c.8-.5.8-1.3 0-1.8Z"
-                      fill="#4285F4"
-                    />
-                  </svg>
-                </span>
-
-                <span className="twimzi-gradient-text text-sm font-extrabold sm:text-base">
-                  Android App Coming Soon
-                </span>
-              </Link>
+              <div className="mt-7 flex flex-wrap items-center gap-3">
+                <Link href="/" className="inline-flex min-h-12 items-center gap-2.5 rounded-full bg-gradient-to-r from-[#8E07FB] via-[#4265F5] to-[#05BFEF] px-6 py-3 text-sm font-extrabold text-white shadow-[0_10px_25px_rgba(91,71,230,0.22)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(91,71,230,0.28)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#8E07FB]/20">
+                  <Bell className="h-4 w-4" /> Android app coming soon <ArrowUpRight className="h-4 w-4" />
+                </Link>
+                <span className="inline-flex items-center gap-2 text-xs font-semibold text-[#66738d]"><Smartphone className="h-4 w-4 text-[#1879FD]" /> Built for discovering local, on the go</span>
+              </div>
             </div>
 
-            {/* Mobile phone */}
-            <div className="mx-auto lg:mr-8">
-              <div className="relative flex h-56 w-36 items-center justify-center rounded-[2rem] border-2 border-slate-400 bg-slate-800 p-2 shadow-md sm:h-64 sm:w-40">
-                <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-[1.4rem] bg-[#F5F7FF]">
-                  <div
-                    aria-hidden="true"
-                    className="absolute inset-0 bg-[#f8f8f4]"
-                  />
-
-                  {/* Full circular Twimzi logo */}
-                  <div className="relative flex h-[82px] w-[82px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-white p-3">
-                    <Image
-                      src="/twimzi-logo.png"
-                      alt="Twimzi"
-                      width={64}
-                      height={64}
-                      priority
-                      className="h-full w-full object-contain"
-                    />
+            <div className="relative mx-auto flex w-full max-w-[230px] items-center justify-center lg:mr-3">
+              <div aria-hidden="true" className="absolute inset-2 rounded-full bg-gradient-to-br from-[#8E07FB]/15 via-[#1879FD]/10 to-[#05CDFC]/20 blur-2xl" />
+              <div aria-hidden="true" className="absolute h-52 w-52 rounded-full border border-[#8E07FB]/15" />
+              <div aria-hidden="true" className="absolute h-44 w-44 rounded-full border border-[#1879FD]/15" />
+              <div className="relative w-[142px] rounded-[2.2rem] border-[5px] border-[#17213c] bg-[#17213c] p-1.5 shadow-[0_22px_42px_rgba(31,41,80,0.2)] sm:w-[154px]">
+                <div className="relative flex aspect-[9/18] flex-col items-center justify-center overflow-hidden rounded-[1.7rem] bg-white">
+                  <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(155deg,#ffffff_0%,#f6f2ff_58%,#eafaff_100%)]" />
+                  <div className="relative flex h-[76px] w-[76px] items-center justify-center rounded-full bg-white shadow-[0_5px_20px_rgba(50,70,130,0.08)]">
+                    <Image src="/twimzi-logo.png" alt="Twimzi" width={64} height={64} className="h-14 w-14 object-contain" />
                   </div>
-
-                  <span className="relative mt-4 text-[11px] font-extrabold tracking-[0.2em] text-[var(--color-primary)]">
-                    TWIMZI
-                  </span>
-
-                  <span className="relative mt-2 px-2 text-center text-[8px] font-medium text-slate-400">
-                    Local. Connected. Twimzi.
-                  </span>
+                  <span className="relative mt-4 text-[10px] font-black tracking-[0.22em] text-[#172554]">TWIMZI</span>
+                  <span className="relative mt-2 text-center text-[8px] font-medium text-[#75819b]">Local. Connected. Twimzi.</span>
+                  <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-r from-[#8E07FB]/15 via-[#1879FD]/10 to-[#05CDFC]/20" />
                 </div>
               </div>
-
-              <div
-                aria-hidden="true"
-                className="mx-auto -mt-6 h-8 w-28 rounded-full bg-black/20 blur-xl"
-              />
             </div>
           </div>
         </div>
