@@ -8,6 +8,7 @@ const discoverLinks = [
   { label: "Explore", href: "/explore" },
   { label: "Businesses", href: "/businesses" },
   { label: "Products", href: "/products" },
+  { label: "Business Calculators", href: "/tools/calculators" },
   { label: "Services", href: "/services" },
   { label: "Offers", href: "/offers" },
   { label: "Community", href: "/community" },
