@@ -4,7 +4,8 @@ import {
   ArrowRight, ArrowUpRight, Bookmark, BriefcaseBusiness, CalendarDays, CheckCircle2,
   Clock3, Factory, Globe2, Newspaper, Search, ShieldCheck, Sparkles, TrendingUp,
 } from "lucide-react";
-import { createClient } from "@supabase/supabase-js";\nimport { NewsActions } from "@/components/news/news-actions";
+import { createClient } from "@supabase/supabase-js";
+import { NewsActions } from "@/components/news/news-actions";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
