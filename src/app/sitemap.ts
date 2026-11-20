@@ -109,6 +109,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   try {
     const supabase = createPublicSupabaseClient();
+    const { data: newsPosts, error: newsError } = await supabase
+      .from("business_news")
+      .select("slug, updated_at, published_at")
+      .in("status", ["published", "scheduled"])
+      .lte("published_at", now.toISOString())
+      .order("published_at", { ascending: false })
+      .limit(1000);
+
+    if (newsError) {
+      console.error("Failed to load published business news for sitemap:", newsError);
+    } else {
+      for (const post of newsPosts ?? []) {
+        if (!post.slug) continue;
+        const modifiedValue = post.updated_at ?? post.published_at;
+        const modified = modifiedValue ? new Date(modifiedValue) : now;
+        blogPages.push({
+          url: `${siteConfig.url}/news/${encodeURIComponent(post.slug)}`,
+          lastModified: Number.isNaN(modified.getTime()) ? now : modified,
+          changeFrequency: "daily",
+          priority: 0.7,
+        });
+      }
+    }
+
     const { data: blogPosts, error: blogError } = await supabase
       .from("blog_posts")
       .select("slug, updated_at, published_at")
