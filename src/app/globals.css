@@ -1918,3 +1918,100 @@ main :is(.focus\:ring-blue-300,.focus\:ring-blue-500) { --tw-ring-color: rgba(24
   .twimzi-home-hero .twimzi-home-hero-discoveries { padding: 16px !important; }
   .twimzi-home-hero .twimzi-hero-search form { grid-template-columns: minmax(0,1fr) !important; }
 }
+
+
+/* Simplified homepage hero: no background artwork, no decorative image layers.
+   Keep the search, headline and live discovery content in a stable two-column grid. */
+.twimzi-home-hero {
+  background: #fbfcff !important;
+  background-image: none !important;
+  color: #10213d !important;
+}
+.twimzi-home-hero::before,
+.twimzi-home-hero::after,
+.twimzi-home-hero .twimzi-hero-pattern,
+.twimzi-home-hero .twimzi-hero-art-glow,
+.twimzi-home-hero-art {
+  display: none !important;
+  background-image: none !important;
+}
+.twimzi-home-hero .twimzi-home-hero-inner {
+  display: grid !important;
+  grid-template-columns: minmax(0,1fr) minmax(340px,440px) !important;
+  grid-template-areas:
+    "search search"
+    "main discoveries" !important;
+  align-items: center !important;
+  column-gap: clamp(36px,6vw,88px) !important;
+  row-gap: 28px !important;
+  width: min(100% - 48px,1280px) !important;
+  max-width: 1280px !important;
+  min-height: 0 !important;
+  margin-inline: auto !important;
+  padding: 42px 0 54px !important;
+}
+.twimzi-home-hero .twimzi-hero-search {
+  grid-area: search !important;
+  width: min(100%,760px) !important;
+  max-width: 760px !important;
+  margin: 0 !important;
+  padding: 6px !important;
+  border: 1px solid #e5eaf3 !important;
+  border-radius: 18px !important;
+  background: #fff !important;
+  box-shadow: 0 8px 24px rgba(25,55,105,.06) !important;
+}
+.twimzi-home-hero .twimzi-home-hero-main {
+  grid-area: main !important;
+  width: 100% !important;
+  max-width: 680px !important;
+  margin: 0 !important;
+  transform: none !important;
+}
+.twimzi-home-hero .twimzi-home-hero-discoveries {
+  grid-area: discoveries !important;
+  align-self: center !important;
+  justify-self: end !important;
+  width: 100% !important;
+  max-width: 440px !important;
+  margin: 0 !important;
+  transform: none !important;
+  padding: 24px !important;
+  border: 1px solid #e6ebf3 !important;
+  border-radius: 24px !important;
+  background: #fff !important;
+  box-shadow: 0 12px 36px rgba(25,55,105,.07) !important;
+  backdrop-filter: none !important;
+}
+.twimzi-home-hero .twimzi-home-hero-discoveries a {
+  border-color: #e9edf4 !important;
+  box-shadow: none !important;
+}
+.twimzi-home-hero .twimzi-home-hero-discoveries a:hover {
+  transform: none !important;
+  background: #f8fbff !important;
+}
+@media (max-width: 899px) {
+  .twimzi-home-hero .twimzi-home-hero-inner {
+    grid-template-columns: minmax(0,1fr) !important;
+    grid-template-areas:
+      "search"
+      "main"
+      "discoveries" !important;
+    width: min(100% - 36px,680px) !important;
+    gap: 26px !important;
+    padding: 30px 0 40px !important;
+  }
+  .twimzi-home-hero .twimzi-home-hero-discoveries {
+    justify-self: stretch !important;
+    max-width: 100% !important;
+  }
+}
+@media (max-width: 639px) {
+  .twimzi-home-hero .twimzi-home-hero-inner {
+    width: min(100% - 28px,560px) !important;
+    padding: 22px 0 32px !important;
+    gap: 22px !important;
+  }
+  .twimzi-home-hero .twimzi-home-hero-discoveries { padding: 17px !important; }
+}
