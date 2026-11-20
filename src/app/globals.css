@@ -547,13 +547,13 @@ header button:focus-visible {
    ============================================================ */
 :root {
   --meta-canvas: #ffffff;
-  --meta-surface-soft: #f1f4f7;
-  --meta-ink: #0a1317;
-  --meta-ink-secondary: #444950;
-  --meta-steel: #5d6c7b;
-  --meta-hairline: #dee3e9;
-  --meta-cobalt: #0064e0;
-  --meta-cobalt-pressed: #0457cb;
+  --meta-surface-soft: #F2F7FF;
+  --meta-ink: #020D3A;
+  --meta-ink-secondary: #344365;
+  --meta-steel: #64748B;
+  --meta-hairline: #E2E8F3;
+  --meta-cobalt: #1879FD;
+  --meta-cobalt-pressed: #1455C7;
   --meta-card-radius: 32px;
   --meta-control-radius: 100px;
   --meta-section-space: clamp(48px, 6vw, 80px);
@@ -1447,3 +1447,46 @@ header a[href="/add-business"]:hover {
   color: #ffffff !important;
   -webkit-text-fill-color: #ffffff !important;
 }
+
+
+/* ============================================================
+   TWIMZI UNIVERSAL BRAND LAYER
+   Shared palette for public pages, listings, articles and controls.
+   ============================================================ */
+:root {
+  --twimzi-brand-purple: #8E07FB;
+  --twimzi-brand-blue: #1879FD;
+  --twimzi-brand-cyan: #05CDFC;
+  --twimzi-brand-gradient: linear-gradient(115deg, #8E07FB 0%, #1879FD 52%, #05CDFC 100%);
+  --twimzi-page-canvas: #FBFAFF;
+  --twimzi-page-surface: #FFFFFF;
+  --twimzi-page-tint: #F3F7FF;
+  --twimzi-page-ink: #020D3A;
+  --twimzi-page-copy: #344365;
+  --twimzi-page-muted: #64748B;
+  --twimzi-page-border: #E2E8F3;
+}
+body { color: var(--twimzi-page-ink); }
+main { color: var(--twimzi-page-ink); }
+main > div.min-h-screen { background-color: var(--twimzi-page-canvas); }
+main section { border-color: var(--twimzi-page-border); }
+main :is(.text-slate-950,.text-slate-900,.text-gray-950,.text-gray-900) { color: var(--twimzi-page-ink); }
+main :is(.text-slate-800,.text-slate-700,.text-gray-800,.text-gray-700) { color: var(--twimzi-page-copy); }
+main :is(.text-slate-600,.text-slate-500,.text-gray-600,.text-gray-500) { color: var(--twimzi-page-muted); }
+main :is(.border-slate-200,.border-slate-300,.border-gray-200,.border-gray-300) { border-color: var(--twimzi-page-border); }
+main :is(.bg-slate-50,.bg-gray-50) { background-color: var(--twimzi-page-canvas); }
+main :is(.bg-slate-100,.bg-gray-100) { background-color: var(--twimzi-page-tint); }
+main :is(.text-blue-700,.text-blue-800,.text-indigo-700,.text-purple-700) { color: var(--twimzi-brand-blue); }
+main :is(.bg-blue-50,.bg-indigo-50,.bg-purple-50) { background-color: #F2F0FF; }
+main :is(.bg-blue-600,.bg-blue-700,.bg-indigo-600,.bg-purple-600) {
+  background: var(--twimzi-brand-gradient);
+  color: #FFFFFF;
+}
+main :is(.bg-blue-600,.bg-blue-700,.bg-indigo-600,.bg-purple-600):hover {
+  filter: brightness(1.06);
+}
+main a[class*="bg-blue-700"],
+main a[class*="bg-blue-600"],
+main a[class*="bg-indigo-600"],
+main a[class*="bg-purple-600"] { color: #FFFFFF !important; }
+main :is(.focus\:ring-blue-300,.focus\:ring-blue-500) { --tw-ring-color: rgba(24,121,253,.3); }
