@@ -120,15 +120,15 @@ export function HeroSection({
             </div>
           </div>
 
-          <div className="relative hidden min-h-[600px] items-center justify-center xl:flex">
+          <div className="pointer-events-none absolute inset-0 z-0 hidden overflow-hidden xl:block" aria-hidden="true">
             <Image
               src="/images/twimzi-global-logistics-clean.webp"
-              alt="A globe connected by global air, road and rail transport, representing Twimzi’s global business reach"
+              alt=""
               width={1536}
               height={1024}
               priority
-              sizes="(min-width: 1280px) 40vw, 0px"
-              className="pointer-events-none relative z-0 h-auto w-[600px] max-w-none object-contain drop-shadow-[0_24px_35px_rgba(25,75,150,0.12)]"
+              sizes="100vw"
+              className="absolute left-[55%] top-1/2 h-auto w-[min(78vw,1250px)] max-w-none -translate-x-1/2 -translate-y-1/2 object-contain opacity-95 drop-shadow-[0_28px_48px_rgba(25,75,150,0.14)]"
             />
           </div>
 
