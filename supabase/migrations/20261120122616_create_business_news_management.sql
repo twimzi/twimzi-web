@@ -23,7 +23,7 @@ alter table public.business_news enable row level security;
 revoke all on table public.business_news from anon, authenticated;
 grant select on table public.business_news to anon, authenticated;
 grant insert, update, delete on table public.business_news to authenticated;
-create policy "Public can read published business news" on public.business_news for select to anon, authenticated using (status in ('published','scheduled') and published_at is not null and published_at <= now());
+create policy "Public can read published business news" on public.business_news for select to anon, authenticated using (status = 'published' and published_at is not null and published_at <= now());
 create policy "Super admins can read all business news" on public.business_news for select to authenticated using ((select public.is_super_admin()) is true);
 create policy "Super admins can create business news" on public.business_news for insert to authenticated with check ((select public.is_super_admin()) is true and (created_by is null or created_by = (select auth.uid())));
 create policy "Super admins can update business news" on public.business_news for update to authenticated using ((select public.is_super_admin()) is true) with check ((select public.is_super_admin()) is true);
