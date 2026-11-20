@@ -53,6 +53,25 @@ async function getNews(slug: string): Promise<NewsItem | null> {
   return data as NewsItem | null;
 }
 
+async function getRelatedNews(category: string, excludeSlug: string) {
+  const supabase = getClient();
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("business_news")
+    .select("id,title,slug,summary,category,published_at")
+    .eq("category", category)
+    .neq("slug", excludeSlug)
+    .in("status", ["published", "scheduled"])
+    .lte("published_at", new Date().toISOString())
+    .order("published_at", { ascending: false })
+    .limit(3);
+  if (error) {
+    console.error("Related business news could not be loaded:", error.message);
+    return [];
+  }
+  return data ?? [];
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const item = await getNews(slug);
@@ -236,6 +255,7 @@ export default async function BusinessNewsArticle({ params }: { params: Promise<
             Read original announcement <ExternalLink className="h-4 w-4" />
           </a>
         </section>
+        {relatedNews.length > 0 && <section className="mt-10"><p className="text-xs font-extrabold uppercase tracking-[.15em] text-[#7000D6]">Continue exploring</p><h2 className="mt-2 text-2xl font-extrabold text-[#263d70]">Related business news</h2><div className="mt-5 grid gap-4 md:grid-cols-3">{relatedNews.map((story) => <article key={story.id} className="rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-blue-200 hover:shadow-md"><p className="text-xs font-semibold text-slate-500">{story.category} · {new Intl.DateTimeFormat("en-IN",{day:"numeric",month:"short",year:"numeric",timeZone:"Asia/Kolkata"}).format(new Date(story.published_at))}</p><h3 className="mt-3 font-extrabold leading-snug text-[#263d70]"><Link href={`/news/${story.slug}`} className="hover:text-[#1455C7]">{story.title}</Link></h3><p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-600">{story.summary}</p><Link href={`/news/${story.slug}`} className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-[#1879FD]">Read story <ArrowUpRight className="h-4 w-4"/></Link></article>)}</div></section>}
         <p className="mt-7 text-xs leading-6 text-slate-500">Editorial note: This is an independent summary prepared by Twimzi from the linked source. It is not legal, tax, investment or export-compliance advice. Confirm current requirements with the relevant authority before acting.</p>
         <Link href="/news" className="mt-7 inline-flex items-center gap-2 text-sm font-bold text-[#1879FD] hover:text-[#7000D6] hover:underline">
           Back to business news <ArrowUpRight className="h-4 w-4" />
