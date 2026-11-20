@@ -34,8 +34,8 @@ export function HeroSection({ interestingItems = fallbackItems }: HeroSectionPro
   return (
     <section className="twimzi-home-hero relative isolate overflow-hidden text-slate-900">
       <div className="twimzi-hero-pattern pointer-events-none absolute inset-0" aria-hidden="true" />
-      <div className="relative z-10 mx-auto grid w-full max-w-7xl gap-9 px-5 py-10 sm:px-8 sm:py-12 lg:grid-cols-[minmax(0,1.2fr)_minmax(360px,.8fr)] lg:items-center lg:gap-12 lg:px-10 lg:py-14">
-        <div className="min-w-0">
+      <div className="twimzi-home-hero-inner relative z-10 mx-auto grid w-full max-w-7xl gap-9 px-5 py-10 sm:px-8 sm:py-12 lg:px-10 lg:py-14">
+        <div className="twimzi-home-hero-main min-w-0">
           <div className="twimzi-hero-search mb-8 w-full max-w-[760px] rounded-2xl border border-white bg-white/90 p-1.5 shadow-[0_10px_32px_rgba(38,74,145,.09)] backdrop-blur-xl sm:mb-9">
             <form action="/explore" method="get" className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <div className="relative min-w-0 flex-1">
@@ -82,7 +82,7 @@ export function HeroSection({ interestingItems = fallbackItems }: HeroSectionPro
           </div>
         </div>
 
-        <aside className="relative mx-auto w-full max-w-[470px] lg:justify-self-end">
+        <aside className="twimzi-home-hero-discoveries relative mx-auto w-full max-w-[470px]">
           <div className="pointer-events-none absolute -inset-8 rounded-[36px] bg-gradient-to-br from-[#8E07FB]/10 via-transparent to-[#05CDFC]/15 blur-2xl" aria-hidden="true" />
           <div className="relative rounded-[26px] border border-white/90 bg-white/95 p-5 shadow-[0_18px_55px_rgba(30,68,130,.10)] backdrop-blur-xl sm:p-6">
             <div className="flex items-center justify-between gap-3">
