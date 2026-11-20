@@ -53,7 +53,7 @@ function formatDate(value: string) {
 }
 
 function readingTime(summary: string) {
-  return Math.max(1, Math.ceil(summary.trim().split(/\\s+/).length / 180));
+  return Math.max(1, Math.ceil(summary.trim().split(/\s+/).length / 180));
 }
 
 function categoryTone(category: string) {
@@ -119,6 +119,7 @@ function NewsCard({ item }: { item: NewsItem }) {
         <div className="mt-auto flex flex-col gap-4 border-t border-slate-100 pt-5 mt-5"><NewsActions compact item={{slug:item.slug,title:item.title,summary:item.summary,category:item.category,publishedAt:item.published_at,url:`/news/${item.slug}`}} /><div className="flex items-center justify-between gap-3">
           <span className="inline-flex min-w-0 items-center gap-1.5 truncate text-xs font-semibold text-slate-500"><ShieldCheck className="h-3.5 w-3.5 shrink-0 text-emerald-600" />{item.source_name}</span>
           <span className="inline-flex shrink-0 items-center gap-1 text-sm font-bold text-[#1879FD] transition group-hover:gap-2">Read <ArrowUpRight className="h-4 w-4" /></span>
+        </div>
         </div>
       </div>
     </article>
