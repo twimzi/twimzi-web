@@ -42,7 +42,7 @@ function formatNumber(value: number) {
 }
 
 function formatPrice(value: number | null) {
-  if (value === null || value === undefined) {
+  if (value === null || value === undefined || value <= 0) {
     return "Contact for price";
   }
 
@@ -173,7 +173,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
       : {}),
     ...(product.model ? { model: product.model } : {}),
     ...(product.product_code ? { sku: product.product_code } : {}),
-    ...(product.selling_price !== null
+    ...(product.selling_price !== null && product.selling_price > 0
       ? {
           offers: {
             "@type": "Offer",
