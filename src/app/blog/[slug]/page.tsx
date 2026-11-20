@@ -299,7 +299,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ sl
         </div>
       </div>
 
-      <header className="relative isolate overflow-hidden bg-slate-950">
+      <header className="twimzi-blog-article-header relative isolate overflow-hidden bg-slate-950">
         <div className="absolute inset-0 -z-20">
           <BlogImage src={cover} alt="" className="h-full w-full object-cover opacity-25" loading="eager" />
         </div>
