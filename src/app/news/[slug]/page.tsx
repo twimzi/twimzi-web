@@ -22,6 +22,7 @@ type NewsItem = {
   meta_title: string | null;
   meta_description: string | null;
   published_at: string;
+  reading_time_minutes: number;
   editorial_updated_at: string | null;
   primary_keyword: string | null;
   secondary_keywords: string[] | null;
@@ -44,7 +45,7 @@ async function getNews(slug: string): Promise<NewsItem | null> {
   if (!supabase) return null;
   const { data, error } = await supabase
     .from("business_news")
-    .select("id,title,slug,category,summary,content,source_name,source_url,featured_image_url,meta_title,meta_description,published_at,editorial_updated_at,primary_keyword,secondary_keywords,key_takeaways,business_impact,action_points,key_figures,faq,related_links")
+    .select("id,title,slug,category,summary,content,source_name,source_url,featured_image_url,meta_title,meta_description,published_at,reading_time_minutes,editorial_updated_at,primary_keyword,secondary_keywords,key_takeaways,business_impact,action_points,key_figures,faq,related_links")
     .eq("slug", slug)
     .in("status", ["published", "scheduled"])
     .lte("published_at", new Date().toISOString())
@@ -219,7 +220,7 @@ export default async function BusinessNewsArticle({ params }: { params: Promise<
             <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-500">
               <span className="inline-flex items-center gap-2"><CalendarDays className="h-4 w-4 text-[#1879FD]" />{new Intl.DateTimeFormat("en-IN", { dateStyle: "long", timeZone: "Asia/Kolkata" }).format(new Date(item.published_at))}</span>
               <span>By Twimzi Business Desk</span>
-              <span>{wordCount.toLocaleString("en-IN")} words</span>
+              <span>{wordCount.toLocaleString("en-IN")} words · {item.reading_time_minutes} min read</span>
               <span className="w-full"><NewsActions item={{slug:item.slug,title:item.title,summary:item.summary,category:item.category,publishedAt:item.published_at,url:`/news/${item.slug}`}} /></span>
             </div>
             <p className="news-summary mt-7 rounded-2xl border-l-4 border-[#05CDFC] bg-[#F0FBFF] px-5 py-4 text-lg leading-8 text-[#344365]">
