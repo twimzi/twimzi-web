@@ -3,7 +3,8 @@ import Link from "next/link";
 import { ArrowLeft, ArrowUpRight, CalendarDays, ExternalLink, Newspaper, Sparkles } from "lucide-react";
 import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
-import { siteConfig } from "@/config/site";\nimport { NewsActions } from "@/components/news/news-actions";
+import { siteConfig } from "@/config/site";
+import { NewsActions } from "@/components/news/news-actions";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
