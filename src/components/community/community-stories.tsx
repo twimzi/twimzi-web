@@ -108,20 +108,20 @@ export default function CommunityStories({ stories }: Props) {
 
   return (
     <>
-      <section aria-labelledby="community-stories-heading" className="twimzi-home-stories mb-6 border-0 bg-transparent p-0 shadow-none">
-        <div className="mb-3 flex items-center justify-between gap-3">
+      <section aria-labelledby="community-stories-heading" className="twimzi-home-stories mx-auto mb-3 w-full max-w-7xl border-0 bg-white px-4 py-3 sm:px-8 lg:px-10">
+        <div className="mb-2 flex items-center justify-between gap-3">
           <div>
-            <h2 id="community-stories-heading" className="text-xl font-bold tracking-tight text-slate-950">Stories</h2>
+            <h2 id="community-stories-heading" className="text-lg font-extrabold tracking-tight text-[#020D3A]">Stories</h2>
           </div>
         </div>
-        <div className="flex gap-4 overflow-x-auto pb-2">
+        <div className="flex gap-3 overflow-x-auto pb-1">
           {groups.map((group) => {
             const latestStory = group.stories[0];
             return (
-              <button key={group.key} type="button" onClick={() => openGroup(group)} className="group flex w-[88px] shrink-0 flex-col items-center gap-2 text-center" aria-label={`View ${group.stories.length} stor${group.stories.length === 1 ? "y" : "ies"} from ${group.businessName}`}>
+              <button key={group.key} type="button" onClick={() => openGroup(group)} className="group flex w-[84px] shrink-0 flex-col items-center gap-1.5 text-center" aria-label={`View ${group.stories.length} stor${group.stories.length === 1 ? "y" : "ies"} from ${group.businessName}`}>
                 <span className="relative rounded-2xl bg-gradient-to-tr from-orange-500 via-rose-500 to-teal-500 p-[3px] transition group-hover:scale-[1.03]">
                   <span className="block rounded-xl bg-white p-[3px]">
-                    <span className="block h-[76px] w-[76px] overflow-hidden rounded-lg bg-slate-100">
+                    <span className="block h-[68px] w-[68px] overflow-hidden rounded-lg bg-slate-100">
                       <img src={latestStory.imageUrl} alt="" className="h-full w-full object-cover" loading="lazy" />
                     </span>
                   </span>
