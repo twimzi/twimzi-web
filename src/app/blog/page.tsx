@@ -63,14 +63,14 @@ export default async function BlogPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <section className="border-b border-slate-200 bg-[#f0f2f2]">
+      <section className="border-b border-slate-200 bg-[linear-gradient(115deg,#F8F2FF_0%,#F4F8FF_52%,#EFFBFF_100%)]">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
           <div className="max-w-3xl">
             <span className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-slate-700"><span className="h-2 w-2 rounded-full bg-[var(--color-primary)]" /> The Twimzi Journal</span>
-            <h1 className="mt-6 text-4xl font-bold leading-tight tracking-tight text-slate-950 sm:text-6xl">Ideas that help businesses <span className="text-[#2459a9]">move forward.</span></h1>
+            <h1 className="mt-6 text-4xl font-bold leading-tight tracking-tight text-slate-950 sm:text-6xl">Ideas that help businesses <span className="text-[#1879FD]">move forward.</span></h1>
             <p className="mt-6 max-w-2xl text-base leading-8 text-slate-600 sm:text-lg">Practical business guides, digital growth tips and useful insights for India’s entrepreneurs, professionals and local communities.</p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Link href="/add-business" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-[#2459a9] px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-[#1d477f] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-300/60">
+              <Link href="/add-business" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-[#1879FD] px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-[#1455C7] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-300/60">
                 List your business <span aria-hidden="true">→</span>
               </Link>
               <a href="#latest-articles" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-transparent px-5 py-3 text-sm font-bold text-slate-800 transition-colors hover:border-slate-500 hover:bg-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-300/60">
@@ -89,7 +89,7 @@ export default async function BlogPage() {
         </div>
 
         {featured ? (
-          <article className="overflow-hidden rounded-xl border border-slate-200 bg-[#fbfbf8] lg:grid lg:grid-cols-[1.08fr_0.92fr]">
+          <article className="overflow-hidden rounded-xl border border-slate-200 bg-white lg:grid lg:grid-cols-[1.08fr_0.92fr]">
             <Link href={`/blog/${featured.slug}`} aria-label={`Read ${featured.title}`} className="group relative block min-h-64 overflow-hidden bg-slate-200 sm:min-h-80 lg:min-h-[420px]">
               <BlogImage src={featured.featured_image_url || DEFAULT_COVER} alt={featured.title} className="absolute inset-0 h-full w-full object-cover " loading="eager" fetchPriority="high" />
               <span className="absolute left-5 top-5 rounded-md bg-white px-3 py-1.5 text-xs font-bold text-slate-800">Featured guide</span>
@@ -114,7 +114,7 @@ export default async function BlogPage() {
       </section>
 
       <section className="border-y border-slate-200 bg-white"><div className="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-10 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8"><div><p className="text-xs font-extrabold uppercase tracking-[0.16em] text-blue-700">Your next step</p><h2 className="mt-2 text-xl font-black text-slate-950 sm:text-2xl">Make your business easier to discover.</h2><p className="mt-2 text-sm leading-6 text-slate-700">Create your free Twimzi listing and help customers find what you offer.</p></div><Link href="/add-business" className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-blue-700 px-5 py-3 text-sm font-extrabold text-white shadow-sm transition hover:bg-blue-800 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-300">Get started free <span aria-hidden="true">→</span></Link></div></section>
-      <footer className="bg-slate-950 py-8 text-center text-sm text-slate-400"><p>Ideas for local business growth, from <Link href="/" className="font-bold text-white hover:text-[#2459a9]">Twimzi</Link>.</p></footer>
+      <footer className="bg-slate-950 py-8 text-center text-sm text-slate-400"><p>Ideas for local business growth, from <Link href="/" className="font-bold text-white hover:text-[#1879FD]">Twimzi</Link>.</p></footer>
     </div>
   );
 }
