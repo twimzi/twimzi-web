@@ -209,21 +209,48 @@ function renderContent(content: string) {
   return elements;
 }
 
+function isSafeBlogHref(href: string) {
+  const value = href.trim();
+  if (!value) return false;
+  if (/^(https?:|mailto:|tel:)/i.test(value)) return true;
+  return value.startsWith("/") && !value.startsWith("//") || value.startsWith("#");
+}
+
 function renderInline(text: string, key: string) {
-  const parts = text.split(/(\[[^\]]+\]\([^)]+\)|\*\*[^*]+\*\*|\*[^*]+\*|https?:\/\/[^\s)]+)/g);
+  // Supports Markdown links, pasted URLs, angle-bracket autolinks and
+  // simple HTML anchors commonly copied into the blog editor.
+  const tokenPattern = /(\[[^\]]+\]\((?:[^()]|\([^()]*\))+\)|<https?:\/\/[^>\s]+>|<a\s+href=(["'])(.*?)\2[^>]*>.*?<\/a>|https?:\/\/[^\s<>]+)/gi;
+  const parts = text.split(tokenPattern);
   return parts.map((part, index) => {
-    const markdownLink = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+    if (!part) return null;
+
+    const markdownLink = part.match(/^\[([^\]]+)\]\((.+)\)$/);
     if (markdownLink) {
-      const [, label, href] = markdownLink;
-      const isExternal = /^https?:\/\//i.test(href);
-      return <a key={key + "-" + index} href={href} {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})} className="break-words font-bold text-[#1879FD] underline decoration-[#05CDFC] underline-offset-4 hover:text-[#8E07FB]">{label}</a>;
+      const label = markdownLink[1];
+      const destination = markdownLink[2].replace(/^\s*<|>\s*$/g, "").trim().replace(/\s+["'][^"']*["']$/, "");
+      if (!isSafeBlogHref(destination)) return label;
+      const external = /^https?:\/\//i.test(destination);
+      return <a key={key + "-" + index} href={destination} {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})} className="break-words font-bold text-[#1879FD] underline decoration-[#05CDFC] underline-offset-4 hover:text-[#8E07FB] focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1879FD]">{label}</a>;
     }
+
+    const htmlAnchor = part.match(/^<a\s+href=(["'])(.*?)\1[^>]*>(.*?)<\/a>$/i);
+    if (htmlAnchor) {
+      const destination = htmlAnchor[2].trim();
+      const label = htmlAnchor[3].replace(/<[^>]*>/g, "").trim();
+      if (!isSafeBlogHref(destination)) return label;
+      const external = /^https?:\/\//i.test(destination);
+      return <a key={key + "-" + index} href={destination} {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})} className="break-words font-bold text-[#1879FD] underline decoration-[#05CDFC] underline-offset-4 hover:text-[#8E07FB] focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1879FD]">{label || destination}</a>;
+    }
+
+    const autoLink = part.match(/^<((?:https?:\/\/)[^>]+)>$/i);
+    const rawUrl = autoLink?.[1] ?? part;
+    if (/^https?:\/\//i.test(rawUrl)) {
+      const cleanUrl = rawUrl.replace(/[.,;!?]+$/, "");
+      return <a key={key + "-" + index} href={cleanUrl} target="_blank" rel="noopener noreferrer" className="break-words font-bold text-[#1879FD] underline decoration-[#05CDFC] underline-offset-4 hover:text-[#8E07FB] focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1879FD]">{cleanUrl}{rawUrl.slice(cleanUrl.length)}</a>;
+    }
+
     if (part.startsWith("**") && part.endsWith("**")) return <strong key={key + "-" + index} className="bg-gradient-to-r from-[#8E07FB] via-[#1879FD] to-[#05CDFC] bg-clip-text font-extrabold text-transparent">{part.slice(2, -2)}</strong>;
     if (part.startsWith("*") && part.endsWith("*") && !part.startsWith("**")) return <em key={key + "-" + index} className="italic text-[#344365]">{part.slice(1, -1)}</em>;
-    if (/^https?:\/\//.test(part)) {
-      const cleanUrl = part.replace(/[.,;!?]+$/, "");
-      return <a key={key + "-" + index} href={cleanUrl} target="_blank" rel="noopener noreferrer" className="break-words font-bold text-[#1879FD] underline decoration-[#05CDFC] underline-offset-4 hover:text-[#8E07FB]">{cleanUrl}{part.slice(cleanUrl.length)}</a>;
-    }
     return part;
   });
 }
