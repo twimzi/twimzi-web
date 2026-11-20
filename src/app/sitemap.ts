@@ -8,7 +8,7 @@ export const revalidate = 3600;
 
 const routes = [
   "/", "/about", "/contact", "/explore", "/businesses", "/products",
-  "/services", "/offers", "/community", "/blog", "/privacy-policy",
+  "/services", "/offers", "/community", "/blog", "/news", "/privacy-policy",
   "/terms-and-conditions", "/acceptable-use", "/community-guidelines",
   "/business-terms", "/marketplace-policy", "/user-content-policy",
   "/intellectual-property-policy", "/messaging-policy", "/data-deletion-policy",
@@ -17,7 +17,7 @@ const routes = [
 ];
 
 const highPriorityRoutes = new Set([
-  "/", "/businesses", "/products", "/services", "/offers", "/community", "/blog", "/free-business-listing-india",
+  "/", "/businesses", "/products", "/services", "/offers", "/community", "/blog", "/news", "/free-business-listing-india",
 ]);
 
 type PublicBusiness = {
