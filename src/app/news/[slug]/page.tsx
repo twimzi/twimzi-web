@@ -163,7 +163,6 @@ export default async function BusinessNewsArticle({ params }: { params: Promise<
     wordCount,
     keywords: [item.primary_keyword, ...(item.secondary_keywords ?? [])].filter(Boolean),
     articleSection: item.category,
-    hasPart: (item.faq ?? []).map((entry) => ({ "@type": "Question", name: entry.question, acceptedAnswer: { "@type": "Answer", text: entry.answer } })),
     description: item.meta_description?.trim() || item.summary,
     datePublished: item.published_at,
     dateModified: item.editorial_updated_at ?? item.published_at,
@@ -177,6 +176,8 @@ export default async function BusinessNewsArticle({ params }: { params: Promise<
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,#F8FAFF_0%,#FFFFFF_420px)]">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, "\\u003c") }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbStructuredData).replace(/</g, "\\u003c") }} />
+      {faqStructuredData && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqStructuredData).replace(/</g, "\\u003c") }} />}
       <div className="border-b border-slate-200/80 bg-white/90">
         <div className="mx-auto max-w-4xl px-4 py-4 sm:px-6">
           <Link href="/news" className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 transition hover:text-[#7000D6]">
