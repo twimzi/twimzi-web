@@ -1757,3 +1757,94 @@ main :is(.focus\:ring-blue-300,.focus\:ring-blue-500) { --tw-ring-color: rgba(24
     max-width: 100% !important;
   }
 }
+
+
+/* Structural homepage hero layout.
+   Explicit component classes replace fragile child-position selectors. */
+.twimzi-home-hero.twimzi-home-hero > .twimzi-home-hero-inner {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 30px !important;
+  width: min(100% - 40px, 1280px) !important;
+  max-width: 1280px !important;
+  min-height: 0 !important;
+  margin-inline: auto !important;
+  padding: 30px 0 42px !important;
+}
+.twimzi-home-hero.twimzi-home-hero .twimzi-home-hero-main {
+  grid-column: 1 !important;
+  grid-row: 1 !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  margin: 0 !important;
+  transform: none !important;
+}
+.twimzi-home-hero.twimzi-home-hero .twimzi-home-hero-discoveries {
+  grid-column: 1 !important;
+  grid-row: 2 !important;
+  justify-self: stretch !important;
+  align-self: center !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  transform: none !important;
+}
+.twimzi-home-hero.twimzi-home-hero .twimzi-hero-search {
+  width: 100% !important;
+  max-width: 760px !important;
+  margin: 0 0 28px !important;
+}
+.twimzi-home-hero.twimzi-home-hero .twimzi-home-hero-discoveries > div.relative {
+  width: 100% !important;
+}
+@media (min-width: 900px) {
+  .twimzi-home-hero.twimzi-home-hero > .twimzi-home-hero-inner {
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 440px) !important;
+    column-gap: clamp(36px, 5vw, 76px) !important;
+    row-gap: 24px !important;
+    padding-top: clamp(34px, 4vw, 58px) !important;
+    padding-bottom: clamp(42px, 4.5vw, 64px) !important;
+  }
+  .twimzi-home-hero.twimzi-home-hero .twimzi-home-hero-main {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+  }
+  .twimzi-home-hero.twimzi-home-hero .twimzi-home-hero-discoveries {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    justify-self: end !important;
+    max-width: 440px !important;
+  }
+}
+@media (min-width: 900px) and (max-width: 1100px) {
+  .twimzi-home-hero.twimzi-home-hero > .twimzi-home-hero-inner {
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 390px) !important;
+    column-gap: 28px !important;
+  }
+  .twimzi-home-hero .twimzi-home-hero-main h1 {
+    font-size: clamp(2.8rem, 5vw, 3.6rem) !important;
+  }
+}
+@media (max-width: 899px) {
+  .twimzi-home-hero.twimzi-home-hero > .twimzi-home-hero-inner {
+    width: min(100% - 32px, 680px) !important;
+    gap: 26px !important;
+  }
+  .twimzi-home-hero.twimzi-home-hero .twimzi-home-hero-discoveries {
+    max-width: 100% !important;
+  }
+}
+@media (max-width: 639px) {
+  .twimzi-home-hero.twimzi-home-hero > .twimzi-home-hero-inner {
+    width: min(100% - 28px, 560px) !important;
+    padding-top: 22px !important;
+    padding-bottom: 30px !important;
+  }
+  .twimzi-home-hero.twimzi-home-hero .twimzi-home-hero-main h1 {
+    font-size: clamp(2.35rem, 11vw, 3.1rem) !important;
+  }
+  .twimzi-home-hero.twimzi-home-hero .twimzi-hero-search {
+    margin-bottom: 22px !important;
+  }
+}
