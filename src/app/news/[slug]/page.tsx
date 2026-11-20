@@ -22,6 +22,15 @@ type NewsItem = {
   meta_title: string | null;
   meta_description: string | null;
   published_at: string;
+  editorial_updated_at: string | null;
+  primary_keyword: string | null;
+  secondary_keywords: string[] | null;
+  key_takeaways: ({ text?: string } | string)[] | null;
+  business_impact: string | null;
+  action_points: { title?: string; detail?: string }[] | null;
+  key_figures: { label?: string; value?: string; context?: string }[] | null;
+  faq: { question?: string; answer?: string }[] | null;
+  related_links: { title?: string; url?: string; publisher?: string }[] | null;
 };
 
 function getClient() {
