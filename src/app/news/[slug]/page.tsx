@@ -50,7 +50,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const title = item.meta_title?.trim() || item.title;
   const description = item.meta_description?.trim() || item.summary;
   return {
-    title: `${title.replace(/(?:\s*\\|\s*Twimzi)+$/i, "")} | Twimzi Business News`,
+    title: `${title.replace(/(?:\s*\|\s*Twimzi)+$/i, "")} | Twimzi Business News`,
     description,
     alternates: { canonical: `/news/${item.slug}` },
     openGraph: {
@@ -122,7 +122,7 @@ function renderMarkdown(content: string) {
         </ul>
       );
     }
-    if (/^\d+\\.\s+/.test(value)) {
+    if (/^\d+\.\s+/.test(value)) {
       return (
         <ol key={index} className="my-6 space-y-3 pl-1">
           {value.split("\n").map((line, itemIndex) => (
