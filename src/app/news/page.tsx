@@ -95,7 +95,7 @@ function NewsArtwork({ category, featured = false }: { category: string; feature
   );
 }
 
-function NewsCard({ item, index }: { item: NewsItem; index: number }) {
+function NewsCard({ item }: { item: NewsItem }) {
   const tone = categoryTone(item.category);
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-[22px] border border-slate-200/80 bg-white transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-[0_18px_44px_rgba(30,55,110,0.10)]">
@@ -207,6 +207,7 @@ export default async function BusinessNewsPage({ searchParams }: { searchParams:
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-9 sm:px-6 sm:py-12 lg:px-8">
+        <div className="mb-5 flex justify-end"><Link href="/news/saved" className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-white px-4 py-2 text-sm font-bold text-violet-700 transition hover:bg-violet-50"><Bookmark className="h-4 w-4" /> Saved reading list</Link></div>
         <nav aria-label="News categories" className="flex flex-wrap gap-2">
           {categories.map(({ name, icon: Icon, tone }) => {
             const active = category === name;
@@ -263,7 +264,7 @@ export default async function BusinessNewsPage({ searchParams }: { searchParams:
                   <span className="hidden text-xs font-semibold uppercase tracking-[0.12em] text-slate-400 sm:block">Latest first</span>
                 </div>
                 <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-                  {remaining.map((item, index) => <NewsCard key={item.id} item={item} index={index} />)}
+                  {remaining.map((item) => <NewsCard key={item.id} item={item} />)}
                 </div>
               </div>
             )}
