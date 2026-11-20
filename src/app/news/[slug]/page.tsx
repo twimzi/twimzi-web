@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowLeft, ArrowUpRight, CalendarDays, ExternalLink, Newspaper, Sparkles } from "lucide-react";
 import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
-import { siteConfig } from "@/config/site";
+import { siteConfig } from "@/config/site";\nimport { NewsActions } from "@/components/news/news-actions";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -180,7 +180,7 @@ export default async function BusinessNewsArticle({ params }: { params: Promise<
             </h1>
             <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-500">
               <span className="inline-flex items-center gap-2"><CalendarDays className="h-4 w-4 text-[#1879FD]" />{new Intl.DateTimeFormat("en-IN", { dateStyle: "long", timeZone: "Asia/Kolkata" }).format(new Date(item.published_at))}</span>
-              <span>By Twimzi Business Desk</span>
+              <span>By Twimzi Business Desk</span>\n              <span className="w-full"><NewsActions item={{slug:item.slug,title:item.title,summary:item.summary,category:item.category,publishedAt:item.published_at,url:`/news/${item.slug}`}} /></span>
             </div>
             <p className="news-summary mt-7 rounded-2xl border-l-4 border-[#05CDFC] bg-[#F0FBFF] px-5 py-4 text-lg leading-8 text-[#344365]">
               {item.summary}
