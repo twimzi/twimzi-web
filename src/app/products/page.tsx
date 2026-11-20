@@ -43,7 +43,7 @@ function formatNumber(value: number) {
 }
 
 function formatPrice(value: number | null) {
-  if (value === null || value === undefined) {
+  if (value === null || value === undefined || value <= 0) {
     return "Contact for price";
   }
 
