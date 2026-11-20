@@ -2015,3 +2015,114 @@ main :is(.focus\:ring-blue-300,.focus\:ring-blue-500) { --tw-ring-color: rgba(24
   }
   .twimzi-home-hero .twimzi-home-hero-discoveries { padding: 17px !important; }
 }
+
+
+/* Twimzi homepage — clean editorial composition inspired by approved reference */
+.twimzi-home-hero {
+  background: #fff !important;
+  background-image: none !important;
+  color: #14243d !important;
+}
+.twimzi-home-hero .twimzi-home-hero-inner {
+  display: grid !important;
+  grid-template-columns: minmax(0,1.12fr) minmax(390px,.88fr) !important;
+  grid-template-areas: "main discoveries" !important;
+  align-items: center !important;
+  gap: clamp(38px,5vw,76px) !important;
+  width: min(100% - 64px,1420px) !important;
+  max-width: 1420px !important;
+  margin-inline: auto !important;
+  padding: clamp(44px,5vw,76px) 0 clamp(54px,6vw,86px) !important;
+}
+.twimzi-home-hero .twimzi-home-hero-main {
+  grid-area: main !important;
+  max-width: 760px !important;
+  width: 100% !important;
+  margin: 0 !important;
+  transform: none !important;
+}
+.twimzi-home-hero .twimzi-home-hero-main h1 {
+  max-width: 13ch !important;
+  margin-top: 24px !important;
+  color: #14243d !important;
+  font-size: clamp(3.2rem,5.4vw,5rem) !important;
+  line-height: .99 !important;
+  letter-spacing: -.055em !important;
+}
+.twimzi-home-hero .twimzi-home-hero-main > p {
+  max-width: 650px !important;
+  margin-top: 18px !important;
+  color: #526176 !important;
+  font-size: clamp(1.08rem,1.5vw,1.3rem) !important;
+  line-height: 1.45 !important;
+}
+.twimzi-home-hero .twimzi-hero-search {
+  width: 100% !important;
+  max-width: 760px !important;
+  margin: 28px 0 0 !important;
+  padding: 6px !important;
+  border: 1px solid #dce4eb !important;
+  border-radius: 999px !important;
+  background: #fff !important;
+  box-shadow: 0 5px 18px rgba(20,36,61,.08) !important;
+}
+.twimzi-home-hero .twimzi-hero-search input {
+  height: 54px !important;
+  border-color: transparent !important;
+  border-radius: 999px !important;
+}
+.twimzi-home-hero .twimzi-hero-search button {
+  height: 54px !important;
+  border-radius: 999px !important;
+  background: #0d9488 !important;
+}
+.twimzi-home-hero .twimzi-home-hero-main > div:nth-last-child(2) {
+  margin-top: 24px !important;
+}
+.twimzi-home-hero .twimzi-home-hero-main > div:last-child svg {
+  color: #0d9488 !important;
+}
+.twimzi-home-hero .twimzi-home-hero-discoveries {
+  grid-area: discoveries !important;
+  width: 100% !important;
+  max-width: 560px !important;
+  justify-self: end !important;
+  margin: 0 !important;
+  padding: 28px !important;
+  border: 1px solid #e2eaed !important;
+  border-radius: 28px !important;
+  background: #fff !important;
+  box-shadow: 0 12px 32px rgba(20,36,61,.06) !important;
+}
+.twimzi-home-hero .twimzi-home-hero-discoveries p.text-xs,
+.twimzi-home-hero .twimzi-home-hero-discoveries a p.text-\[10px\] {
+  color: #0d9488 !important;
+}
+.twimzi-home-hero .twimzi-home-hero-discoveries h2 { color: #14243d !important; }
+.twimzi-home-hero .twimzi-home-hero-discoveries a > div:first-child {
+  background: #eaf7f5 !important;
+  color: #0d9488 !important;
+}
+.twimzi-home-hero .twimzi-home-hero-discoveries a {
+  border-color: #edf1f3 !important;
+  border-radius: 20px !important;
+  box-shadow: 0 2px 10px rgba(20,36,61,.025) !important;
+}
+.twimzi-home-hero .twimzi-home-hero-discoveries a:hover { background: #f8fcfb !important; }
+@media (max-width: 899px) {
+  .twimzi-home-hero .twimzi-home-hero-inner {
+    grid-template-columns: minmax(0,1fr) !important;
+    grid-template-areas: "main" "discoveries" !important;
+    width: min(100% - 36px,720px) !important;
+    gap: 34px !important;
+    padding: 36px 0 48px !important;
+  }
+  .twimzi-home-hero .twimzi-home-hero-discoveries { max-width: 100% !important; }
+  .twimzi-home-hero .twimzi-home-hero-main h1 { font-size: clamp(2.8rem,8vw,4rem) !important; }
+}
+@media (max-width: 639px) {
+  .twimzi-home-hero .twimzi-home-hero-inner { width: min(100% - 28px,560px) !important; padding: 26px 0 36px !important; }
+  .twimzi-home-hero .twimzi-home-hero-main h1 { font-size: clamp(2.45rem,11vw,3.3rem) !important; }
+  .twimzi-home-hero .twimzi-hero-search { border-radius: 22px !important; }
+  .twimzi-home-hero .twimzi-hero-search form { grid-template-columns: minmax(0,1fr) !important; }
+}
