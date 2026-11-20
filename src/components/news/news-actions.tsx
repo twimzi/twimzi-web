@@ -48,11 +48,11 @@ export function NewsActions({ item, compact = false }: { item: SavedNewsItem; co
       return;
     }
     try {
-      await navigator.clipboard.writeText(item.url);
+      await navigator.clipboard.writeText(new URL(item.url, window.location.origin).toString());
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1800);
     } catch {
-      window.prompt("Copy this news link", item.url);
+      window.prompt("Copy this news link", new URL(item.url, window.location.origin).toString());
     }
   }
 
