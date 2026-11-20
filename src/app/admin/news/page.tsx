@@ -15,7 +15,8 @@ async function requireSuperAdmin() {
   if (error || data !== true) redirect("/");
   return { supabase, user };
 }
-function parseJsonArray(value:FormDataEntryValue|null, field:string) { const raw=String(value??"").trim(); if(!raw)return []; try { const parsed=JSON.parse(raw); if(!Array.isArray(parsed))throw new Error(); return parsed; } catch { throw new Error(`${field} must be valid JSON array data.`); } }\nfunction makeSlug(value:string) {
+function parseJsonArray(value:FormDataEntryValue|null, field:string) { const raw=String(value??"").trim(); if(!raw)return []; try { const parsed=JSON.parse(raw); if(!Array.isArray(parsed))throw new Error(); return parsed; } catch { throw new Error(`${field} must be valid JSON array data.`); } }
+function makeSlug(value:string) {
   return value.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,180);
 }
 async function createNews(formData:FormData) {
@@ -29,7 +30,15 @@ async function createNews(formData:FormData) {
   const sourceUrl=String(formData.get("source_url")??"").trim();
   const image=String(formData.get("featured_image_url")??"").trim();
   const metaTitle=String(formData.get("meta_title")??"").trim();
-  const metaDescription=String(formData.get("meta_description")??"").trim();\n  const primaryKeyword=String(formData.get("primary_keyword")??"").trim();\n  const secondaryKeywords=String(formData.get("secondary_keywords")??"").split(",").map(x=>x.trim()).filter(Boolean);\n  const keyTakeaways=parseJsonArray(formData.get("key_takeaways"),"Key takeaways");\n  const businessImpact=String(formData.get("business_impact")??"").trim();\n  const actionPoints=parseJsonArray(formData.get("action_points"),"Action points");\n  const keyFigures=parseJsonArray(formData.get("key_figures"),"Key figures");\n  const faq=parseJsonArray(formData.get("faq"),"FAQs");\n  const relatedLinks=parseJsonArray(formData.get("related_links"),"Related links");
+  const metaDescription=String(formData.get("meta_description")??"").trim();
+  const primaryKeyword=String(formData.get("primary_keyword")??"").trim();
+  const secondaryKeywords=String(formData.get("secondary_keywords")??"").split(",").map(x=>x.trim()).filter(Boolean);
+  const keyTakeaways=parseJsonArray(formData.get("key_takeaways"),"Key takeaways");
+  const businessImpact=String(formData.get("business_impact")??"").trim();
+  const actionPoints=parseJsonArray(formData.get("action_points"),"Action points");
+  const keyFigures=parseJsonArray(formData.get("key_figures"),"Key figures");
+  const faq=parseJsonArray(formData.get("faq"),"FAQs");
+  const relatedLinks=parseJsonArray(formData.get("related_links"),"Related links");
   const status=String(formData.get("status")??"draft");
   const publishAt=String(formData.get("published_at")??"").trim();
   if(title.length<10||title.length>220) throw new Error("Title must be between 10 and 220 characters.");
