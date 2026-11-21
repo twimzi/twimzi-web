@@ -2,6 +2,7 @@ import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import NewsCoverUpload from "@/components/news/news-cover-upload";
 
 const categories = ["Trade & Exports", "Manufacturing", "Markets & Policy"] as const;
 type NewsCategory = typeof categories[number];
@@ -48,6 +49,7 @@ async function createNews(formData:FormData) {
   if(!sourceName||!/^https:\/\//i.test(sourceUrl)) throw new Error("A source name and secure HTTPS source URL are required.");
   if(image&&!(/^https:\/\//i.test(image)||(/^\/(?!\/)/.test(image)))) throw new Error("Image must be an HTTPS URL or local site path.");
   if(!["draft","published","scheduled"].includes(status)) throw new Error("Invalid publication status.");
+  if(status!=="draft"&&!image) throw new Error("A featured image is required before publishing or scheduling news.");
   if(status!=="draft"&&(content.length<500||!primaryKeyword||keyTakeaways.length<3||businessImpact.length<100||actionPoints.length<2||faq.length<3)) throw new Error("Before publishing: write a complete article with enough detail to explain the announcement, add a primary search phrase, 3 source-supported takeaways, a meaningful business impact analysis, 2 practical actions and 3 specific FAQs.");
   const {supabase,user}=await requireSuperAdmin();
   const publishedAt=status==="draft"?null:publishAt?new Date(publishAt + "+05:30").toISOString():status==="published"?new Date().toISOString():null;
@@ -91,7 +93,7 @@ export default async function AdminNewsPage({searchParams}:{searchParams:Promise
           <div><label htmlFor="news-summary" className="text-sm font-bold">Summary *</label><textarea id="news-summary" name="summary" required minLength={30} maxLength={700} rows={4} className="mt-1.5 w-full rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm leading-6" placeholder="A concise factual summary."/></div>
           <div><label htmlFor="news-content" className="text-sm font-bold">Full article *</label><textarea id="news-content" name="content" required minLength={80} rows={12} className="mt-1.5 w-full rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm leading-6" placeholder={"Use Markdown.\n\n## What happened\n\nExplain the announcement in your own words.\n\n## Why it matters\n\nAdd practical context and limitations."}/><p className="mt-1 text-xs text-[var(--color-text-muted)]">Markdown headings use ## and ###. Do not copy full source articles.</p></div>
           <div className="grid gap-4 sm:grid-cols-2"><div><label htmlFor="source-name" className="text-sm font-bold">Source / publisher *</label><input id="source-name" name="source_name" required className="mt-1.5 w-full rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm" placeholder="e.g. Press Information Bureau"/></div><div><label htmlFor="source-url" className="text-sm font-bold">Original source URL *</label><input id="source-url" name="source_url" type="url" required pattern="https://.*" className="mt-1.5 w-full rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm" placeholder="https://..."/></div></div>
-          <div><label htmlFor="news-image" className="text-sm font-bold">Featured image URL (optional)</label><input id="news-image" name="featured_image_url" type="url" className="mt-1.5 w-full rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm" placeholder="HTTPS image URL"/></div>
+          <div><label className="text-sm font-bold">News featured image *</label><NewsCoverUpload /><p className="mt-2 text-xs text-[var(--color-text-muted)]">Upload a relevant 16:9 editorial image. A featured image is required to publish or schedule this story.</p></div>
           <div className="rounded-xl border border-violet-200 bg-violet-50/60 p-4"><h3 className="font-extrabold text-violet-900">Search intent & answer-engine structure</h3><p className="mt-1 text-xs leading-5 text-violet-800">Answer the reader’s actual question with verified facts, useful context and practical implications. No fixed word target—do not add filler or repeat keywords.</p>
           <div className="mt-4"><label htmlFor="primary_keyword" className="text-sm font-bold">Primary search phrase</label><input id="primary_keyword" name="primary_keyword" maxLength={120} className="mt-1.5 w-full rounded-xl border border-[var(--color-border)] bg-white px-4 py-3 text-sm" placeholder="e.g. Export Promotion Mission revised guidelines"/></div>
           <div className="mt-3"><label htmlFor="secondary_keywords" className="text-sm font-bold">Related search phrases (comma separated)</label><input id="secondary_keywords" name="secondary_keywords" className="mt-1.5 w-full rounded-xl border border-[var(--color-border)] bg-white px-4 py-3 text-sm" placeholder="export incentives, market access support, exporter eligibility"/></div>
