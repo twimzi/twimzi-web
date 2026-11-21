@@ -44,12 +44,12 @@ export default function NewsCoverUpload({ initialValue = "" }: NewsCoverUploadPr
       };
       const filePath = `${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}.${extensionByType[file.type]}`;
       const { error: uploadError } = await supabase.storage
-        .from("blog-covers")
+        .from("news-covers")
         .upload(filePath, file, { contentType: file.type, cacheControl: "31536000", upsert: false });
 
       if (uploadError) throw uploadError;
 
-      const { data } = supabase.storage.from("blog-covers").getPublicUrl(filePath);
+      const { data } = supabase.storage.from("news-covers").getPublicUrl(filePath);
       setImageUrl(data.publicUrl);
       setMessage("News image uploaded. Save the blog post to apply it.");
       if (fileInputRef.current) fileInputRef.current.value = "";
