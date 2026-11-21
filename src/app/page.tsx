@@ -93,6 +93,7 @@ export default async function HomePreviewPage() {
         HOMEPAGE V2 PREVIEW · Your existing homepage is unchanged
       </div>
       <HomePreviewHero />
+      <BusinessCta />
       <div className="mx-auto w-full max-w-7xl px-4 pt-5 sm:px-6 lg:px-8">
         <CommunityStories stories={stories} />
       </div>
@@ -121,10 +122,10 @@ export default async function HomePreviewPage() {
           </div>
         </div>
       </section>
-      <BusinessCta />
       <AndroidAppSection />
       <footer className="border-t border-[#E2E8F0] bg-[#F8FAFC] py-8 text-center text-sm text-[#64748B]">
-        Twimzi · Discover Businesses. Find Suppliers. Grow Together.
+        <span>Twimzi · Discover Businesses. Find Suppliers. Grow Together.</span>
+        <span className="mt-2 block"><Link href="/free-business-listing-india" className="font-semibold text-[#0D9488] hover:text-[#F97316]">Free business listing in India</Link></span>
       </footer>
     </main>
   );
