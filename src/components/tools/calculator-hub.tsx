@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { ArrowRight, Calculator, ChartNoAxesCombined, CircleHelp, IndianRupee, RotateCcw } from "lucide-react";
 
 type CalculatorKey = "simple" | "compound" | "emi" | "margin" | "markup" | "breakEven" | "productCost" | "landed" | "gst" | "workingCapital" | "cashFlow" | "inventory" | "export" | "forex" | "discount" | "commission";
@@ -85,6 +86,6 @@ export function CalculatorHub(){
         <p className="mt-5 flex gap-2 rounded-xl bg-amber-50 p-3 text-xs leading-5 text-amber-900"><CircleHelp className="mt-0.5 h-4 w-4 shrink-0"/> Indicative estimates only. Verify applicable tax rules, lender terms, units and actual costs before making financial or commercial decisions.</p>
       </aside>
     </section>
-    <section className="mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8"><div className="flex flex-col justify-between gap-4 rounded-2xl border border-blue-100 bg-blue-50/60 p-6 sm:flex-row sm:items-center"><div><h2 className="font-bold text-slate-900">Need to compare supplier prices?</h2><p className="mt-1 text-sm text-slate-600">Use Twimzi Price Discovery to explore products with published supplier prices.</p></div><a href="/products/prices" className="inline-flex shrink-0 items-center gap-2 text-sm font-bold text-blue-700 hover:underline">Explore product prices <ArrowRight className="h-4 w-4"/></a></div></section>
+    <section className="mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8"><div className="flex flex-col justify-between gap-4 rounded-2xl border border-blue-100 bg-blue-50/60 p-6 sm:flex-row sm:items-center"><div><h2 className="font-bold text-slate-900">Need to compare supplier prices?</h2><p className="mt-1 text-sm text-slate-600">Use Twimzi Price Discovery to explore products with published supplier prices.</p></div><Link href="/products/prices" className="inline-flex shrink-0 items-center gap-2 text-sm font-bold text-blue-700 hover:underline">Explore product prices <ArrowRight className="h-4 w-4"/></Link></div></section>
   </main>;
 }
