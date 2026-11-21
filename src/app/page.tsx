@@ -68,7 +68,7 @@ async function getPreviewStories(): Promise<CommunityStory[]> {
   });
 }
 
-export default async function HomePreviewPage() {
+export default async function HomePage() {
   const supabase = await createSupabaseServerClient();
   const [
     { data: businessData },
@@ -88,10 +88,7 @@ export default async function HomePreviewPage() {
     .slice(0, 6);
 
   return (
-    <main className="min-h-screen bg-white">
-      <div className="border-b border-[#D9ECE9] bg-[#F0FAF8] px-4 py-2 text-center text-xs font-semibold tracking-wide text-[#087F75]">
-        HOMEPAGE V2 PREVIEW · Your existing homepage is unchanged
-      </div>
+    <main className="twimzi-home min-h-screen bg-white">
       <HomePreviewHero />
       <BusinessCta />
       <div className="mx-auto w-full max-w-7xl px-4 pt-5 sm:px-6 lg:px-8">
@@ -104,7 +101,7 @@ export default async function HomePreviewPage() {
           <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#0D9488]">Business intelligence</p>
-              <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-[#14243D]">Ideas to move your business forward</h2>
+              <h2 className="twimzi-brand-heading mt-2 text-3xl font-extrabold tracking-tight">Ideas to move your business forward</h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-[#64748B]">Explore practical guides, industry updates and opportunities from the Twimzi business network.</p>
             </div>
             <Link href="/news" className="text-sm font-bold text-[#0D9488] hover:underline">Explore business news →</Link>
