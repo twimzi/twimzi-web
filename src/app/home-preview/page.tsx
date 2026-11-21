@@ -111,13 +111,13 @@ export default async function HomePreviewPage() {
           <div className="grid gap-4 md:grid-cols-3">
             <Link href="/news" className="rounded-2xl border border-[#E2E8F0] bg-white p-6 transition hover:-translate-y-1 hover:shadow-lg">
               <span className="text-2xl">📰</span><h3 className="mt-4 text-lg font-bold text-[#14243D]">Business news</h3><p className="mt-2 text-sm leading-6 text-[#64748B]">Keep up with policy, trade, manufacturing and MSME developments.</p>
-            </a>
+            </Link>
             <Link href="/blog" className="rounded-2xl border border-[#E2E8F0] bg-white p-6 transition hover:-translate-y-1 hover:shadow-lg">
               <span className="text-2xl">📚</span><h3 className="mt-4 text-lg font-bold text-[#14243D]">Growth guides</h3><p className="mt-2 text-sm leading-6 text-[#64748B]">Practical resources for starting, managing and growing a business.</p>
-            </a>
+            </Link>
             <Link href="/offers" className="rounded-2xl border border-[#E2E8F0] bg-white p-6 transition hover:-translate-y-1 hover:shadow-lg">
               <span className="text-2xl">🏷️</span><h3 className="mt-4 text-lg font-bold text-[#14243D]">Business offers</h3><p className="mt-2 text-sm leading-6 text-[#64748B]">Discover current offers shared by businesses on Twimzi.</p>
-            </a>
+            </Link>
           </div>
         </div>
       </section>
