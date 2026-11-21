@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { CategorySection } from "@/components/home/category-section";
 import { BusinessSections } from "@/components/home/business-sections";
@@ -105,16 +106,16 @@ export default async function HomePreviewPage() {
               <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-[#14243D]">Ideas to move your business forward</h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-[#64748B]">Explore practical guides, industry updates and opportunities from the Twimzi business network.</p>
             </div>
-            <a href="/news" className="text-sm font-bold text-[#0D9488] hover:underline">Explore business news →</a>
+            <Link href="/news" className="text-sm font-bold text-[#0D9488] hover:underline">Explore business news →</Link>
           </div>
           <div className="grid gap-4 md:grid-cols-3">
-            <a href="/news" className="rounded-2xl border border-[#E2E8F0] bg-white p-6 transition hover:-translate-y-1 hover:shadow-lg">
+            <Link href="/news" className="rounded-2xl border border-[#E2E8F0] bg-white p-6 transition hover:-translate-y-1 hover:shadow-lg">
               <span className="text-2xl">📰</span><h3 className="mt-4 text-lg font-bold text-[#14243D]">Business news</h3><p className="mt-2 text-sm leading-6 text-[#64748B]">Keep up with policy, trade, manufacturing and MSME developments.</p>
             </a>
-            <a href="/blog" className="rounded-2xl border border-[#E2E8F0] bg-white p-6 transition hover:-translate-y-1 hover:shadow-lg">
+            <Link href="/blog" className="rounded-2xl border border-[#E2E8F0] bg-white p-6 transition hover:-translate-y-1 hover:shadow-lg">
               <span className="text-2xl">📚</span><h3 className="mt-4 text-lg font-bold text-[#14243D]">Growth guides</h3><p className="mt-2 text-sm leading-6 text-[#64748B]">Practical resources for starting, managing and growing a business.</p>
             </a>
-            <a href="/offers" className="rounded-2xl border border-[#E2E8F0] bg-white p-6 transition hover:-translate-y-1 hover:shadow-lg">
+            <Link href="/offers" className="rounded-2xl border border-[#E2E8F0] bg-white p-6 transition hover:-translate-y-1 hover:shadow-lg">
               <span className="text-2xl">🏷️</span><h3 className="mt-4 text-lg font-bold text-[#14243D]">Business offers</h3><p className="mt-2 text-sm leading-6 text-[#64748B]">Discover current offers shared by businesses on Twimzi.</p>
             </a>
           </div>
