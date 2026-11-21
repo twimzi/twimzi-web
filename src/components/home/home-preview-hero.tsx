@@ -68,7 +68,7 @@ export function HomePreviewHero() {
             </div>
             <div className="mt-4 rounded-2xl bg-[#F0FAF8] p-4">
               <div className="flex items-center gap-3"><BriefcaseBusiness className="text-[#0D9488]" size={22} /><div><p className="text-sm font-bold text-[#14243D]">Are you a business owner?</p><p className="mt-0.5 text-xs text-[#64748B]">Create your profile and get discovered.</p></div></div>
-              <Link href="/add-business" className="mt-3 inline-flex text-xs font-extrabold text-[#087F75]">Get started free <ArrowRight size={14} className="ml-1" /></Link>
+              <Link href="/add-business" className="mt-3 inline-flex text-xs font-extrabold text-[#087F75]">Create a free listing <ArrowRight size={14} className="ml-1" /></Link>
             </div>
           </div>
         </div>
