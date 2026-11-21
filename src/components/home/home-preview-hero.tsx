@@ -46,7 +46,7 @@ export function HomePreviewHero() {
           </div>
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Link href="/businesses" className="inline-flex min-h-12 items-center gap-2 rounded-full bg-[#14243D] px-6 text-sm font-bold text-white transition hover:bg-[#233B5D]">Explore businesses <ArrowRight size={16} /></Link>
-            <Link href="/add-business" className="inline-flex min-h-12 items-center gap-2 rounded-full border border-[#FDBA74] bg-white px-6 text-sm font-bold text-[#EA580C] transition hover:bg-[#FFF7ED]"><Store size={17} /> List your business</Link>
+            <Link href="/add-business" className="inline-flex min-h-12 items-center gap-2 rounded-full border border-[#FDBA74] bg-white px-6 text-sm font-bold text-[#EA580C] transition hover:bg-[#FFF7ED]"><Store size={17} /> List your business free</Link>
           </div>
         </div>
         <div className="relative">
