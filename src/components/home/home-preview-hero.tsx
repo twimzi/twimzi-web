@@ -16,10 +16,10 @@ export function HomePreviewHero() {
           <div className="inline-flex items-center gap-2 rounded-full border border-[#BDE5DF] bg-white/90 px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-[#087F75] shadow-sm">
             <span className="h-2 w-2 rounded-full bg-[#F97316]" /> India&apos;s business discovery network
           </div>
-          <h1 className="mt-6 max-w-3xl text-4xl font-black leading-[1.08] tracking-[-0.045em] text-[#14243D] sm:text-5xl lg:text-[3.75rem]">
-            Discover businesses.
+          <h1 className="mt-6 max-w-3xl text-4xl font-black leading-[1.08] tracking-[-0.045em] sm:text-5xl lg:text-[3.75rem]">
+            <span className="twimzi-brand-heading block">Discover businesses.</span>
             <span className="block text-[#0D9488]">Find suppliers.</span>
-            <span className="block">Grow together.</span>
+            <span className="block text-[#F97316]">Grow together.</span>
           </h1>
           <p className="mt-6 max-w-xl text-base leading-8 text-[#526176] sm:text-lg">
             Explore manufacturers, wholesalers, local businesses, products and services — all in one place.
