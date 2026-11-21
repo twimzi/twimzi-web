@@ -253,6 +253,7 @@ export default async function BusinessNewsPage({ searchParams }: { searchParams:
                   <Link href={`/news/${featured.slug}`} className="inline-flex items-center gap-2 rounded-xl bg-[#14243D] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#1455C7]">Explore story <ArrowRight className="h-4 w-4" /></Link>
                 </div>
               </div>
+              </div>
             </article>
 
             {remaining.length > 0 && (
