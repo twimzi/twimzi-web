@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { siteConfig } from "@/config/site";
 import { NewsActions } from "@/components/news/news-actions";
+import NewsCoverImage from "@/components/news/news-cover-image";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -239,19 +240,7 @@ export default async function BusinessNewsArticle({ params }: { params: Promise<
             </p>
           </div>
         </header>
-        {item.featured_image_url ? (
-          <img src={item.featured_image_url} alt={item.title} loading="eager" fetchPriority="high" className="mt-8 max-h-[480px] w-full rounded-2xl object-cover shadow-sm" />
-        ) : (
-          <div role="img" aria-label={`Editorial illustration for ${item.category}`} className="relative mt-8 flex min-h-[260px] w-full items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-[#EDE7FF] via-[#EAF4FF] to-[#E6FBFF] shadow-sm sm:min-h-[360px]">
-            <div className="absolute -right-12 -top-16 h-64 w-64 rounded-full border border-white/80" />
-            <div className="absolute -bottom-24 -left-12 h-64 w-64 rounded-full border border-white/80" />
-            <div className="relative flex flex-col items-center gap-4 text-center">
-              <span className="flex h-20 w-20 items-center justify-center rounded-3xl bg-white text-[#1879FD] shadow-lg"><Newspaper className="h-10 w-10" /></span>
-              <span className="text-xs font-extrabold uppercase tracking-[0.18em] text-[#7000D6]">Twimzi Business Desk</span>
-              <span className="max-w-xl px-6 text-xl font-extrabold text-[#263d70] sm:text-2xl">{item.category}</span>
-            </div>
-          </div>
-        )}
+        <NewsCoverImage src={item.featured_image_url} alt={item.title} category={item.category} featured className="mt-8 max-h-[480px] w-full rounded-2xl object-cover shadow-sm" />
         {(item.key_takeaways?.length || item.key_figures?.length) ? (
           <section className="mt-8 grid gap-5 lg:grid-cols-[1.05fr_.95fr]">
             {item.key_takeaways && item.key_takeaways.length > 0 && <div className="rounded-[24px] border border-violet-100 bg-gradient-to-br from-[#F7F0FF] to-white p-6 sm:p-7"><p className="text-xs font-extrabold uppercase tracking-[.16em] text-[#7000D6]">The essentials</p><h2 className="mt-2 text-xl font-extrabold text-[#263d70]">Key takeaways</h2><ul className="mt-5 space-y-3">{item.key_takeaways.map((entry,index)=><li key={index} className="flex gap-3 text-sm leading-7 text-slate-700"><span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-gradient-to-r from-[#8E07FB] to-[#1879FD]"/><span>{typeof entry==="string"?entry:entry.text}</span></li>)}</ul></div>}
