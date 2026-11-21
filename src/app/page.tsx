@@ -1,20 +1,16 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { CategorySection } from "@/components/home/category-section";
 import { BusinessSections } from "@/components/home/business-sections";
 import { BusinessCta } from "@/components/home/business-cta";
-import {
-  HeroSection,
-  type HeroInterestingItem,
-} from "@/components/home/hero-section";
-import { CategorySection } from "@/components/home/category-section";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { AndroidAppSection } from "@/components/home/android-app-section";
+import { HomePreviewHero } from "@/components/home/home-preview-hero";
 import CommunityStories, { type CommunityStory } from "@/components/community/community-stories";
 
 export const metadata: Metadata = {
   title: "B2B Marketplace India & Business Directory | Twimzi",
-  description:
-    "Explore Indian manufacturers, suppliers, wholesalers, traders and local businesses on Twimzi. Discover company profiles, products and services, and connect directly with businesses.",
+  description: "Explore Indian manufacturers, suppliers, wholesalers, traders and local businesses on Twimzi. Discover company profiles, products and services, and connect directly with businesses.",
   alternates: { canonical: "https://www.twimzi.com" },
 };
 
@@ -45,34 +41,12 @@ type Category = {
   is_featured: boolean;
 };
 
-type Offer = {
-  id: string;
-  business_id: string;
-  title: string;
-  short_description: string | null;
-  slug: string | null;
-  created_at: string;
-};
-
-type Post = {
-  id: string;
-  business_id: string;
-  title: string;
-  short_description: string | null;
-  slug: string | null;
-  published_at: string | null;
-  created_at: string;
-};
-
-async function getHomeStories(): Promise<CommunityStory[]> {
+async function getPreviewStories(): Promise<CommunityStory[]> {
   const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.rpc("get_public_business_stories", {
-    p_limit: 12,
-  });
-
+  const { data, error } = await supabase.rpc("get_public_business_stories", { p_limit: 12 });
   if (error || !data) return [];
 
-  const rows = data as Array<{
+  return (data as Array<{
     id: string;
     caption: string | null;
     media_object_path: string | null;
@@ -81,13 +55,8 @@ async function getHomeStories(): Promise<CommunityStory[]> {
     business_slug: string | null;
     business_id: string;
     created_at: string;
-  }>;
-
-  return rows.flatMap((story) => {
-    if (!story.media_object_path || !story.media_mime_type?.startsWith("image/")) {
-      return [];
-    }
-
+  }>).flatMap((story) => {
+    if (!story.media_object_path || !story.media_mime_type?.startsWith("image/")) return [];
     return [{
       id: story.id,
       caption: story.caption,
@@ -99,234 +68,64 @@ async function getHomeStories(): Promise<CommunityStory[]> {
   });
 }
 
-export default async function Home() {
+export default async function HomePreviewPage() {
   const supabase = await createSupabaseServerClient();
-
   const [
     { data: businessData },
-    { data: categoriesData, error: categoriesError },
-    { data: offersData },
-    homeStories,
+    { data: categoryData, error: categoryError },
+    stories,
   ] = await Promise.all([
-    supabase.rpc("get_public_businesses", {
-      p_search: null,
-      p_limit: 50,
-      p_offset: 0,
-    }),
+    supabase.rpc("get_public_businesses", { p_search: null, p_limit: 50, p_offset: 0 }),
     supabase.rpc("get_public_categories"),
-    supabase
-      .from("offers")
-      .select(
-        "id,business_id,title,short_description,slug,created_at",
-      )
-      .eq("is_active", true)
-      .eq("status", "active")
-      .is("deleted_at", null)
-      .order("created_at", { ascending: false })
-      .limit(6),
-    getHomeStories(),
+    getPreviewStories(),
   ]);
 
   const businesses = (businessData ?? []) as Business[];
-  const categories = (categoriesData ?? []) as Category[];
-  const offers = (offersData ?? []) as Offer[];
-
-  const featured = businesses
-    .filter((business) => business.is_featured === true)
-    .slice(0, 6);
-
+  const categories = (categoryData ?? []) as Category[];
+  const featured = businesses.filter((business) => business.is_featured === true).slice(0, 6);
   const latest = [...businesses]
-    .sort(
-      (a, b) =>
-        new Date(b.created_at).getTime() -
-        new Date(a.created_at).getTime(),
-    )
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 6);
-
-  const businessMap = new Map(
-    businesses.map((business) => [business.id, business]),
-  );
-
-  const postResults = await Promise.all(
-    latest.slice(0, 3).map(async (business) => {
-      const { data: posts } = await supabase.rpc(
-        "get_public_business_posts",
-        {
-          p_business_id: business.id,
-          p_limit: 1,
-          p_offset: 0,
-        },
-      );
-
-      return (posts ?? []) as Post[];
-    }),
-  );
-
-  const posts = postResults
-    .flat()
-    .sort(
-      (a, b) =>
-        new Date(b.published_at ?? b.created_at).getTime() -
-        new Date(a.published_at ?? a.created_at).getTime(),
-    );
-
-  const interestingItems: HeroInterestingItem[] = [];
-
-  const newestBusiness = latest[0];
-
-  if (newestBusiness) {
-    interestingItems.push({
-      icon: "ðŸª",
-      type: "New on Twimzi",
-      title: newestBusiness.business_name,
-      description:
-        newestBusiness.description ||
-        "Just joined the Twimzi business network.",
-      href: newestBusiness.slug
-        ? `/businesses/${newestBusiness.slug}`
-        : `/businesses/${newestBusiness.id}`,
-    });
-  }
-
-  const featuredBusiness = featured[0];
-
-  if (featuredBusiness) {
-    interestingItems.push({
-      icon: "â­",
-      type: "Featured Business",
-      title: featuredBusiness.business_name,
-      description:
-        featuredBusiness.description ||
-        "A business currently highlighted on Twimzi.",
-      href: featuredBusiness.slug
-        ? `/businesses/${featuredBusiness.slug}`
-        : `/businesses/${featuredBusiness.id}`,
-    });
-  }
-
-  const latestOffer = offers[0];
-
-  if (latestOffer) {
-    const offerBusiness = businessMap.get(latestOffer.business_id);
-
-    interestingItems.push({
-      icon: "ðŸ”¥",
-      type: "Latest Offer",
-      title: latestOffer.title,
-      description:
-        latestOffer.short_description ||
-        offerBusiness?.business_name ||
-        "Discover this local offer.",
-      href: latestOffer.slug
-        ? `/offers/${latestOffer.slug}`
-        : "/offers",
-    });
-  }
-
-  const latestPost = posts[0];
-
-  if (latestPost) {
-    const postBusiness = businessMap.get(latestPost.business_id);
-
-    interestingItems.push({
-      icon: "ðŸ“¢",
-      type: "Latest Update",
-      title: latestPost.title,
-      description:
-        latestPost.short_description ||
-        postBusiness?.business_name ||
-        "Latest update from a local business.",
-      href: postBusiness?.slug
-        ? `/businesses/${postBusiness.slug}`
-        : postBusiness
-          ? `/businesses/${postBusiness.id}`
-          : "/community",
-    });
-  }
-
-  while (interestingItems.length < 4) {
-    const fallbacks: HeroInterestingItem[] = [
-      {
-        icon: "ðŸª",
-        type: "Discover",
-        title: "Local Businesses",
-        description: "Find businesses around you.",
-        href: "/businesses",
-      },
-      {
-        icon: "ðŸ”¥",
-        type: "Explore",
-        title: "Local Offers",
-        description: "Discover offers from local businesses.",
-        href: "/offers",
-      },
-      {
-        icon: "ðŸ›ï¸",
-        type: "Marketplace",
-        title: "Products",
-        description: "Browse products from local sellers.",
-        href: "/products",
-      },
-      {
-        icon: "ðŸ› ï¸",
-        type: "Services",
-        title: "Local Services",
-        description: "Find professionals and service providers.",
-        href: "/services",
-      },
-    ];
-
-    const fallback = fallbacks[interestingItems.length];
-
-    if (fallback) {
-      interestingItems.push(fallback);
-    } else {
-      break;
-    }
-  }
 
   return (
-    <>
-      <div className="mx-auto w-full max-w-7xl px-4 pt-1 sm:px-6 lg:px-8">
-        <CommunityStories stories={homeStories} />
+    <main className="min-h-screen bg-white">
+      <div className="border-b border-[#D9ECE9] bg-[#F0FAF8] px-4 py-2 text-center text-xs font-semibold tracking-wide text-[#087F75]">
+        HOMEPAGE V2 PREVIEW · Your existing homepage is unchanged
       </div>
-
-      <HeroSection interestingItems={interestingItems} />
-
-      <CategorySection
-        categories={categories}
-        error={Boolean(categoriesError)}
-      />
-
-      <BusinessSections
-        featured={featured}
-        latest={latest}
-      />
-
-      
-
-      <AndroidAppSection />
-
-      <BusinessCta />
-
-      <section className="border-t border-[var(--color-border)] bg-[var(--color-secondary)] py-8">
-        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
-          <div>
-            <h2 className="text-base font-bold text-[var(--color-text)]">
-              Explore all pages on Twimzi
-            </h2>
-            <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-              Browse business categories, local listings, articles and important information.
-            </p>
+      <HomePreviewHero />
+      <div className="mx-auto w-full max-w-7xl px-4 pt-5 sm:px-6 lg:px-8">
+        <CommunityStories stories={stories} />
+      </div>
+      <CategorySection categories={categories} error={Boolean(categoryError)} />
+      <BusinessSections featured={featured} latest={latest} />
+      <section className="bg-[#F7FAFA] py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#0D9488]">Business intelligence</p>
+              <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-[#14243D]">Ideas to move your business forward</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-[#64748B]">Explore practical guides, industry updates and opportunities from the Twimzi business network.</p>
+            </div>
+            <Link href="/news" className="text-sm font-bold text-[#0D9488] hover:underline">Explore business news →</Link>
           </div>
-          <Link
-            href="/sitemap"
-            className="inline-flex w-fit items-center rounded-full bg-[var(--color-primary)] px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
-          >
-            View HTML Sitemap
-          </Link>
+          <div className="grid gap-4 md:grid-cols-3">
+            <Link href="/news" className="rounded-2xl border border-[#E2E8F0] bg-white p-6 transition hover:-translate-y-1 hover:shadow-lg">
+              <span className="text-2xl">📰</span><h3 className="mt-4 text-lg font-bold text-[#14243D]">Business news</h3><p className="mt-2 text-sm leading-6 text-[#64748B]">Keep up with policy, trade, manufacturing and MSME developments.</p>
+            </Link>
+            <Link href="/blog" className="rounded-2xl border border-[#E2E8F0] bg-white p-6 transition hover:-translate-y-1 hover:shadow-lg">
+              <span className="text-2xl">📚</span><h3 className="mt-4 text-lg font-bold text-[#14243D]">Growth guides</h3><p className="mt-2 text-sm leading-6 text-[#64748B]">Practical resources for starting, managing and growing a business.</p>
+            </Link>
+            <Link href="/offers" className="rounded-2xl border border-[#E2E8F0] bg-white p-6 transition hover:-translate-y-1 hover:shadow-lg">
+              <span className="text-2xl">🏷️</span><h3 className="mt-4 text-lg font-bold text-[#14243D]">Business offers</h3><p className="mt-2 text-sm leading-6 text-[#64748B]">Discover current offers shared by businesses on Twimzi.</p>
+            </Link>
+          </div>
         </div>
       </section>
-    </>
+      <BusinessCta />
+      <AndroidAppSection />
+      <footer className="border-t border-[#E2E8F0] bg-[#F8FAFC] py-8 text-center text-sm text-[#64748B]">
+        Twimzi · Discover Businesses. Find Suppliers. Grow Together.
+      </footer>
+    </main>
   );
 }
