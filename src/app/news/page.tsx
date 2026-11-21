@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@supabase/supabase-js";
 import { NewsActions } from "@/components/news/news-actions";
+import NewsCoverImage from "@/components/news/news-cover-image";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -74,23 +75,6 @@ function categoryTone(category: string) {
   };
 }
 
-function NewsArtwork({ category, featured = false }: { category: string; featured?: boolean }) {
-  const tone = categoryTone(category);
-  const Icon = category === "Trade & Exports" ? Globe2 : category === "Manufacturing" ? Factory : BriefcaseBusiness;
-  return (
-    <div className={`relative flex h-full min-h-52 w-full items-center justify-center overflow-hidden bg-gradient-to-br ${tone.wash} ${featured ? "sm:min-h-[390px]" : "min-h-[190px]"}`}>
-      <div className="absolute -right-12 -top-14 h-52 w-52 rounded-full border border-white/80" />
-      <div className="absolute -right-1 -top-3 h-36 w-36 rounded-full border border-white/80" />
-      <div className="absolute -bottom-20 -left-12 h-56 w-56 rounded-full border border-white/80" />
-      <div className={`relative flex ${featured ? "h-24 w-24" : "h-16 w-16"} items-center justify-center rounded-[28px] bg-gradient-to-br ${tone.icon} text-white shadow-xl shadow-slate-900/10`}>
-        <Icon className={featured ? "h-11 w-11" : "h-8 w-8"} strokeWidth={1.6} />
-      </div>
-      <span className="absolute bottom-5 left-5 rounded-full border border-white/80 bg-white/75 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-600 backdrop-blur">
-        Twimzi Business Desk
-      </span>
-    </div>
-  );
-}
 
 function NewsCard({ item }: { item: NewsItem }) {
   const tone = categoryTone(item.category);
@@ -99,8 +83,8 @@ function NewsCard({ item }: { item: NewsItem }) {
       <Link href={`/news/${item.slug}`} aria-label={`Read ${item.title}`} className="block overflow-hidden">
         <div className="relative h-[190px] overflow-hidden">
           {item.featured_image_url ? (
-            <img src={item.featured_image_url} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" />
-          ) : <NewsArtwork category={item.category} />}
+            <NewsCoverImage src={item.featured_image_url} alt={item.title} category={item.category} className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]" />
+          ) : <NewsCoverImage alt={item.title} category={item.category} />}
           <span className={`absolute left-4 top-4 rounded-full border px-3 py-1.5 text-[11px] font-bold backdrop-blur ${tone.pill}`}>{item.category}</span>
         </div>
       </Link>
@@ -234,8 +218,8 @@ export default async function BusinessNewsPage({ searchParams }: { searchParams:
             <article className="group overflow-hidden rounded-[28px] border border-slate-200/80 bg-white shadow-[0_8px_30px_rgba(30,55,110,0.05)] transition hover:shadow-[0_18px_48px_rgba(30,55,110,0.10)] lg:grid lg:grid-cols-[1.08fr_.92fr]">
               <Link href={`/news/${featured.slug}`} className="relative block min-h-[260px] overflow-hidden lg:min-h-[420px]" aria-label={`Read ${featured.title}`}>
                 {featured.featured_image_url ? (
-                  <img src={featured.featured_image_url} alt="" className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]" />
-                ) : <NewsArtwork category={featured.category} featured />}
+                  <NewsCoverImage src={featured.featured_image_url} alt={featured.title} category={featured.category} featured className="absolute inset-0 h-full w-full object-cover transition duration-700 group-hover:scale-[1.035]" />
+                ) : <NewsCoverImage alt={featured.title} category={featured.category} featured />}
                 <span className="absolute left-6 top-6 inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/90 px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-[0.12em] text-[#263d70] shadow-sm backdrop-blur"><Sparkles className="h-3.5 w-3.5 text-[#7000D6]" /> Lead story</span>
               </Link>
               <div className="flex flex-col justify-center p-6 sm:p-9 lg:p-10">
