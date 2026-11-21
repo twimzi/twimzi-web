@@ -51,7 +51,7 @@ export default function NewsCoverUpload({ initialValue = "" }: NewsCoverUploadPr
 
       const { data } = supabase.storage.from("news-covers").getPublicUrl(filePath);
       setImageUrl(data.publicUrl);
-      setMessage("News image uploaded. Save the blog post to apply it.");
+      setMessage("News image uploaded. Save the news article to apply it.");
       if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Could not upload the news image.");
