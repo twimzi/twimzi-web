@@ -2162,8 +2162,7 @@ main :is(.focus\:ring-blue-300,.focus\:ring-blue-500) { --tw-ring-color: rgba(24
   --color-text-on-primary: #FFFFFF;
   --color-primary-gradient: linear-gradient(110deg, #0D9488 0%, #087F75 48%, #F97316 100%);
 }
-.twimzi-home .twimzi-brand-heading,
-.twimzi-brand-heading {
+.twimzi-home .twimzi-brand-heading {
   color: transparent;
   background-image: linear-gradient(105deg, #087F75 0%, #0D9488 48%, #F97316 100%);
   background-clip: text;
