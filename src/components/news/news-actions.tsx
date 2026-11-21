@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Bookmark, Check, Copy, Share2 } from "lucide-react";
 
 export type SavedNewsItem = {
@@ -29,6 +30,8 @@ export function NewsActions({ item, compact = false }: { item: SavedNewsItem; co
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
+    // Read browser storage after hydration to avoid server/client markup mismatch.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSaved(readSaved().some((entry) => entry.slug === item.slug));
   }, [item.slug]);
 
@@ -84,13 +87,13 @@ export function SavedNewsList() {
   }, []);
 
   if (!items.length) {
-    return <div className="rounded-3xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center"><div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-50 text-violet-700"><Bookmark className="h-6 w-6" /></div><h2 className="mt-5 text-xl font-extrabold text-[#14243D]">Your reading list is empty</h2><p className="mt-2 text-sm text-slate-500">Save useful business updates and they will appear here on this device.</p><a href="/news" className="mt-6 inline-flex rounded-xl bg-[#14243D] px-5 py-3 text-sm font-bold text-white">Explore business news</a></div>;
+    return <div className="rounded-3xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center"><div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-50 text-violet-700"><Bookmark className="h-6 w-6" /></div><h2 className="mt-5 text-xl font-extrabold text-[#14243D]">Your reading list is empty</h2><p className="mt-2 text-sm text-slate-500">Save useful business updates and they will appear here on this device.</p><Link href="/news" className="mt-6 inline-flex rounded-xl bg-[#14243D] px-5 py-3 text-sm font-bold text-white">Explore business news</Link></div>;
   }
 
   return <div className="grid gap-4 md:grid-cols-2">{items.map((item) => (
     <article key={item.slug} className="rounded-2xl border border-slate-200 bg-white p-5">
       <p className="text-xs font-bold text-violet-700">{item.category} · {new Date(item.publishedAt).toLocaleDateString("en-IN")}</p>
-      <h2 className="mt-3 text-lg font-extrabold leading-snug text-[#14243D]"><a href={item.url} className="hover:text-blue-700">{item.title}</a></h2>
+      <h2 className="mt-3 text-lg font-extrabold leading-snug text-[#14243D]"><Link href={item.url} className="hover:text-blue-700">{item.title}</Link></h2>
       <p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-600">{item.summary}</p>
       <div className="mt-4 flex justify-end"><NewsActions item={item} compact /></div>
     </article>
