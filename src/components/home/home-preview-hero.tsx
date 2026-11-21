@@ -14,7 +14,7 @@ export function HomePreviewHero() {
       <div className="mx-auto grid max-w-7xl gap-12 px-4 pb-16 pt-16 sm:px-6 sm:pb-20 sm:pt-20 lg:grid-cols-[1.08fr_.92fr] lg:items-center lg:px-8 lg:py-24">
         <div>
           <div className="inline-flex items-center gap-2 rounded-full border border-[#BDE5DF] bg-white/90 px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] text-[#087F75] shadow-sm">
-            <span className="h-2 w-2 rounded-full bg-[#0D9488]" /> India's business discovery network
+            <span className="h-2 w-2 rounded-full bg-[#0D9488]" /> India&apos;s business discovery network
           </div>
           <h1 className="mt-6 max-w-3xl text-4xl font-black leading-[1.08] tracking-[-0.045em] text-[#14243D] sm:text-5xl lg:text-[3.75rem]">
             Discover businesses.
