@@ -6,8 +6,10 @@ import { seoKeywordTargets } from "./keyword-targets";
  * before listings arrive. Generated product pages must have at least one relevant
  * public listing to avoid creating large sets of empty, near-duplicate pages.
  */
-export function isSeoDirectoryIndexable(page: SeoDirectoryPage, listingCount: number): boolean {
-  return listingCount > 0 || page.indexWhenEmpty === true;
+export function isSeoDirectoryIndexable(_page: SeoDirectoryPage, listingCount: number): boolean {
+  // Only index directory pages with enough real public listings to be useful.
+  // This keeps empty and near-empty programmatic pages out of search results.
+  return listingCount >= 5;
 }
 
 export type SeoDirectoryPage = {
@@ -24,8 +26,6 @@ export type SeoDirectoryPage = {
   requestedSlug?: string;
   city?: string;
   state?: string;
-  /** Allow genuinely useful, editorially curated directories to be indexed before their first listing arrives. */
-  indexWhenEmpty?: boolean;
 };
 
 const curatedSeoDirectoryPages: SeoDirectoryPage[] = [
@@ -363,9 +363,9 @@ const generatedDirectoryPages: SeoDirectoryPage[] = [
 ];
 
 export const seoDirectoryPages: SeoDirectoryPage[] = [
-  ...curatedSeoDirectoryPages.map((page) => ({ ...page, indexWhenEmpty: true })),
+  ...curatedSeoDirectoryPages,
   ...generatedProductPages,
-  ...generatedDirectoryPages.filter((page) => !existingDirectorySlugs.has(page.slug)).map((page) => ({ ...page, indexWhenEmpty: true })),
+  ...generatedDirectoryPages.filter((page) => !existingDirectorySlugs.has(page.slug)),
 ];
 
 export function getSeoKeywordTarget(slug: string) {
