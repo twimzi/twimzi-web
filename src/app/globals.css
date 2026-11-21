@@ -2146,3 +2146,26 @@ main :is(.focus\:ring-blue-300,.focus\:ring-blue-500) { --tw-ring-color: rgba(24
   .twimzi-home-hero .twimzi-hero-search { border-radius: 22px !important; }
   .twimzi-home-hero .twimzi-hero-search form { grid-template-columns: minmax(0,1fr) !important; }
 }
+
+
+/* Homepage brand system: scoped so other pages retain their existing design. */
+.twimzi-home {
+  --color-primary: #0D9488;
+  --color-primary-dark: #087F75;
+  --color-primary-darker: #14243D;
+  --color-primary-light: #E8F7F4;
+  --color-primary-soft: #F0FAF8;
+  --color-text: #14243D;
+  --color-text-secondary: #526176;
+  --color-text-muted: #64748B;
+  --color-text-light: #718096;
+  --color-text-on-primary: #FFFFFF;
+  --color-primary-gradient: linear-gradient(110deg, #0D9488 0%, #087F75 48%, #F97316 100%);
+}
+.twimzi-home .twimzi-brand-heading,
+.twimzi-brand-heading {
+  color: transparent;
+  background-image: linear-gradient(105deg, #087F75 0%, #0D9488 48%, #F97316 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+}
