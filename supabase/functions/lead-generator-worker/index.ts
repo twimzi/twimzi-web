@@ -252,7 +252,11 @@ Deno.serve(async (request) => {
     if (source.allowed_categories.length && claimed.categories.some((c: string) => !source.allowed_categories.includes(c))) throw new Error("Job categories exceed source approval.");
     if (source.feed_format !== "json") throw new Error("Only explicitly mapped JSON feeds are supported in v1.");
 
-    const minIntervalMs = Math.max(60_000, 7_200_000 / Math.max(1, source.max_requests_per_hour));
+    const minIntervalMs = Math.max(
+      60_000,
+      7_200_000 / Math.max(1, source.max_requests_per_hour),
+      Math.max(24, Number(source.crawl_interval_hours) || 168) * 3_600_000,
+    );
     const sourceUrl = safeUrl(source.source_url);
     const cutoff = new Date(Date.now() - minIntervalMs).toISOString();
     const reservedAt = new Date().toISOString();
