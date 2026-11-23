@@ -40,16 +40,44 @@ function validateFeedConfig(value: unknown) {
   return { items_path: itemsPath, fields: safeFields };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const auth = await requireAdmin();
   if ("response" in auth) return auth.response;
+  const url = new URL(request.url);
+  const page = Math.max(1, Number(url.searchParams.get("page") || 1));
+  const pageSize = Math.min(100, Math.max(10, Number(url.searchParams.get("pageSize") || 50)));
+  const status = text(url.searchParams.get("status"), 20);
+  const emailFilter = text(url.searchParams.get("email"), 20);
+  const duplicatesOnly = url.searchParams.get("duplicates") === "true";
+  const search = text(url.searchParams.get("q"), 100).replace(/[,%()]/g, " ").trim();
   const [sources, jobs, discoveryRuns] = await Promise.all([
     auth.supabase.from("lead_generator_sources").select("*").order("created_at", { ascending: false }).limit(250),
     auth.supabase.from("lead_generator_jobs").select("*").order("created_at", { ascending: false }).limit(100),
     auth.supabase.from("lead_generator_discovery_runs").select("id,provider,region_state,status,records_seen,records_inserted,records_duplicate,records_rejected,error_message,started_at,finished_at").order("started_at", { ascending: false }).limit(20),
   ]);
   if (sources.error || jobs.error) return NextResponse.json({ error: "Lead Generator schema is unavailable. Confirm the production migrations are applied and refresh." }, { status: 500 });
-  return NextResponse.json({ sources: sources.data || [], jobs: jobs.data || [], discoveryRuns: discoveryRuns.error ? [] : discoveryRuns.data || [] });
+  let leadsQuery = auth.supabase.from("admin_contact_bank_review")
+    .select("id,full_name,company_name,email,phone,website,website_domain,city,district,state,business_category,source,source_url,review_status,verification_status,created_at,normalized_phone,duplicate_reasons,phone_match_count,email_match_count,domain_match_count,name_location_match_count", { count: "exact" })
+    .eq("source_type", "lead_generator").is("archived_at", null).order("created_at", { ascending: false });
+  if (status && ["pending","approved","rejected"].includes(status)) leadsQuery = leadsQuery.eq("review_status", status);
+  if (emailFilter === "has") leadsQuery = leadsQuery.not("email", "is", null).neq("email", "");
+  if (emailFilter === "missing") leadsQuery = leadsQuery.or("email.is.null,email.eq.");
+  if (duplicatesOnly) leadsQuery = leadsQuery.or("phone_match_count.gt.1,email_match_count.gt.1,domain_match_count.gt.1,name_location_match_count.gt.1");
+  if (search) leadsQuery = leadsQuery.or(["company_name","full_name","email","phone","district","business_category"].map(field => field+".ilike.%"+search+"%").join(","));
+  const { data: leads, error: leadsError, count } = await leadsQuery.range((page-1)*pageSize, page*pageSize-1);
+  if (leadsError) return NextResponse.json({ error: "Could not load the lead review queue. Confirm the contact review view is deployed." }, { status: 500 });
+  const [totalCount, emailCount, phoneCount, pendingCount, duplicateCount] = await Promise.all([
+    auth.supabase.from("admin_contact_bank").select("id", { count:"exact", head:true }).eq("source_type","lead_generator").is("archived_at",null),
+    auth.supabase.from("admin_contact_bank").select("id", { count:"exact", head:true }).eq("source_type","lead_generator").is("archived_at",null).not("email","is",null).neq("email",""),
+    auth.supabase.from("admin_contact_bank").select("id", { count:"exact", head:true }).eq("source_type","lead_generator").is("archived_at",null).not("phone","is",null).neq("phone",""),
+    auth.supabase.from("admin_contact_bank").select("id", { count:"exact", head:true }).eq("source_type","lead_generator").is("archived_at",null).eq("review_status","pending"),
+    auth.supabase.from("admin_contact_bank_review").select("id", { count:"exact", head:true }).eq("source_type","lead_generator").is("archived_at",null).or("phone_match_count.gt.1,email_match_count.gt.1,domain_match_count.gt.1,name_location_match_count.gt.1"),
+  ]);
+  return NextResponse.json({
+    sources:sources.data||[], jobs:jobs.data||[], discoveryRuns:discoveryRuns.error?[]:discoveryRuns.data||[],
+    leads:leads||[], leadPagination:{page,pageSize,total:count||0,pages:Math.max(1,Math.ceil((count||0)/pageSize))},
+    leadStats:{total:totalCount.count||0,withEmail:emailCount.count||0,withPhone:phoneCount.count||0,pending:pendingCount.count||0,possibleDuplicates:duplicateCount.count||0}
+  });
 }
 
 export async function POST(request: Request) {
@@ -57,6 +85,18 @@ export async function POST(request: Request) {
   if ("response" in auth) return auth.response;
   try {
     const body = await request.json();
+    if (body.action === "bulk_review_leads") {
+      const ids = list(body.ids, 500);
+      const status = text(body.status, 20);
+      if (!ids.length) throw new Error("Select at least one lead.");
+      if (!["approved","rejected"].includes(status)) throw new Error("Choose approve or reject.");
+      const { data, error } = await auth.supabase.from("admin_contact_bank")
+        .update({ review_status: status, updated_by: auth.user.id, updated_at: new Date().toISOString() })
+        .in("id", ids).eq("source_type","lead_generator").is("archived_at",null)
+        .select("id");
+      if (error) return NextResponse.json({ error: "Bulk review update failed." }, { status: 500 });
+      return NextResponse.json({ updated: data?.length || 0, status });
+    }
     if (body.action === "add_source") {
       const name = text(body.name, 160);
       if (!name) throw new Error("Source name is required.");
