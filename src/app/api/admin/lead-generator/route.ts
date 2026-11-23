@@ -97,6 +97,41 @@ export async function POST(request: Request) {
       if (error) return NextResponse.json({ error: "Bulk review update failed." }, { status: 500 });
       return NextResponse.json({ updated: data?.length || 0, status });
     }
+    if (body.action === "bulk_merge_leads") {
+      const ids = list(body.ids, 100);
+      if (ids.length < 2) throw new Error("Select at least two duplicate leads to merge.");
+      const { data: rows, error: readError } = await auth.supabase.from("admin_contact_bank_review")
+        .select("*").in("id", ids).eq("source_type","lead_generator").is("archived_at",null);
+      if (readError || !rows || rows.length !== ids.length) throw new Error("Could not load every selected lead.");
+      const sorted = [...rows].sort((a,b) => new Date(a.created_at).getTime()-new Date(b.created_at).getTime());
+      const keeper = sorted[0] as Record<string, any>;
+      const duplicates = sorted.slice(1) as Record<string, any>[];
+      const strongMatch = (a:Record<string,any>,b:Record<string,any>) =>
+        Boolean((a.normalized_phone && a.normalized_phone===b.normalized_phone) ||
+          (a.normalized_email && a.normalized_email===b.normalized_email) ||
+          (a.normalized_domain && a.normalized_domain===b.normalized_domain));
+      if (duplicates.some(row => !strongMatch(keeper,row))) {
+        throw new Error("These records do not all share the same phone, email or website. Name-only matches must be reviewed manually and cannot be auto-merged.");
+      }
+      const fillFields = ["email","phone","website","website_domain","business_address","city","district","business_category","professional_contact_name","professional_contact_designation"];
+      const patch:Record<string,unknown> = { updated_by:auth.user.id, updated_at:new Date().toISOString() };
+      for (const field of fillFields) if (!keeper[field]) {
+        const candidate = duplicates.find(row => row[field]);
+        if (candidate) patch[field] = candidate[field];
+      }
+      const { error: keeperError } = await auth.supabase.from("admin_contact_bank").update(patch).eq("id",keeper.id);
+      if (keeperError) return NextResponse.json({error:"Could not update the retained lead."},{status:500});
+      const now = new Date().toISOString();
+      for (const duplicate of duplicates) {
+        const mergeNote = "Merged into lead "+keeper.id+" on "+now+". Original source: "+(duplicate.source_url||"not recorded")+".";
+        const notes = [duplicate.notes,mergeNote].filter(Boolean).join("\\n").slice(0,4000);
+        const { error: archiveError } = await auth.supabase.from("admin_contact_bank").update({
+          archived_at:now,review_status:"rejected",notes,updated_by:auth.user.id,updated_at:now
+        }).eq("id",duplicate.id);
+        if (archiveError) return NextResponse.json({error:"The retained lead was updated, but archiving a duplicate failed. Review the selected records before retrying."},{status:500});
+      }
+      return NextResponse.json({merged:duplicates.length,retained:keeper.id});
+    }
     if (body.action === "add_source") {
       const name = text(body.name, 160);
       if (!name) throw new Error("Source name is required.");
