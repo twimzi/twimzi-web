@@ -123,13 +123,17 @@ export async function POST(request: Request) {
 
     if (body.action === "run_worker") {
       const projectUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-      if (!projectUrl || !serviceKey) return NextResponse.json({ error: "Worker invocation is not configured. Set the server-only SUPABASE_SERVICE_ROLE_KEY." }, { status: 503 });
+      const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+      const { data: sessionData, error: sessionError } = await auth.supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+      if (!projectUrl || !anonKey || sessionError || !accessToken) {
+        return NextResponse.json({ error: "Your Super Admin session could not be forwarded to the queue worker. Please sign in again and retry." }, { status: 503 });
+      }
       const response = await fetch(projectUrl.replace(/\/$/, "") + "/functions/v1/lead-generator-worker", {
         method: "POST", cache: "no-store",
-        headers: { Authorization: "Bearer " + serviceKey, apikey: serviceKey, "Content-Type": "application/json" },
+        headers: { Authorization: "Bearer " + accessToken, apikey: anonKey, "Content-Type": "application/json" },
         body: "{}",
-        signal: AbortSignal.timeout(25_000),
+        signal: AbortSignal.timeout(90_000),
       });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) return NextResponse.json({ error: text((result as Record<string,unknown>).error, 500) || "Worker invocation failed.", details: result }, { status: response.status });
