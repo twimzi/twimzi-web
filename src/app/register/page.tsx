@@ -171,6 +171,7 @@ export default function Register() {
         setIsLoading(false);
         return;
       }
+      document.cookie = "twimzi_legal_acceptance=; Path=/; Max-Age=0; SameSite=Lax; Secure";
       router.push(nextPath);
       router.refresh();
       return;
