@@ -100,19 +100,11 @@ function isPrivateIpv4(ip: string) {
     p[0] === 192 && p[1] === 168;
 }
 async function assertPublicDns(host: string) {
-  try {
-    const addresses = await Promise.allSettled([
-      Deno.resolveDns(host, "A"),
-      Deno.resolveDns(host, "AAAA"),
-    ]);
-    const ips = addresses.flatMap(result => result.status === "fulfilled" ? result.value : []);
-    if (ips.length && ips.some(ip => ip.includes(":") || isPrivateIpv4(ip))) {
-      throw new Error("Source host resolves to a private or reserved network address.");
-    }
-  } catch (error) {
-    if (error instanceof Error && error.message.includes("private or reserved")) throw error;
-    // DNS lookup may be unavailable in the managed runtime; hostname and redirect
-    // checks still apply, but do not claim DNS pinning or full rebinding protection.
+  const results = await Promise.allSettled([Deno.resolveDns(host, "A"), Deno.resolveDns(host, "AAAA")]);
+  const ips = results.flatMap(result => result.status === "fulfilled" ? result.value : []);
+  if (!ips.length) throw new Error("Could not verify the source host's public DNS address.");
+  if (ips.some(ip => ip.includes(":") || isPrivateIpv4(ip))) {
+    throw new Error("Source host resolves to a private or reserved network address.");
   }
 }
 async function readBounded(response: Response) {
@@ -197,10 +189,14 @@ Deno.serve(async (request) => {
     if (source.feed_format !== "json") throw new Error("Only explicitly mapped JSON feeds are supported in v1.");
 
     const minIntervalMs = Math.max(60_000, 3_600_000 / Math.max(1, source.max_requests_per_hour));
-    if (source.last_checked_at && Date.now() - new Date(source.last_checked_at).getTime() < minIntervalMs) {
-      throw new Error("Source request rate limit is active. Retry after the source cooldown.");
-    }
     const sourceUrl = safeUrl(source.source_url);
+    const cutoff = new Date(Date.now() - minIntervalMs).toISOString();
+    const reservedAt = new Date().toISOString();
+    const { data: reservation, error: reservationError } = await admin.from("lead_generator_sources")
+      .update({ last_checked_at: reservedAt, last_status: "fetch_started" })
+      .eq("id", source.id).or("last_checked_at.is.null,last_checked_at.lt." + cutoff)
+      .select("id").maybeSingle();
+    if (reservationError || !reservation) throw new Error("Source request rate limit is active. Retry after the source cooldown.");
     const mapping = validateMapping(source.feed_config);
     const permitted = (source.permitted_fields ?? []).filter((field: string) => ALLOWED_FIELDS.has(field));
     if (!permitted.includes("business_name")) throw new Error("business_name is not permitted for this source.");
@@ -211,7 +207,7 @@ Deno.serve(async (request) => {
     logId = log.id;
 
     const { status, body } = await fetchJson(sourceUrl);
-    await admin.from("lead_generator_sources").update({ last_checked_at: new Date().toISOString(), last_status: "HTTP " + status }).eq("id", source.id);
+    await admin.from("lead_generator_sources").update({ last_status: "HTTP " + status }).eq("id", source.id);
     const payload = JSON.parse(body) as unknown;
     const items = getPath(payload, mapping.itemsPath);
     if (!Array.isArray(items)) throw new Error("Configured items_path did not resolve to an array.");
@@ -226,7 +222,7 @@ Deno.serve(async (request) => {
       const category = normalizeText(mapped.category, 120);
       if (state.toLowerCase() !== String(claimed.region_state).toLowerCase()) { counts.rejected++; continue; }
       if (claimed.districts?.length && mapped.district && !claimed.districts.some((d: string) => d.toLowerCase() === String(mapped.district).toLowerCase())) { counts.rejected++; continue; }
-      if (claimed.categories?.length && category && !claimed.categories.includes(category)) { counts.rejected++; continue; }
+      if (claimed.categories?.length && (!category || !claimed.categories.includes(category))) { counts.rejected++; continue; }
       const domain = websiteHost(mapped.website);
       const normalized = normalizeName(name);
       let duplicateQuery = admin.from("admin_contact_bank").select("id").eq("contact_type", "business").limit(1);
