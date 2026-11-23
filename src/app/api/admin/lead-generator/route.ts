@@ -209,9 +209,11 @@ export async function POST(request: Request) {
       if (!projectUrl || !anonKey || sessionError || !accessToken) {
         return NextResponse.json({ error: "Your Super Admin session could not be forwarded to the discovery worker. Please sign in again and retry." }, { status: 503 });
       }
+      const state = text(body.state,80);
       const district = text(body.district,100);
       const category = text(body.category,150);
-      if (!district || !category) throw new Error("Select a district and business category before running discovery.");
+      if (state !== "Punjab") throw new Error("OpenStreetMap discovery is currently enabled for Punjab only. Select Punjab to continue.");
+      if (!district || !category) throw new Error("Select a state, city/district and business category before running discovery.");
       const response = await fetch(projectUrl.replace(/\/$/, "") + "/functions/v1/open-map-lead-discovery", {
         method: "POST", cache: "no-store",
         headers: { Authorization: "Bearer " + accessToken, apikey: anonKey, "Content-Type": "application/json" },
