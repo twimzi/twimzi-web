@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Activity, CheckCircle2, CirclePause, Database, Globe2, Plus, RefreshCw, ShieldAlert } from "lucide-react";
+import { Activity, Plus, RefreshCw, ShieldAlert } from "lucide-react";
 
 type Source = { id:string; name:string; source_url:string; source_type:string; permission_status:string; enabled:boolean; allowed_states:string[]; last_checked_at:string|null; last_status:string|null };
 type Job = { id:string; region_state:string; districts:string[]; categories:string[]; status:string; processed_count:number; inserted_count:number; duplicate_count:number; rejected_count:number; created_at:string; last_error:string|null };
@@ -18,7 +18,7 @@ export default function LeadGeneratorPage() {
   const [busy,setBusy]=useState(false);
 
   const load=useCallback(async()=>{setLoading(true);try{const res=await fetch("/api/admin/lead-generator",{cache:"no-store"});const data=await res.json();if(!res.ok)throw new Error(data.error);setSources(data.sources||[]);setJobs(data.jobs||[]);}catch(e){setError(e instanceof Error?e.message:"Could not load lead generator.");}finally{setLoading(false);}},[]);
-  useEffect(()=>{void load();},[load]);
+  useEffect(()=>{queueMicrotask(()=>{void load();});},[load]);
 
   async function submitSource(e:React.FormEvent){e.preventDefault();setBusy(true);setError("");try{const res=await fetch("/api/admin/lead-generator",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"add_source",name,source_url:url,terms_url:terms||null,source_type:sourceType,allowed_states:["Punjab"],allowed_categories:categories,permitted_fields:["business_name","category","business_email","business_phone","website","address","city","district","state","professional_contact_name","professional_designation","professional_work_email"]})});const data=await res.json();if(!res.ok)throw new Error(data.error);setNotice("Source saved for permission review. It is disabled until approved.");setShowSource(false);setName("");setUrl("");setTerms("");await load();}catch(e){setError(e instanceof Error?e.message:"Could not save source.");}finally{setBusy(false);}}
   async function updateSource(source:Source,status:string,enabled:boolean){setBusy(true);try{const res=await fetch("/api/admin/lead-generator",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({kind:"source",id:source.id,permission_status:status,enabled})});const data=await res.json();if(!res.ok)throw new Error(data.error);setNotice("Source status updated.");await load();}catch(e){setError(e instanceof Error?e.message:"Could not update source.");}finally{setBusy(false);}}
