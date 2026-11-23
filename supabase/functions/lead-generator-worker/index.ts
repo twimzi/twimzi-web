@@ -4,6 +4,7 @@ type JsonRecord = Record<string, unknown>;
 type Counts = { seen: number; inserted: number; duplicate: number; rejected: number };
 
 const MAX_BODY_BYTES = 2 * 1024 * 1024;
+const MAX_ROBOTS_BYTES = 256 * 1024;
 const MAX_RECORDS = 100;
 const FETCH_TIMEOUT_MS = 12_000;
 const USER_AGENT = "TwimziLeadResearchBot/1.0 (+https://www.twimzi.com/contact)";
@@ -128,8 +129,52 @@ async function readBounded(response: Response) {
   for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
   return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
 }
+async function assertRobotsAllows(url: URL) {
+  const robotsUrl = new URL("/robots.txt", url.origin);
+  const response = await fetch(robotsUrl, {
+    method: "GET", redirect: "error", signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+    headers: { "User-Agent": USER_AGENT, "Accept": "text/plain" },
+  });
+  if (response.status === 404) return;
+  if (!response.ok) throw new Error("Could not verify robots.txt permission (HTTP " + response.status + "); refusing collection.");
+  const declared = Number(response.headers.get("content-length") ?? "0");
+  if (declared > MAX_ROBOTS_BYTES) throw new Error("robots.txt exceeds the permitted size.");
+  const text = await response.text();
+  if (new TextEncoder().encode(text).byteLength > MAX_ROBOTS_BYTES) throw new Error("robots.txt exceeds the permitted size.");
+  const groups: Array<{ agents: string[]; rules: Array<{ rule: string; allow: boolean }> }> = [];
+  let current: { agents: string[]; rules: Array<{ rule: string; allow: boolean }> } | null = null;
+  for (const raw of text.split(/\\r?\\n/)) {
+    const line = raw.split("#", 1)[0].trim();
+    if (!line) continue;
+    const colon = line.indexOf(":");
+    if (colon < 0) continue;
+    const key = line.slice(0, colon).trim().toLowerCase();
+    const value = line.slice(colon + 1).trim();
+    if (key === "user-agent") {
+      if (!current || current.rules.length) { current = { agents: [], rules: [] }; groups.push(current); }
+      current.agents.push(value.toLowerCase());
+    } else if ((key === "disallow" || key === "allow") && current && value) {
+      current.rules.push({ rule: value, allow: key === "allow" });
+    }
+  }
+  const botGroup = groups.filter(g => g.agents.some(a => a !== "*" && "twimzileadresearchbot".includes(a)));
+  const selected = botGroup.length ? botGroup : groups.filter(g => g.agents.includes("*"));
+  const path = url.pathname + url.search;
+  const rules = selected.flatMap(g => g.rules).filter(r => {
+    if (r.rule === "*") return true;
+    const prefix = r.rule.replace(/\\*/g, "");
+    return path.startsWith(prefix);
+  });
+  const blocked = rules.filter(r => !r.allow).sort((a,b) => b.rule.length - a.rule.length)[0];
+  const allowed = rules.filter(r => r.allow).sort((a,b) => b.rule.length - a.rule.length)[0];
+  if (blocked && (!allowed || blocked.rule.length >= allowed.rule.length)) {
+    throw new Error("robots.txt disallows this source path for TwimziLeadResearchBot.");
+  }
+}
+
 async function fetchJson(url: URL) {
   await assertPublicDns(url.hostname);
+  await assertRobotsAllows(url);
   const response = await fetch(url, {
     method: "GET",
     redirect: "error",
@@ -188,7 +233,7 @@ Deno.serve(async (request) => {
     if (source.allowed_categories.length && claimed.categories.some((c: string) => !source.allowed_categories.includes(c))) throw new Error("Job categories exceed source approval.");
     if (source.feed_format !== "json") throw new Error("Only explicitly mapped JSON feeds are supported in v1.");
 
-    const minIntervalMs = Math.max(60_000, 3_600_000 / Math.max(1, source.max_requests_per_hour));
+    const minIntervalMs = Math.max(60_000, 7_200_000 / Math.max(1, source.max_requests_per_hour));
     const sourceUrl = safeUrl(source.source_url);
     const cutoff = new Date(Date.now() - minIntervalMs).toISOString();
     const reservedAt = new Date().toISOString();
