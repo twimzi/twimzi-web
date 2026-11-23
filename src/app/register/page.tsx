@@ -161,7 +161,7 @@ export default function Register() {
             submitted_at: new Date().toISOString(),
           },
         },
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`,
+        emailRedirectTo: `${window.location.origin}/auth/callback?flow=signup&next=${encodeURIComponent(nextPath)}`,
       },
     });
 
@@ -212,7 +212,7 @@ export default function Register() {
       new URLSearchParams(window.location.search).get("next"),
     );
     void trackAnalyticsEvent("signup_started");
-    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`;
+    const redirectTo = `${window.location.origin}/auth/callback?flow=signup&next=${encodeURIComponent(nextPath)}`;
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
