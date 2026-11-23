@@ -59,6 +59,7 @@ export default function AddBusiness() {
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [leadCaptureConsent, setLeadCaptureConsent] = useState(false);
+  const [acceptedBusinessPolicies, setAcceptedBusinessPolicies] = useState(false);
   const [phone, setPhone] = useState("");
   const [website, setWebsite] = useState("");
 
@@ -600,6 +601,11 @@ export default function AddBusiness() {
         return;
       }
     }
+    if (!acceptedBusinessPolicies) {
+      setErrorMessage("Please accept the Business Terms and Marketplace Policy before submitting your business.");
+      return;
+    }
+
     setLoading(true);
     setUploadProgress("");
 
@@ -640,6 +646,23 @@ export default function AddBusiness() {
         await trackAnalyticsEvent("business_registration_auth_required");
         router.push("/register?next=%2Fadd-business");
         return;
+      }
+
+      for (const documentType of ["business_terms", "marketplace_policy"]) {
+        const { data: legalData, error: legalLookupError } = await supabase.rpc("get_active_legal_document", {
+          p_document_type: documentType,
+          p_language_code: "en",
+        });
+        if (legalLookupError) throw legalLookupError;
+        const legalDocument = Array.isArray(legalData) ? legalData[0] : null;
+        if (!legalDocument?.id) throw new Error(`The current ${documentType.replaceAll("_", " ")} is unavailable. Please contact support.`);
+        const { error: acceptanceError } = await supabase.rpc("accept_legal_document", {
+          p_profile_id: user.id,
+          p_legal_document_id: legalDocument.id,
+          p_acceptance_source: "business_registration",
+          p_metadata: { acceptance_method: "explicit_business_registration_checkbox", policy_version: legalDocument.version },
+        });
+        if (acceptanceError) throw acceptanceError;
       }
 
       let businessId = createdBusinessId;
@@ -1394,6 +1417,17 @@ export default function AddBusiness() {
               <label className="flex items-start gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-secondary)] p-4 text-sm leading-6">
                 <input type="checkbox" checked={leadCaptureConsent} onChange={(event) => { const accepted = event.target.checked; setLeadCaptureConsent(accepted); if (!accepted) { const supabase = createSupabaseBrowserClient(); void supabase.rpc("capture_business_registration_lead", { p_session_id: getAnalyticsSessionId(), p_payload: {}, p_consent: false, p_submitted: false }); } }} className="mt-1 h-4 w-4 shrink-0 accent-[var(--color-primary)]" />
                 <span>I agree that Twimzi may securely save the business and contact details I enter here if I do not complete registration, so the Twimzi team can contact me to help finish setup. I can continue registration without opting in.</span>
+              </label>
+
+              <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-secondary)] p-4 text-sm leading-6">
+                <input type="checkbox" checked={acceptedBusinessPolicies} onChange={(event) => setAcceptedBusinessPolicies(event.target.checked)} required className="mt-1 h-4 w-4 shrink-0 accent-[var(--color-primary)]" />
+                <span>
+                  I agree to the{" "}
+                  <a href="/business-terms" target="_blank" rel="noopener noreferrer" className="font-semibold text-[var(--color-primary)] underline">Business Terms</a>
+                  {" "}and{" "}
+                  <a href="/marketplace-policy" target="_blank" rel="noopener noreferrer" className="font-semibold text-[var(--color-primary)] underline">Marketplace & Listing Policy</a>.
+                  I confirm that I am authorised to submit this business information and that the details are accurate.
+                </span>
               </label>
 
               <Button type="submit" disabled={loading}>
