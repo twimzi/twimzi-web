@@ -49,6 +49,7 @@ const sections = [
     "System",
     [
       ["Notifications", "/admin/notifications"],
+      ["Contact Data Bank", "/admin/contacts"],
       ["WhatsApp Messages", "/admin/whatsapp-messages"],
       ["Email Marketing", "/admin/email-messages"],
       ["Media", "/admin/media"],
