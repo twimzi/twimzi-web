@@ -144,6 +144,11 @@ export default function Register() {
       options: {
         data: {
           full_name: trimmedName,
+          legal_acceptance: {
+            accepted: true,
+            method: "explicit_registration_checkbox",
+            submitted_at: new Date().toISOString(),
+          },
         },
         emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`,
       },
