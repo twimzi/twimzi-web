@@ -289,10 +289,9 @@ Deno.serve(async (request) => {
       const state = normalizeText(mapped.state, 120) ?? claimed.region_state;
       const category = normalizeText(mapped.category, 120);
       if (state.toLowerCase() !== String(claimed.region_state).toLowerCase()) { counts.rejected++; continue; }
-      if (claimed.districts?.length && mapped.district && !claimed.districts.some((d: string) => d.toLowerCase() === String(mapped.district).toLowerCase())) { counts.rejected++; continue; }
+      if (claimed.districts?.length && (!mapped.district || !claimed.districts.some((d: string) => d.toLowerCase() === String(mapped.district).toLowerCase()))) { counts.rejected++; continue; }
       if (claimed.categories?.length && (!category || !claimed.categories.includes(category))) { counts.rejected++; continue; }
       const domain = websiteHost(mapped.website);
-      const normalized = normalizeName(name);
       let duplicateQuery = admin.from("admin_contact_bank").select("id").eq("contact_type", "business").limit(1);
       if (domain) duplicateQuery = duplicateQuery.eq("website_domain", domain).ilike("full_name", name);
       else if (city) duplicateQuery = duplicateQuery.ilike("full_name", name).ilike("city", city).ilike("state", state);
@@ -302,10 +301,10 @@ Deno.serve(async (request) => {
       if (duplicates?.length) { counts.duplicate++; continue; }
 
       const row: JsonRecord = {
-        full_name: name, company_name: name, contact_type: "business",
+        full_name: name, company_name: name, contact_type: "business", country: "India",
         source: source.name, source_type: "lead_generator", source_url: source.source_url,
         source_collected_at: new Date().toISOString(), source_last_checked_at: new Date().toISOString(),
-        email_kind: mapped.professional_work_email ? "professional_work" : "business",
+        email_kind: mapped.business_email ? "business" : mapped.professional_work_email ? "professional_work" : "unknown",
         review_status: "pending", verification_status: "unverified",
         collection_basis: "Source permission reviewed by Twimzi Super Admin; source terms: " + (source.terms_url ?? "recorded in source registry"),
         email_marketing_consent: false, whatsapp_marketing_consent: false, do_not_contact: false,
