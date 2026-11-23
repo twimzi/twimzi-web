@@ -29,6 +29,10 @@ function readConsent(): Consent | null {
 function saveConsent(analytics: boolean, marketing: boolean) {
   const consent: Consent = { necessary: true, analytics, marketing, updatedAt: new Date().toISOString(), version: 1 };
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(consent));
+  if (!analytics) {
+    window.sessionStorage.removeItem("twimzi:analytics-session:v1");
+    window.sessionStorage.removeItem("twimzi:analytics-attribution:v1");
+  }
   window.dispatchEvent(new CustomEvent(CONSENT_EVENT, { detail: consent }));
   return consent;
 }
