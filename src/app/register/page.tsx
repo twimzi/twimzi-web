@@ -76,6 +76,7 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [confirmedAdult, setConfirmedAdult] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -427,6 +428,19 @@ export default function Register() {
                 <Link href="/community-guidelines" target="_blank" className="font-semibold text-[var(--color-text)] hover:underline">Community Guidelines</Link>,{" "}
                 <Link href="/acceptable-use" target="_blank" className="font-semibold text-[var(--color-text)] hover:underline">Acceptable Use</Link> and{" "}
                 <Link href="/messaging-policy" target="_blank" className="font-semibold text-[var(--color-text)] hover:underline">Messaging Policy</Link>.
+              </span>
+            </label>
+
+            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-secondary)] p-4">
+              <input
+                type="checkbox"
+                checked={confirmedAdult}
+                onChange={(event) => setConfirmedAdult(event.target.checked)}
+                className="mt-1 h-4 w-4 shrink-0 accent-[var(--color-primary)]"
+                required
+              />
+              <span className="text-xs leading-5 text-[var(--color-text-muted)]">
+                I confirm that I am at least 18 years old. Twimzi accounts are only available to individuals aged 18 or above, as stated in the Terms & Conditions.
               </span>
             </label>
 
