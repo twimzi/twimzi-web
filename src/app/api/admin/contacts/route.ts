@@ -26,7 +26,7 @@ function normalize(payload: Record<string, unknown>) {
   return {
     full_name, company_name: clean(payload.company_name, 180) || null, email: email || null, phone: phone || null,
     city: clean(payload.city, 100) || null, state: clean(payload.state, 100) || null, country: clean(payload.country, 100) || null,
-    contact_type: ["business","manufacturer","trader","professional","supplier","customer","partner","other"].includes(String(payload.contact_type)) ? payload.contact_type : "other",
+    contact_type: ["business","manufacturer","trader","professional","supplier","customer","partner","other"].includes(String(payload.contact_type)) ? String(payload.contact_type) : "other",
     source: clean(payload.source, 180) || null, tags, notes: clean(payload.notes, 5000) || null,
     email_marketing_consent: emailConsent, email_consent_at: emailConsent ? clean(payload.email_consent_at, 80) || new Date().toISOString() : null,
     whatsapp_marketing_consent: whatsappConsent, whatsapp_consent_at: whatsappConsent ? clean(payload.whatsapp_consent_at, 80) || new Date().toISOString() : null,
