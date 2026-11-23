@@ -58,7 +58,7 @@ export async function GET(request: Request) {
   if (sources.error || jobs.error) return NextResponse.json({ error: "Lead Generator schema is unavailable. Confirm the production migrations are applied and refresh." }, { status: 500 });
   let leadsQuery = auth.supabase.from("admin_contact_bank_review")
     .select("id,full_name,company_name,email,phone,website,website_domain,city,district,state,business_category,source,source_url,review_status,verification_status,created_at,normalized_phone,duplicate_reasons,phone_match_count,email_match_count,domain_match_count,name_location_match_count", { count: "exact" })
-    .eq("source_type", "lead_generator").is("archived_at", null).order("created_at", { ascending: false });
+    .eq("source_type", "lead_generator").order("created_at", { ascending: false });
   if (status && ["pending","approved","rejected"].includes(status)) leadsQuery = leadsQuery.eq("review_status", status);
   if (emailFilter === "has") leadsQuery = leadsQuery.not("email", "is", null).neq("email", "");
   if (emailFilter === "missing") leadsQuery = leadsQuery.or("email.is.null,email.eq.");
@@ -67,11 +67,11 @@ export async function GET(request: Request) {
   const { data: leads, error: leadsError, count } = await leadsQuery.range((page-1)*pageSize, page*pageSize-1);
   if (leadsError) return NextResponse.json({ error: "Could not load the lead review queue. Confirm the contact review view is deployed." }, { status: 500 });
   const [totalCount, emailCount, phoneCount, pendingCount, duplicateCount] = await Promise.all([
-    auth.supabase.from("admin_contact_bank").select("id", { count:"exact", head:true }).eq("source_type","lead_generator").is("archived_at",null),
-    auth.supabase.from("admin_contact_bank").select("id", { count:"exact", head:true }).eq("source_type","lead_generator").is("archived_at",null).not("email","is",null).neq("email",""),
-    auth.supabase.from("admin_contact_bank").select("id", { count:"exact", head:true }).eq("source_type","lead_generator").is("archived_at",null).not("phone","is",null).neq("phone",""),
-    auth.supabase.from("admin_contact_bank").select("id", { count:"exact", head:true }).eq("source_type","lead_generator").is("archived_at",null).eq("review_status","pending"),
-    auth.supabase.from("admin_contact_bank_review").select("id", { count:"exact", head:true }).eq("source_type","lead_generator").is("archived_at",null).or("phone_match_count.gt.1,email_match_count.gt.1,domain_match_count.gt.1,name_location_match_count.gt.1"),
+    auth.supabase.from("admin_contact_bank").select("id", { count:"exact", head:true }).eq("source_type","lead_generator"),
+    auth.supabase.from("admin_contact_bank").select("id", { count:"exact", head:true }).eq("source_type","lead_generator").not("email","is",null).neq("email",""),
+    auth.supabase.from("admin_contact_bank").select("id", { count:"exact", head:true }).eq("source_type","lead_generator").not("phone","is",null).neq("phone",""),
+    auth.supabase.from("admin_contact_bank").select("id", { count:"exact", head:true }).eq("source_type","lead_generator").eq("review_status","pending"),
+    auth.supabase.from("admin_contact_bank_review").select("id", { count:"exact", head:true }).eq("source_type","lead_generator").or("phone_match_count.gt.1,email_match_count.gt.1,domain_match_count.gt.1,name_location_match_count.gt.1"),
   ]);
   return NextResponse.json({
     sources:sources.data||[], jobs:jobs.data||[], discoveryRuns:discoveryRuns.error?[]:discoveryRuns.data||[],
@@ -91,8 +91,8 @@ export async function POST(request: Request) {
       if (!ids.length) throw new Error("Select at least one lead.");
       if (!["approved","rejected"].includes(status)) throw new Error("Choose approve or reject.");
       const { data, error } = await auth.supabase.from("admin_contact_bank")
-        .update({ review_status: status, updated_by: auth.user.id, updated_at: new Date().toISOString() })
-        .in("id", ids).eq("source_type","lead_generator").is("archived_at",null)
+        .update({ review_status: status, archived_at: null, updated_by: auth.user.id, updated_at: new Date().toISOString() })
+        .in("id", ids).eq("source_type","lead_generator")
         .select("id");
       if (error) return NextResponse.json({ error: "Bulk review update failed." }, { status: 500 });
       return NextResponse.json({ updated: data?.length || 0, status });
@@ -101,7 +101,7 @@ export async function POST(request: Request) {
       const ids = list(body.ids, 100);
       if (ids.length < 2) throw new Error("Select at least two duplicate leads to merge.");
       const { data: rows, error: readError } = await auth.supabase.from("admin_contact_bank_review")
-        .select("*").in("id", ids).eq("source_type","lead_generator").is("archived_at",null);
+        .select("*").in("id", ids).eq("source_type","lead_generator");
       if (readError || !rows || rows.length !== ids.length) throw new Error("Could not load every selected lead.");
       const sorted = [...rows].sort((a,b) => new Date(String(a.created_at)).getTime()-new Date(String(b.created_at)).getTime());
       const keeper = sorted[0] as Record<string, unknown>;
@@ -114,7 +114,7 @@ export async function POST(request: Request) {
         throw new Error("These records do not all share the same phone, email or website. Name-only matches must be reviewed manually and cannot be auto-merged.");
       }
       const fillFields = ["email","phone","website","website_domain","business_address","city","district","business_category","professional_contact_name","professional_contact_designation"];
-      const patch:Record<string,unknown> = { updated_by:auth.user.id, updated_at:new Date().toISOString() };
+      const patch:Record<string,unknown> = { archived_at:null, updated_by:auth.user.id, updated_at:new Date().toISOString() };
       for (const field of fillFields) if (!keeper[field]) {
         const candidate = duplicates.find(row => row[field]);
         if (candidate) patch[field] = candidate[field];
