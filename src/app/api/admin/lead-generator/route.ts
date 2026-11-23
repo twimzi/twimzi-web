@@ -57,7 +57,7 @@ export async function GET(request: Request) {
   ]);
   if (sources.error || jobs.error) return NextResponse.json({ error: "Lead Generator schema is unavailable. Confirm the production migrations are applied and refresh." }, { status: 500 });
   let leadsQuery = auth.supabase.from("admin_contact_bank_review")
-    .select("id,full_name,company_name,email,phone,website,website_domain,city,district,state,business_category,source,source_url,review_status,verification_status,created_at,normalized_phone,duplicate_reasons,phone_match_count,email_match_count,domain_match_count,name_location_match_count", { count: "exact" })
+    .select("id,archived_at,full_name,company_name,email,phone,website,website_domain,city,district,state,business_category,source,source_url,review_status,verification_status,created_at,normalized_phone,duplicate_reasons,phone_match_count,email_match_count,domain_match_count,name_location_match_count", { count: "exact" })
     .eq("source_type", "lead_generator").order("created_at", { ascending: false });
   if (status && ["pending","approved","rejected"].includes(status)) leadsQuery = leadsQuery.eq("review_status", status);
   if (emailFilter === "has") leadsQuery = leadsQuery.not("email", "is", null).neq("email", "");
