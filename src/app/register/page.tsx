@@ -126,6 +126,11 @@ export default function Register() {
       return;
     }
 
+    if (!confirmedAdult) {
+      setErrorMessage("You must confirm that you are at least 18 years old to create a Twimzi account.");
+      return;
+    }
+
     if (!acceptedTerms) {
       setErrorMessage(
         "You must agree to the Terms & Conditions and Privacy Policy to create an account.",
@@ -145,6 +150,11 @@ export default function Register() {
       options: {
         data: {
           full_name: trimmedName,
+          age_confirmation: {
+            confirmed: true,
+            minimum_age: 18,
+            confirmed_at: new Date().toISOString(),
+          },
           legal_acceptance: {
             accepted: true,
             method: "explicit_registration_checkbox",
@@ -187,6 +197,10 @@ export default function Register() {
   async function handleGoogleRegister() {
     setErrorMessage("");
     setSuccessMessage("");
+    if (!confirmedAdult) {
+      setErrorMessage("You must confirm that you are at least 18 years old to create a Twimzi account.");
+      return;
+    }
     if (!acceptedTerms) {
       setErrorMessage("Please agree to the Terms & Conditions and Privacy Policy before continuing with Google.");
       return;
