@@ -53,7 +53,7 @@ export async function GET(request: Request) {
   const [sources, jobs, discoveryRuns] = await Promise.all([
     auth.supabase.from("lead_generator_sources").select("*").order("created_at", { ascending: false }).limit(250),
     auth.supabase.from("lead_generator_jobs").select("*").order("created_at", { ascending: false }).limit(100),
-    auth.supabase.from("lead_generator_discovery_runs").select("id,provider,region_state,status,records_seen,records_inserted,records_duplicate,records_rejected,error_message,started_at,finished_at").order("started_at", { ascending: false }).limit(20),
+    auth.supabase.from("lead_generator_discovery_runs").select("id,provider,region_state,selected_district,selected_category,status,records_seen,records_inserted,records_duplicate,records_rejected,error_message,started_at,finished_at").order("started_at", { ascending: false }).limit(20),
   ]);
   if (sources.error || jobs.error) return NextResponse.json({ error: "Lead Generator schema is unavailable. Confirm the production migrations are applied and refresh." }, { status: 500 });
   let leadsQuery = auth.supabase.from("admin_contact_bank_review")
@@ -75,7 +75,7 @@ export async function GET(request: Request) {
   ]);
   return NextResponse.json({
     sources:sources.data||[], jobs:jobs.data||[], discoveryRuns:discoveryRuns.error?[]:discoveryRuns.data||[],
-    leads:leads||[], leadPagination:{page,pageSize,total:count||0,pages:Math.max(1,Math.ceil((count||0)/pageSize))},
+    leads:await (async()=>{const rows=leads||[];if(!rows.length)return rows;const {data:flags,error:flagsError}=await auth.supabase.from("admin_contact_bank").select("id,email_marketing_consent,email_consent_at,whatsapp_marketing_consent,whatsapp_consent_at,email_verification_status,phone_verification_status,email_verified_at,phone_verified_at").in("id",rows.map(row=>row.id));if(flagsError)throw new Error("Could not load contact consent and verification details.");const byId=new Map((flags||[]).map(row=>[row.id,row]));return rows.map(row=>({...row,...(byId.get(row.id)||{})}));})(), leadPagination:{page,pageSize,total:count||0,pages:Math.max(1,Math.ceil((count||0)/pageSize))},
     leadStats:{total:totalCount.count||0,withEmail:emailCount.count||0,withPhone:phoneCount.count||0,pending:pendingCount.count||0,possibleDuplicates:duplicateCount.count||0}
   });
 }
@@ -96,6 +96,30 @@ export async function POST(request: Request) {
         .select("id");
       if (error) return NextResponse.json({ error: "Bulk review update failed." }, { status: 500 });
       return NextResponse.json({ updated: data?.length || 0, status });
+    }
+    if (body.action === "bulk_update_contact_settings") {
+      const ids = list(body.ids,500);
+      if (!ids.length) throw new Error("Select at least one lead.");
+      const allowedConsent = ["unchanged","confirmed","not_confirmed"];
+      const allowedVerification = ["unchanged","verified","unverified","failed"];
+      const settings = {emailConsent:text(body.emailConsent,30),whatsappConsent:text(body.whatsappConsent,30),emailVerification:text(body.emailVerification,30),phoneVerification:text(body.phoneVerification,30)};
+      if (!allowedConsent.includes(settings.emailConsent)||!allowedConsent.includes(settings.whatsappConsent)||!allowedVerification.includes(settings.emailVerification)||!allowedVerification.includes(settings.phoneVerification)) throw new Error("Choose valid consent and verification settings.");
+      const {data:records,error:readError}=await auth.supabase.from("admin_contact_bank").select("id,email,phone").in("id",ids).eq("source_type","lead_generator");
+      if(readError||!records||records.length!==ids.length)throw new Error("Could not load every selected lead.");
+      if(settings.emailConsent==="confirmed"&&records.some(row=>!row.email))throw new Error("Remove leads without an email address before confirming email marketing consent.");
+      if(settings.whatsappConsent==="confirmed"&&records.some(row=>!row.phone))throw new Error("Remove leads without a phone number before confirming WhatsApp marketing consent.");
+      if(settings.emailVerification==="verified"&&records.some(row=>!row.email))throw new Error("Remove leads without an email address before marking email verified.");
+      if(settings.phoneVerification==="verified"&&records.some(row=>!row.phone))throw new Error("Remove leads without a phone number before marking phone verified.");
+      const now=new Date().toISOString();
+      const patch:Record<string,unknown>={updated_by:auth.user.id,updated_at:now};
+      if(settings.emailConsent!=="unchanged"){patch.email_marketing_consent=settings.emailConsent==="confirmed";patch.email_consent_at=settings.emailConsent==="confirmed"?now:null;if(settings.emailConsent==="confirmed")patch.email_unsubscribed_at=null;}
+      if(settings.whatsappConsent!=="unchanged"){patch.whatsapp_marketing_consent=settings.whatsappConsent==="confirmed";patch.whatsapp_consent_at=settings.whatsappConsent==="confirmed"?now:null;if(settings.whatsappConsent==="confirmed")patch.whatsapp_opted_out_at=null;}
+      if(settings.emailVerification!=="unchanged"){patch.email_verification_status=settings.emailVerification;patch.email_verified_at=settings.emailVerification==="verified"?now:null;}
+      if(settings.phoneVerification!=="unchanged"){patch.phone_verification_status=settings.phoneVerification;patch.phone_verified_at=settings.phoneVerification==="verified"?now:null;}
+      if(Object.keys(patch).length<=2)throw new Error("Choose at least one field to update.");
+      const {data,error}=await auth.supabase.from("admin_contact_bank").update(patch).in("id",ids).eq("source_type","lead_generator").select("id");
+      if(error)return NextResponse.json({error:"Bulk contact settings update failed."},{status:500});
+      return NextResponse.json({updated:data?.length||0});
     }
     if (body.action === "bulk_merge_leads") {
       const ids = list(body.ids, 100);
@@ -185,10 +209,13 @@ export async function POST(request: Request) {
       if (!projectUrl || !anonKey || sessionError || !accessToken) {
         return NextResponse.json({ error: "Your Super Admin session could not be forwarded to the discovery worker. Please sign in again and retry." }, { status: 503 });
       }
+      const district = text(body.district,100);
+      const category = text(body.category,150);
+      if (!district || !category) throw new Error("Select a district and business category before running discovery.");
       const response = await fetch(projectUrl.replace(/\/$/, "") + "/functions/v1/open-map-lead-discovery", {
         method: "POST", cache: "no-store",
         headers: { Authorization: "Bearer " + accessToken, apikey: anonKey, "Content-Type": "application/json" },
-        body: JSON.stringify({ force: body.force === true }),
+        body: JSON.stringify({ district, category }),
         signal: AbortSignal.timeout(90_000),
       });
       const result = await response.json().catch(() => ({}));
