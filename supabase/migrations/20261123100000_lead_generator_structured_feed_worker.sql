@@ -1,4 +1,16 @@
 -- Structured-feed configuration and bounded worker execution.
+alter table public.admin_contact_bank
+  add column if not exists website text,
+  add column if not exists website_domain text,
+  add column if not exists business_address text,
+  add column if not exists district text,
+  add column if not exists business_category text;
+
+create index if not exists admin_contact_bank_website_domain_idx
+  on public.admin_contact_bank(website_domain)
+  where website_domain is not null;
+create index if not exists admin_contact_bank_business_location_idx
+  on public.admin_contact_bank(business_category, state, district);
 alter table public.lead_generator_sources
   add column if not exists feed_format text not null default 'json',
   add column if not exists feed_config jsonb not null default '{}'::jsonb;
