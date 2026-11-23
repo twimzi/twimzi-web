@@ -117,6 +117,9 @@ export async function POST(request: Request) {
         signal: AbortSignal.timeout(90_000),
       });
       const result = await response.json().catch(() => ({}));
+      if (response.status === 409 && (result as Record<string,unknown>).already_running === true) {
+        return NextResponse.json({ status: "skipped", already_running: true, reason: text((result as Record<string,unknown>).reason, 300) || "A discovery run is already in progress." });
+      }
       if (!response.ok) return NextResponse.json({ error: text((result as Record<string,unknown>).error, 500) || "Lead discovery invocation failed.", details: result }, { status: response.status });
       return NextResponse.json(result);
     }
