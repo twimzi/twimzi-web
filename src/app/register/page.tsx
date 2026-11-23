@@ -31,9 +31,9 @@ async function recordAcceptedPolicies(
       p_language_code: "en",
     });
     const document = Array.isArray(data) ? data[0] : null;
-    if (!document?.id) continue;
+    if (!document?.id) throw new Error(`The active legal document is unavailable: ${documentType}`);
 
-    await supabase.rpc("accept_legal_document", {
+    const { error } = await supabase.rpc("accept_legal_document", {
       p_profile_id: userId,
       p_legal_document_id: document.id,
       p_acceptance_source: "web_registration",
@@ -42,6 +42,7 @@ async function recordAcceptedPolicies(
         policy_version: document.version,
       },
     });
+    if (error) throw error;
   }
 }
 
@@ -157,7 +158,14 @@ export default function Register() {
     await trackAnalyticsEvent("signup_completed");
 
     if (data.session) {
-      await recordAcceptedPolicies(supabase, data.session.user.id, nextPath === "/add-business" || nextPath.startsWith("/add-business?"));
+      try {
+        await recordAcceptedPolicies(supabase, data.session.user.id, nextPath === "/add-business" || nextPath.startsWith("/add-business?"));
+      } catch {
+        await supabase.auth.signOut();
+        setErrorMessage("We could not save your legal acceptance. Please try registration again.");
+        setIsLoading(false);
+        return;
+      }
       router.push(nextPath);
       router.refresh();
       return;
