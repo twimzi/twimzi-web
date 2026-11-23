@@ -28,16 +28,18 @@ async function recordRequiredAcceptances(
       p_language_code: "en",
     });
     const document = Array.isArray(data) ? data[0] : null;
-    if (!document?.id) continue;
+    if (!document?.id) {
+      throw new Error(`The active legal document is unavailable: ${documentType}`);
+    }
 
-    await supabase.rpc("accept_legal_document", {
+    const { error: acceptanceError } = await supabase.rpc("accept_legal_document", {
       p_profile_id: userId,
       p_legal_document_id: document.id,
-      p_ip_address: request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null,
       p_user_agent: request.headers.get("user-agent") ?? null,
       p_acceptance_source: "web_registration",
       p_metadata: { acceptance_method: "explicit_registration_checkbox", policy_version: document.version },
     });
+    if (acceptanceError) throw acceptanceError;
   }
 }
 
@@ -61,7 +63,12 @@ export async function GET(request: NextRequest) {
   const accepted = request.cookies.get("twimzi_legal_acceptance")?.value === "1";
   const { data: { user } } = await supabase.auth.getUser();
   if (accepted && user) {
-    await recordRequiredAcceptances(supabase, user.id, next === "/add-business" || next.startsWith("/add-business?"), request);
+    try {
+      await recordRequiredAcceptances(supabase, user.id, next === "/add-business" || next.startsWith("/add-business?"), request);
+    } catch {
+      await supabase.auth.signOut();
+      return NextResponse.redirect(new URL("/register?error=" + encodeURIComponent("We could not save your legal acceptance. Please try registration again."), requestUrl.origin));
+    }
   }
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://www.twimzi.com";
