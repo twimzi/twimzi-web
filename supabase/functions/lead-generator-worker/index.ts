@@ -129,6 +129,26 @@ async function readBounded(response: Response) {
   for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
   return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
 }
+async function readTextLimited(response: Response, maxBytes: number) {
+  const reader = response.body?.getReader();
+  if (!reader) return "";
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > maxBytes) throw new Error("robots.txt exceeds the permitted size.");
+      chunks.push(value);
+    }
+  } finally { reader.releaseLock(); }
+  const bytes = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+  return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+}
+
 async function assertRobotsAllows(url: URL) {
   const robotsUrl = new URL("/robots.txt", url.origin);
   const response = await fetch(robotsUrl, {
@@ -139,8 +159,7 @@ async function assertRobotsAllows(url: URL) {
   if (!response.ok) throw new Error("Could not verify robots.txt permission (HTTP " + response.status + "); refusing collection.");
   const declared = Number(response.headers.get("content-length") ?? "0");
   if (declared > MAX_ROBOTS_BYTES) throw new Error("robots.txt exceeds the permitted size.");
-  const text = await response.text();
-  if (new TextEncoder().encode(text).byteLength > MAX_ROBOTS_BYTES) throw new Error("robots.txt exceeds the permitted size.");
+  const text = await readTextLimited(response, MAX_ROBOTS_BYTES);
   const groups: Array<{ agents: string[]; rules: Array<{ rule: string; allow: boolean }> }> = [];
   let current: { agents: string[]; rules: Array<{ rule: string; allow: boolean }> } | null = null;
   for (const raw of text.split(/\\r?\\n/)) {
@@ -167,7 +186,7 @@ async function assertRobotsAllows(url: URL) {
   });
   const blocked = rules.filter(r => !r.allow).sort((a,b) => b.rule.length - a.rule.length)[0];
   const allowed = rules.filter(r => r.allow).sort((a,b) => b.rule.length - a.rule.length)[0];
-  if (blocked && (!allowed || blocked.rule.length >= allowed.rule.length)) {
+  if (blocked && (!allowed || blocked.rule.length > allowed.rule.length)) {
     throw new Error("robots.txt disallows this source path for TwimziLeadResearchBot.");
   }
 }
