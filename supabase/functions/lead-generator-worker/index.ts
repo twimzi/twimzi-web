@@ -162,8 +162,9 @@ async function assertRobotsAllows(url: URL) {
   const path = url.pathname + url.search;
   const rules = selected.flatMap(g => g.rules).filter(r => {
     if (r.rule === "*") return true;
-    const prefix = r.rule.replace(/\\*/g, "");
-    return path.startsWith(prefix);
+    const pattern = r.rule.replace(/[.+?^${}()|[\]\\]/g, "\\    const prefix = r.rule.replace(/\\*/g, "");
+    return path.startsWith(prefix);").replace(/\\*/g, ".*").replace(/\$/, "$");
+    try { return new RegExp("^" + pattern).test(path); } catch { return true; }
   });
   const blocked = rules.filter(r => !r.allow).sort((a,b) => b.rule.length - a.rule.length)[0];
   const allowed = rules.filter(r => r.allow).sort((a,b) => b.rule.length - a.rule.length)[0];
@@ -199,9 +200,9 @@ function websiteHost(value: unknown) {
 Deno.serve(async (request) => {
   if (request.method !== "POST") return json({ error: "POST required." }, 405);
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const invocationJwt = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
   const serviceKey = envKey();
-  const expectedBearer = serviceKey ? "Bearer " + serviceKey : "";
-  if (!expectedBearer || request.headers.get("authorization") !== expectedBearer) {
+  if (!invocationJwt || request.headers.get("authorization") !== "Bearer " + invocationJwt) {
     return json({ error: "Unauthorized." }, 401);
   }
   if (!supabaseUrl || !serviceKey) return json({ error: "Worker is not configured." }, 503);
