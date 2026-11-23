@@ -167,7 +167,7 @@ async function assertRobotsAllows(url: URL) {
   const text = await readTextLimited(response, MAX_ROBOTS_BYTES);
   const groups: Array<{ agents: string[]; rules: Array<{ rule: string; allow: boolean }> }> = [];
   let current: { agents: string[]; rules: Array<{ rule: string; allow: boolean }> } | null = null;
-  for (const raw of text.split(/\\r?\\n/)) {
+  for (const raw of text.split(/\r?\n/)) {
     const line = raw.split("#", 1)[0].trim();
     if (!line) continue;
     const colon = line.indexOf(":");
@@ -285,7 +285,16 @@ Deno.serve(async (request) => {
     const items = getPath(payload, mapping.itemsPath);
     if (!Array.isArray(items)) throw new Error("Configured items_path did not resolve to an array.");
     const records = items.slice(0, MAX_RECORDS);
+    let stoppedStatus: "paused" | "cancelled" | null = null;
     for (const raw of records) {
+      const { data: currentJob, error: statusError } = await admin.from("lead_generator_jobs")
+        .select("status").eq("id", claimed.id).maybeSingle();
+      if (statusError) throw new Error("Could not verify job state during processing.");
+      if (currentJob?.status === "paused" || currentJob?.status === "cancelled") {
+        stoppedStatus = currentJob.status;
+        break;
+      }
+      if (currentJob?.status !== "running") throw new Error("Job is no longer running; stopping collection.");
       counts.seen++;
       const mapped = mapRecord(raw, mapping, permitted);
       if (!mapped) { counts.rejected++; continue; }
@@ -332,16 +341,17 @@ Deno.serve(async (request) => {
         else throw new Error("Could not save a collected business record.");
       } else counts.inserted++;
     }
-    const finalStatus = items.length > MAX_RECORDS ? "completed" : "completed";
+    const finalStatus = stoppedStatus ?? "completed";
     await admin.from("lead_generator_jobs").update({
       status: finalStatus, processed_count: counts.seen, inserted_count: counts.inserted,
-      duplicate_count: counts.duplicate, rejected_count: counts.rejected, finished_at: new Date().toISOString(),
-    }).eq("id", claimed.id);
+      duplicate_count: counts.duplicate, rejected_count: counts.rejected,
+      ...(finalStatus === "completed" ? { finished_at: new Date().toISOString() } : {}),
+    }).eq("id", claimed.id).eq("status", stoppedStatus ? finalStatus : "running");
     await admin.from("lead_generator_fetch_log").update({
-      outcome: "completed", http_status: 200, records_seen: counts.seen, records_inserted: counts.inserted,
+      outcome: finalStatus, http_status: 200, records_seen: counts.seen, records_inserted: counts.inserted,
       records_duplicate: counts.duplicate, records_rejected: counts.rejected,
     }).eq("id", logId);
-    return json({ job_id: claimed.id, status: "completed", counts });
+    return json({ job_id: claimed.id, status: finalStatus, counts });
   } catch (error) {
     const message = error instanceof Error ? error.message.slice(0, 500) : "Worker failed.";
     await admin.from("lead_generator_jobs").update({
