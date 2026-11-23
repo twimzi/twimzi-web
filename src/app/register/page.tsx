@@ -10,7 +10,47 @@ import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { trackAnalyticsEvent } from "@/lib/analytics";
 
-async function recordAcceptedPolicies(supabase: ReturnType<typeof createSupabaseBrowserClient>, userId: string, includeBusiness: boolean) {\n  const types = ["terms_of_service", "privacy_policy", "community_guidelines", "acceptable_use_policy", "user_content_policy", "messaging_policy", ...(includeBusiness ? ["business_terms", "marketplace_policy"] : [])];\n  for (const documentType of types) {\n    const { data } = await supabase.rpc("get_active_legal_document", { p_document_type: documentType, p_language_code: "en" });\n    const document = Array.isArray(data) ? data[0] : null;\n    if (!document?.id) continue;\n    await supabase.rpc("accept_legal_document", { p_profile_id: userId, p_legal_document_id: document.id, p_acceptance_source: "web_registration", p_metadata: { acceptance_method: "explicit_registration_checkbox", policy_version: document.version } });\n  }\n}\n\nfunction setLegalAcceptanceCookie() {\n  document.cookie = "twimzi_legal_acceptance=1; Path=/; Max-Age=1800; SameSite=Lax; Secure";\n}\n\nfunction getSafeNextPath(value: string | null): string {
+async function recordAcceptedPolicies(
+  supabase: ReturnType<typeof createSupabaseBrowserClient>,
+  userId: string,
+  includeBusiness: boolean,
+) {
+  const types = [
+    "terms_of_service",
+    "privacy_policy",
+    "community_guidelines",
+    "acceptable_use_policy",
+    "user_content_policy",
+    "messaging_policy",
+    ...(includeBusiness ? ["business_terms", "marketplace_policy"] : []),
+  ];
+
+  for (const documentType of types) {
+    const { data } = await supabase.rpc("get_active_legal_document", {
+      p_document_type: documentType,
+      p_language_code: "en",
+    });
+    const document = Array.isArray(data) ? data[0] : null;
+    if (!document?.id) continue;
+
+    await supabase.rpc("accept_legal_document", {
+      p_profile_id: userId,
+      p_legal_document_id: document.id,
+      p_acceptance_source: "web_registration",
+      p_metadata: {
+        acceptance_method: "explicit_registration_checkbox",
+        policy_version: document.version,
+      },
+    });
+  }
+}
+
+function setLegalAcceptanceCookie() {
+  document.cookie =
+    "twimzi_legal_acceptance=1; Path=/; Max-Age=1800; SameSite=Lax; Secure";
+}
+
+function getSafeNextPath(value: string | null): string {
   if (
     !value ||
     !value.startsWith("/") ||
