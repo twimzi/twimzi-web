@@ -199,6 +199,25 @@ export async function POST(request: Request) {
       return NextResponse.json(result);
     }
 
+    if (body.action === "enrich_websites") {
+      const projectUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+      const { data: sessionData, error: sessionError } = await auth.supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+      if (!projectUrl || !anonKey || sessionError || !accessToken) {
+        return NextResponse.json({ error: "Your Super Admin session could not be forwarded to the enrichment worker. Please sign in again and retry." }, { status: 503 });
+      }
+      const response = await fetch(projectUrl.replace(/\\/$/, "") + "/functions/v1/lead-generator-worker", {
+        method: "POST", cache: "no-store",
+        headers: { Authorization: "Bearer " + accessToken, apikey: anonKey, "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "enrich_websites" }),
+        signal: AbortSignal.timeout(120_000),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) return NextResponse.json({ error: text((result as Record<string,unknown>).error, 500) || "Website enrichment failed.", details: result }, { status: response.status });
+      return NextResponse.json(result);
+    }
+
     if (body.action === "run_worker") {
       const projectUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
       const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
