@@ -36,8 +36,9 @@ export default function LeadGeneratorPage() {
       const res=await fetch("/api/admin/lead-generator",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"run_open_map_discovery",force})});
       const data=await res.json();
       if(!res.ok)throw new Error(data.error||"OpenStreetMap discovery failed.");
-      if(data.status==="skipped")setNotice("Discovery was not started: "+(data.reason||"worker skipped the run")+".");
-      else if(data.counts)setNotice("OpenStreetMap run "+data.status+": "+data.counts.inserted+" contactable businesses added, "+data.counts.rejected+" rejected for missing contact details, "+data.counts.duplicate+" duplicates.");
+      if(data.already_running)setNotice("Discovery is already running. Refresh the run history in a few seconds; no second run was started.");
+      else if(data.status==="skipped")setNotice("Discovery was not started: "+(data.reason||"worker skipped the run")+".");
+      else if(data.counts)setNotice("OpenStreetMap run "+data.status+" ("+(data.rotation?.district||"Punjab")+", "+(data.rotation?.category||"rotating category")+"): "+data.counts.inserted+" contactable businesses added, "+data.counts.rejected+" rejected for missing contact details, "+data.counts.duplicate+" duplicates.");
       else setNotice(data.message||"Discovery request completed.");
       await load();
     }catch(e){setError(e instanceof Error?e.message:"Could not run business discovery.");}
