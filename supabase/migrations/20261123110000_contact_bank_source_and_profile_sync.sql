@@ -56,8 +56,8 @@ begin
       and (
         (nullif(lower(btrim(new.email::text)), '') is not null and lower(email) = lower(btrim(new.email::text)))
         or
-        (nullif(regexp_replace(coalesce(new.phone, ''), '\\D', '', 'g'), '') is not null
-          and regexp_replace(coalesce(phone, ''), '\\D', '', 'g') = regexp_replace(new.phone, '\\D', '', 'g'))
+        (nullif(regexp_replace(coalesce(new.phone, ''), '[^0-9]', '', 'g'), '') is not null
+          and regexp_replace(coalesce(phone, ''), '[^0-9]', '', 'g') = regexp_replace(new.phone, '[^0-9]', '', 'g'))
       )
     returning id into v_contact_id;
   end if;
@@ -89,6 +89,9 @@ begin
 end;
 $$;
 
+-- The trigger is the only entry point; prevent direct RPC execution via the exposed public schema.
+revoke all on function public.sync_profile_to_admin_contact_bank() from public, anon, authenticated;
+
 drop trigger if exists sync_profile_to_admin_contact_bank on public.profiles;
 create trigger sync_profile_to_admin_contact_bank
 after insert or update of full_name, email, phone, city, state, country, is_business, is_active, deleted_at
@@ -115,8 +118,8 @@ begin
        or (source_profile_id is null and (
          (nullif(lower(btrim(p.email)), '') is not null and lower(email) = lower(btrim(p.email)))
          or
-         (nullif(regexp_replace(coalesce(p.phone, ''), '\\D', '', 'g'), '') is not null
-           and regexp_replace(coalesce(phone, ''), '\\D', '', 'g') = regexp_replace(p.phone, '\\D', '', 'g'))
+         (nullif(regexp_replace(coalesce(p.phone, ''), '[^0-9]', '', 'g'), '') is not null
+           and regexp_replace(coalesce(phone, ''), '[^0-9]', '', 'g') = regexp_replace(p.phone, '[^0-9]', '', 'g'))
        ))
     order by (source_profile_id = p.id) desc nulls last, created_at asc
     limit 1;

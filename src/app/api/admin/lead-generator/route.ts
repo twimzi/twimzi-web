@@ -67,9 +67,12 @@ export async function POST(request: Request) {
       if (!categories.length) throw new Error("Select at least one business category.");
       const sourceId = text(body.source_id, 80) || null;
       if (sourceId) {
-        const { data: source, error } = await auth.supabase.from("lead_generator_sources").select("id,permission_status,enabled,allowed_states").eq("id", sourceId).single();
+        const { data: source, error } = await auth.supabase.from("lead_generator_sources").select("id,permission_status,enabled,allowed_states,allowed_categories").eq("id", sourceId).single();
         if (error || !source || source.permission_status !== "approved" || !source.enabled) throw new Error("Only approved and enabled sources can be queued.");
         if (!source.allowed_states.includes(region)) throw new Error("This source is not approved for the selected state.");
+        if (source.allowed_categories.length && categories.some(category => !source.allowed_categories.includes(category))) {
+          throw new Error("One or more selected categories are outside this source’s approved scope.");
+        }
       }
       const { data, error } = await auth.supabase.from("lead_generator_jobs").insert({
         source_id: sourceId, region_state: region, districts, categories,
