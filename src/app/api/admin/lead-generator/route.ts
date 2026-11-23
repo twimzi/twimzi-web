@@ -22,7 +22,7 @@ function safeHttpsUrl(value: unknown) {
   try { url = new URL(raw); } catch { throw new Error("Enter a valid source URL."); }
   const host = url.hostname.toLowerCase();
   if (url.protocol !== "https:" || url.username || url.password || url.port && url.port !== "443") throw new Error("Sources must use HTTPS on the standard port and cannot contain embedded credentials.");
-  if (host === "localhost" || host.endsWith(".local") || host.endsWith(".internal") || host === "::1" || /^\d{1,3}(\.\d{1,3}){3}$/.test(host)) throw new Error("Private, local or IP-literal URLs are not permitted.");
+  if (host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local") || host.endsWith(".internal") || host.includes(":") || /^\d{1,3}(\.\d{1,3}){3}$/.test(host)) throw new Error("Private, local or IP-literal URLs are not permitted.");
   return url.toString();
 }
 
