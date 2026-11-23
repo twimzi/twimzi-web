@@ -106,7 +106,7 @@ export async function POST(request: Request) {
       const projectUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
       const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
       if (!projectUrl || !serviceKey) return NextResponse.json({ error: "Worker invocation is not configured. Set the server-only SUPABASE_SERVICE_ROLE_KEY." }, { status: 503 });
-      const response = await fetch(projectUrl.replace(/\\/$/, "") + "/functions/v1/open-map-lead-discovery", {
+      const response = await fetch(projectUrl.replace(/\/$/, "") + "/functions/v1/open-map-lead-discovery", {
         method: "POST", cache: "no-store",
         headers: { Authorization: "Bearer " + serviceKey, apikey: serviceKey, "Content-Type": "application/json" },
         body: JSON.stringify({ force: body.force === true }),
