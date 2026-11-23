@@ -47,6 +47,7 @@ export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
   const next = getSafeNextPath(requestUrl.searchParams.get("next"));
+  const isSignupFlow = requestUrl.searchParams.get("flow") === "signup";
 
   if (!code) {
     const error = requestUrl.searchParams.get("error");
@@ -63,9 +64,14 @@ export async function GET(request: NextRequest) {
   const acceptedCookie = request.cookies.get("twimzi_legal_acceptance")?.value === "1";
   const { data: { user } } = await supabase.auth.getUser();
   const acceptedAtSignup = user?.user_metadata?.legal_acceptance?.accepted === true;
-  // User metadata is used only as a record of the explicit checkbox submission,
-  // never as an authorization claim or permission check.
-  if ((acceptedCookie || acceptedAtSignup) && user) {
+  const ageConfirmedAtSignup = user?.user_metadata?.age_confirmation?.confirmed === true
+    && user?.user_metadata?.age_confirmation?.minimum_age === 18;
+  // The cookie is set only after the separate age and policy checkboxes are selected.
+  if (isSignupFlow && user && !((acceptedCookie && !acceptedAtSignup) || (acceptedAtSignup && ageConfirmedAtSignup))) {
+    await supabase.auth.signOut();
+    return NextResponse.redirect(new URL("/register?error=" + encodeURIComponent("You must confirm that you are at least 18 years old and accept the required policies to create an account."), requestUrl.origin));
+  }
+  if (isSignupFlow && user && (acceptedCookie || (acceptedAtSignup && ageConfirmedAtSignup))) {
     try {
       await recordRequiredAcceptances(supabase, user.id, next === "/add-business" || next.startsWith("/add-business?"), request);
     } catch {
