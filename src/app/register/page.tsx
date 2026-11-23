@@ -402,7 +402,10 @@ export default function Register() {
                 >
                   Privacy Policy
                 </Link>
-                .
+                {" "}and the applicable platform policies, including{" "}
+                <Link href="/community-guidelines" target="_blank" className="font-semibold text-[var(--color-text)] hover:underline">Community Guidelines</Link>,{" "}
+                <Link href="/acceptable-use" target="_blank" className="font-semibold text-[var(--color-text)] hover:underline">Acceptable Use</Link> and{" "}
+                <Link href="/messaging-policy" target="_blank" className="font-semibold text-[var(--color-text)] hover:underline">Messaging Policy</Link>.
               </span>
             </label>
 
