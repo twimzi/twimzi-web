@@ -28,11 +28,23 @@ type EventExtras = {
 
 const SESSION_KEY = "twimzi:analytics-session:v1";
 const ATTRIBUTION_KEY = "twimzi:analytics-attribution:v1";
+const CONSENT_KEY = "twimzi:cookie-consent:v1";
 
-function clean(
-  value: string | null | undefined,
-  maxLength: number,
-): string | undefined {
+type StoredConsent = { analytics?: boolean; marketing?: boolean; version?: number };
+
+export function hasAnalyticsConsent(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const raw = window.localStorage.getItem(CONSENT_KEY);
+    if (!raw) return false;
+    const consent = JSON.parse(raw) as StoredConsent;
+    return consent.version === 1 && consent.analytics === true;
+  } catch {
+    return false;
+  }
+}
+
+function clean(value: string | null | undefined, maxLength: number): string | undefined {
   const normalized = value?.trim();
   return normalized ? normalized.slice(0, maxLength) : undefined;
 }
@@ -44,18 +56,15 @@ export function setAnalyticsSessionId(sessionId: string): void {
 
 export function getAnalyticsSessionId(): string {
   let sessionId = window.sessionStorage.getItem(SESSION_KEY);
-
   if (!sessionId) {
     sessionId = window.crypto.randomUUID();
     window.sessionStorage.setItem(SESSION_KEY, sessionId);
   }
-
   return sessionId;
 }
 
 export function captureAnalyticsAttribution(): void {
-  if (typeof window === "undefined") return;
-
+  if (typeof window === "undefined" || !hasAnalyticsConsent()) return;
   try {
     const params = new URLSearchParams(window.location.search);
     const attribution: Attribution = {
@@ -65,9 +74,7 @@ export function captureAnalyticsAttribution(): void {
       utm_content: clean(params.get("utm_content"), 120),
       utm_term: clean(params.get("utm_term"), 120),
     };
-
-    const hasCampaign = Object.values(attribution).some(Boolean);
-    if (hasCampaign) {
+    if (Object.values(attribution).some(Boolean)) {
       window.sessionStorage.setItem(ATTRIBUTION_KEY, JSON.stringify(attribution));
     }
   } catch {
@@ -76,6 +83,7 @@ export function captureAnalyticsAttribution(): void {
 }
 
 export function getAnalyticsAttribution(): Attribution {
+  if (!hasAnalyticsConsent()) return {};
   try {
     const stored = window.sessionStorage.getItem(ATTRIBUTION_KEY);
     return stored ? (JSON.parse(stored) as Attribution) : {};
@@ -86,7 +94,6 @@ export function getAnalyticsAttribution(): Attribution {
 
 function getReferrerHost(): string | undefined {
   if (!document.referrer) return undefined;
-
   try {
     return clean(new URL(document.referrer).hostname, 160);
   } catch {
@@ -94,36 +101,25 @@ function getReferrerHost(): string | undefined {
   }
 }
 
-export async function trackAnalyticsEvent(
-  eventName: AnalyticsEventName,
-  extras: EventExtras = {},
-): Promise<void> {
-  if (typeof window === "undefined") return;
-
+export async function trackAnalyticsEvent(eventName: AnalyticsEventName, extras: EventExtras = {}): Promise<void> {
+  if (typeof window === "undefined" || !hasAnalyticsConsent()) return;
   try {
     const metadata = {
       session_id: getAnalyticsSessionId(),
       path: clean(window.location.pathname, 200) ?? "/",
       referrer_host: getReferrerHost(),
       ...getAnalyticsAttribution(),
-      ...(extras.cta_label
-        ? { cta_label: clean(extras.cta_label, 80) }
-        : {}),
-      ...(extras.destination_host
-        ? { destination_host: clean(extras.destination_host, 160) }
-        : {}),
+      ...(extras.cta_label ? { cta_label: clean(extras.cta_label, 80) } : {}),
+      ...(extras.destination_host ? { destination_host: clean(extras.destination_host, 160) } : {}),
       ...(extras.step_name ? { step_name: clean(extras.step_name, 80) } : {}),
     };
-
     const supabase = createSupabaseBrowserClient();
     const { data: { user } } = await supabase.auth.getUser();
     await supabase.from("analytics_events").insert({
       profile_id: user?.id ?? null,
       event_name: eventName,
       platform: "web",
-      device_type: window.matchMedia("(max-width: 767px)").matches
-        ? "mobile"
-        : "desktop",
+      device_type: window.matchMedia("(max-width: 767px)").matches ? "mobile" : "desktop",
       metadata,
     });
   } catch {

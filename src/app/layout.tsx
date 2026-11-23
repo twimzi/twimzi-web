@@ -6,6 +6,7 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { AnalyticsTracker } from "@/components/analytics/analytics-tracker";
 import { StructuredData } from "@/components/seo/structured-data";
+import { CookieConsent } from "@/components/privacy/cookie-consent";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -141,6 +142,7 @@ export default function RootLayout({
         <StructuredData data={websiteSchema} />
         <Header />
         <AnalyticsTracker />
+        <CookieConsent />
         <main>{children}</main>
         <Footer />
       </body>

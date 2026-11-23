@@ -10,6 +10,47 @@ import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { trackAnalyticsEvent } from "@/lib/analytics";
 
+async function recordAcceptedPolicies(
+  supabase: ReturnType<typeof createSupabaseBrowserClient>,
+  userId: string,
+  includeBusiness: boolean,
+) {
+  const types = [
+    "terms_of_service",
+    "privacy_policy",
+    "community_guidelines",
+    "acceptable_use_policy",
+    "user_content_policy",
+    "messaging_policy",
+    ...(includeBusiness ? ["business_terms", "marketplace_policy"] : []),
+  ];
+
+  for (const documentType of types) {
+    const { data } = await supabase.rpc("get_active_legal_document", {
+      p_document_type: documentType,
+      p_language_code: "en",
+    });
+    const document = Array.isArray(data) ? data[0] : null;
+    if (!document?.id) throw new Error(`The active legal document is unavailable: ${documentType}`);
+
+    const { error } = await supabase.rpc("accept_legal_document", {
+      p_profile_id: userId,
+      p_legal_document_id: document.id,
+      p_acceptance_source: "web_registration",
+      p_metadata: {
+        acceptance_method: "explicit_registration_checkbox",
+        policy_version: document.version,
+      },
+    });
+    if (error) throw error;
+  }
+}
+
+function setLegalAcceptanceCookie() {
+  document.cookie =
+    "twimzi_legal_acceptance=1; Path=/; Max-Age=1800; SameSite=Lax; Secure";
+}
+
 function getSafeNextPath(value: string | null): string {
   if (
     !value ||
@@ -35,6 +76,7 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [confirmedAdult, setConfirmedAdult] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -84,6 +126,11 @@ export default function Register() {
       return;
     }
 
+    if (!confirmedAdult) {
+      setErrorMessage("You must confirm that you are at least 18 years old to create a Twimzi account.");
+      return;
+    }
+
     if (!acceptedTerms) {
       setErrorMessage(
         "You must agree to the Terms & Conditions and Privacy Policy to create an account.",
@@ -91,6 +138,7 @@ export default function Register() {
       return;
     }
 
+    setLegalAcceptanceCookie();
     setIsLoading(true);
     const nextPath = getSafeNextPath(
       new URLSearchParams(window.location.search).get("next"),
@@ -102,8 +150,18 @@ export default function Register() {
       options: {
         data: {
           full_name: trimmedName,
+          age_confirmation: {
+            confirmed: true,
+            minimum_age: 18,
+            confirmed_at: new Date().toISOString(),
+          },
+          legal_acceptance: {
+            accepted: true,
+            method: "explicit_registration_checkbox",
+            submitted_at: new Date().toISOString(),
+          },
         },
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`,
+        emailRedirectTo: `${window.location.origin}/auth/callback?flow=signup&next=${encodeURIComponent(nextPath)}`,
       },
     });
 
@@ -116,6 +174,15 @@ export default function Register() {
     await trackAnalyticsEvent("signup_completed");
 
     if (data.session) {
+      try {
+        await recordAcceptedPolicies(supabase, data.session.user.id, nextPath === "/add-business" || nextPath.startsWith("/add-business?"));
+      } catch {
+        await supabase.auth.signOut();
+        setErrorMessage("We could not save your legal acceptance. Please try registration again.");
+        setIsLoading(false);
+        return;
+      }
+      document.cookie = "twimzi_legal_acceptance=; Path=/; Max-Age=0; SameSite=Lax; Secure";
       router.push(nextPath);
       router.refresh();
       return;
@@ -130,13 +197,22 @@ export default function Register() {
   async function handleGoogleRegister() {
     setErrorMessage("");
     setSuccessMessage("");
+    if (!confirmedAdult) {
+      setErrorMessage("You must confirm that you are at least 18 years old to create a Twimzi account.");
+      return;
+    }
+    if (!acceptedTerms) {
+      setErrorMessage("Please agree to the Terms & Conditions and Privacy Policy before continuing with Google.");
+      return;
+    }
+    setLegalAcceptanceCookie();
     setIsGoogleLoading(true);
 
     const nextPath = getSafeNextPath(
       new URLSearchParams(window.location.search).get("next"),
     );
     void trackAnalyticsEvent("signup_started");
-    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`;
+    const redirectTo = `${window.location.origin}/auth/callback?flow=signup&next=${encodeURIComponent(nextPath)}`;
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -362,7 +438,23 @@ export default function Register() {
                 >
                   Privacy Policy
                 </Link>
-                .
+                {" "}and the applicable platform policies, including{" "}
+                <Link href="/community-guidelines" target="_blank" className="font-semibold text-[var(--color-text)] hover:underline">Community Guidelines</Link>,{" "}
+                <Link href="/acceptable-use" target="_blank" className="font-semibold text-[var(--color-text)] hover:underline">Acceptable Use</Link> and{" "}
+                <Link href="/messaging-policy" target="_blank" className="font-semibold text-[var(--color-text)] hover:underline">Messaging Policy</Link>.
+              </span>
+            </label>
+
+            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-secondary)] p-4">
+              <input
+                type="checkbox"
+                checked={confirmedAdult}
+                onChange={(event) => setConfirmedAdult(event.target.checked)}
+                className="mt-1 h-4 w-4 shrink-0 accent-[var(--color-primary)]"
+                required
+              />
+              <span className="text-xs leading-5 text-[var(--color-text-muted)]">
+                I confirm that I am at least 18 years old. Twimzi accounts are only available to individuals aged 18 or above, as stated in the Terms & Conditions.
               </span>
             </label>
 
