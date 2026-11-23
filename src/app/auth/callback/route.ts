@@ -60,9 +60,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL("/login?error=" + encodeURIComponent("Authentication link is invalid or has expired."), requestUrl.origin));
   }
 
-  const accepted = request.cookies.get("twimzi_legal_acceptance")?.value === "1";
+  const acceptedCookie = request.cookies.get("twimzi_legal_acceptance")?.value === "1";
   const { data: { user } } = await supabase.auth.getUser();
-  if (accepted && user) {
+  const acceptedAtSignup = user?.user_metadata?.legal_acceptance?.accepted === true;
+  // User metadata is used only as a record of the explicit checkbox submission,
+  // never as an authorization claim or permission check.
+  if ((acceptedCookie || acceptedAtSignup) && user) {
     try {
       await recordRequiredAcceptances(supabase, user.id, next === "/add-business" || next.startsWith("/add-business?"), request);
     } catch {
