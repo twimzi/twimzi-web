@@ -103,13 +103,13 @@ export async function POST(request: Request) {
       const { data: rows, error: readError } = await auth.supabase.from("admin_contact_bank_review")
         .select("*").in("id", ids).eq("source_type","lead_generator").is("archived_at",null);
       if (readError || !rows || rows.length !== ids.length) throw new Error("Could not load every selected lead.");
-      const sorted = [...rows].sort((a,b) => new Date(a.created_at).getTime()-new Date(b.created_at).getTime());
-      const keeper = sorted[0] as Record<string, any>;
-      const duplicates = sorted.slice(1) as Record<string, any>[];
-      const strongMatch = (a:Record<string,any>,b:Record<string,any>) =>
-        Boolean((a.normalized_phone && a.normalized_phone===b.normalized_phone) ||
-          (a.normalized_email && a.normalized_email===b.normalized_email) ||
-          (a.normalized_domain && a.normalized_domain===b.normalized_domain));
+      const sorted = [...rows].sort((a,b) => new Date(String(a.created_at)).getTime()-new Date(String(b.created_at)).getTime());
+      const keeper = sorted[0] as Record<string, unknown>;
+      const duplicates = sorted.slice(1) as Record<string, unknown>[];
+      const strongMatch = (a:Record<string,unknown>,b:Record<string,unknown>) => {
+        const same = (field:string) => typeof a[field] === "string" && a[field] === b[field];
+        return same("normalized_phone") || same("normalized_email") || same("normalized_domain");
+      };
       if (duplicates.some(row => !strongMatch(keeper,row))) {
         throw new Error("These records do not all share the same phone, email or website. Name-only matches must be reviewed manually and cannot be auto-merged.");
       }
