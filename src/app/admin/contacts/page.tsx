@@ -35,7 +35,8 @@ export default function ContactBankPage() {
   const load=useCallback(async()=>{ setLoading(true); try { const res=await fetch("/api/admin/contacts?q="+encodeURIComponent(query)+"&archived="+archived,{cache:"no-store"}); const data=await res.json(); if(!res.ok) throw new Error(data.error); setContacts(data.contacts||[]); } catch(e) { setError(e instanceof Error?e.message:"Could not load contacts."); } finally { setLoading(false); } },[query,archived]);
   useEffect(()=>{ const timer=setTimeout(()=>{void load();},250); return ()=>clearTimeout(timer); },[load]);
 
-  const filteredContacts=useMemo(()=>sourceFilter==="all"?contacts:contacts.filter(c=>c.source_type===sourceFilter),[contacts,sourceFilter]);\n  const stats=useMemo(()=>({total:contacts.length,emails:contacts.filter(c=>c.email).length,phones:contacts.filter(c=>c.phone).length}),[contacts]);
+  const filteredContacts=useMemo(()=>sourceFilter==="all"?contacts:contacts.filter(c=>c.source_type===sourceFilter),[contacts,sourceFilter]);
+  const stats=useMemo(()=>({total:contacts.length,emails:contacts.filter(c=>c.email).length,phones:contacts.filter(c=>c.phone).length}),[contacts]);
   function openNew(){setEditing(null);setDraft(blank);setShowForm(true);setError("");}
   function openEdit(c:Contact){setEditing(c);setDraft({...c,tags:c.tags||[]});setShowForm(true);setError("");}
   function update<K extends keyof Draft>(key:K,value:Draft[K]){setDraft(current=>({...current,[key]:value}));}
