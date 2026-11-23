@@ -239,7 +239,7 @@ Deno.serve(async (request) => {
     .eq("id", candidate.id).eq("status", "queued").select("id,source_id,region_state,districts,categories").maybeSingle();
   if (claimError || !claimed) return json({ message: "Another worker claimed the next job. Retry shortly." }, 409);
 
-  let sourceId = claimed.source_id as string;
+  const sourceId = claimed.source_id as string;
   let logId: string | null = null;
   const counts: Counts = { seen: 0, inserted: 0, duplicate: 0, rejected: 0 };
   try {
