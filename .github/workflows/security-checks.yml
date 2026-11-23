@@ -69,6 +69,8 @@ jobs:
           deno-version: v2.x
       - name: Type-check upload function
         run: deno check --config supabase/functions/upload-media/deno.json supabase/functions/upload-media/index.ts
+      - name: Type-check lead generator worker
+        run: deno check --config supabase/functions/lead-generator-worker/deno.json supabase/functions/lead-generator-worker/index.ts
 
   build:
     name: Production build
