@@ -66,9 +66,11 @@ export async function POST(request: Request) {
       if (!body.terms_url) throw new Error("Add the source terms or permission evidence URL before review.");
       const termsUrl = safeHttpsUrl(body.terms_url);
       const feedConfig = validateFeedConfig(body.feed_config);
+      const crawlIntervalHours = Number(body.crawl_interval_hours ?? 24);
+      if (!Number.isInteger(crawlIntervalHours) || crawlIntervalHours < 24 || crawlIntervalHours > 8760) throw new Error("Crawl interval must be between 24 and 8760 hours.");
       const { data, error } = await auth.supabase.from("lead_generator_sources").insert({
         name, source_url: sourceUrl, source_type: sourceType, terms_url: termsUrl,
-        feed_format: "json", feed_config: feedConfig,
+        feed_format: "json", feed_config: feedConfig, crawl_interval_hours: crawlIntervalHours,
         permission_status: "pending_review", enabled: false,
         allowed_states: list(body.allowed_states, 40).length ? list(body.allowed_states, 40) : ["Punjab"],
         allowed_categories: list(body.allowed_categories, 80),
