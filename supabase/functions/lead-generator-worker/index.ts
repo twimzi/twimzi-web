@@ -97,8 +97,13 @@ function isPrivateIpv4(ip: string) {
   const p = ip.split(".").map(Number);
   if (p.length !== 4 || p.some(n => !Number.isInteger(n) || n < 0 || n > 255)) return true;
   return p[0] === 10 || p[0] === 127 || p[0] === 0 || p[0] >= 224 ||
-    p[0] === 169 && p[1] === 254 || p[0] === 172 && p[1] >= 16 && p[1] <= 31 ||
-    p[0] === 192 && p[1] === 168;
+    p[0] === 100 && p[1] >= 64 && p[1] <= 127 ||
+    p[0] === 169 && p[1] === 254 ||
+    p[0] === 172 && p[1] >= 16 && p[1] <= 31 ||
+    p[0] === 192 && (p[1] === 0 || p[1] === 168) ||
+    p[0] === 192 && p[1] === 0 && p[2] === 2 ||
+    p[0] === 198 && (p[1] === 18 || p[1] === 19 || p[1] === 51 && p[2] === 100) ||
+    p[0] === 203 && p[1] === 0 && p[2] === 113;
 }
 async function assertPublicDns(host: string) {
   const results = await Promise.allSettled([Deno.resolveDns(host, "A"), Deno.resolveDns(host, "AAAA")]);
