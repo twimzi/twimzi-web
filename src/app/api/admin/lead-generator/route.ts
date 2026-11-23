@@ -43,12 +43,13 @@ function validateFeedConfig(value: unknown) {
 export async function GET() {
   const auth = await requireAdmin();
   if ("response" in auth) return auth.response;
-  const [sources, jobs] = await Promise.all([
+  const [sources, jobs, discoveryRuns] = await Promise.all([
     auth.supabase.from("lead_generator_sources").select("*").order("created_at", { ascending: false }).limit(250),
     auth.supabase.from("lead_generator_jobs").select("*").order("created_at", { ascending: false }).limit(100),
+    auth.supabase.from("lead_generator_discovery_runs").select("id,provider,region_state,status,records_seen,records_inserted,records_duplicate,records_rejected,error_message,started_at,finished_at").order("started_at", { ascending: false }).limit(20),
   ]);
   if (sources.error || jobs.error) return NextResponse.json({ error: "Lead Generator schema is unavailable. Confirm the production migrations are applied and refresh." }, { status: 500 });
-  return NextResponse.json({ sources: sources.data || [], jobs: jobs.data || [] });
+  return NextResponse.json({ sources: sources.data || [], jobs: jobs.data || [], discoveryRuns: discoveryRuns.error ? [] : discoveryRuns.data || [] });
 }
 
 export async function POST(request: Request) {
@@ -99,6 +100,21 @@ export async function POST(request: Request) {
       }).select("*").single();
       if (error) return NextResponse.json({ error: "Could not queue discovery job." }, { status: 500 });
       return NextResponse.json({ job: data }, { status: 201 });
+    }
+
+    if (body.action === "run_open_map_discovery") {
+      const projectUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      if (!projectUrl || !serviceKey) return NextResponse.json({ error: "Worker invocation is not configured. Set the server-only SUPABASE_SERVICE_ROLE_KEY." }, { status: 503 });
+      const response = await fetch(projectUrl.replace(/\\/$/, "") + "/functions/v1/open-map-lead-discovery", {
+        method: "POST", cache: "no-store",
+        headers: { Authorization: "Bearer " + serviceKey, apikey: serviceKey, "Content-Type": "application/json" },
+        body: JSON.stringify({ force: body.force === true }),
+        signal: AbortSignal.timeout(90_000),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) return NextResponse.json({ error: text((result as Record<string,unknown>).error, 500) || "Lead discovery invocation failed.", details: result }, { status: response.status });
+      return NextResponse.json(result);
     }
 
     if (body.action === "run_worker") {
