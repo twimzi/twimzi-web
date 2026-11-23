@@ -12,7 +12,6 @@ alter table public.admin_contact_bank
 create unique index if not exists admin_contact_bank_source_profile_uidx
   on public.admin_contact_bank(source_profile_id)
   where source_profile_id is not null;
-
 create index if not exists admin_contact_bank_source_type_idx
   on public.admin_contact_bank(source_type);
 
@@ -23,6 +22,7 @@ security definer
 set search_path = pg_catalog, public
 as $$
 declare
+  v_contact_id uuid;
   v_contact_type text;
 begin
   if new.deleted_at is not null or coalesce(new.is_active, true) is false then
@@ -43,9 +43,10 @@ begin
       source_type = 'user_self_register',
       source_profile_id = new.id,
       updated_at = now()
-  where source_profile_id = new.id;
+  where source_profile_id = new.id
+  returning id into v_contact_id;
 
-  if not found then
+  if v_contact_id is null then
     update public.admin_contact_bank
     set source_type = 'user_self_register',
         source_profile_id = new.id,
@@ -58,10 +59,10 @@ begin
         (nullif(regexp_replace(coalesce(new.phone, ''), '\\D', '', 'g'), '') is not null
           and regexp_replace(coalesce(phone, ''), '\\D', '', 'g') = regexp_replace(new.phone, '\\D', '', 'g'))
       )
-    returning id into strict v_contact_type;
+    returning id into v_contact_id;
   end if;
 
-  if not found then
+  if v_contact_id is null then
     insert into public.admin_contact_bank (
       full_name, email, phone, city, state, country, contact_type,
       source, source_type, source_profile_id, email_marketing_consent,
@@ -107,6 +108,7 @@ begin
     where deleted_at is null and coalesce(is_active, true) = true
     order by created_at asc
   loop
+    v_contact_id := null;
     select id into v_contact_id
     from public.admin_contact_bank
     where source_profile_id = p.id
