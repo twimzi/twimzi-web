@@ -162,8 +162,7 @@ async function assertRobotsAllows(url: URL) {
   const path = url.pathname + url.search;
   const rules = selected.flatMap(g => g.rules).filter(r => {
     if (r.rule === "*") return true;
-    const pattern = r.rule.replace(/[.+?^${}()|[\]\\]/g, "\\    const prefix = r.rule.replace(/\\*/g, "");
-    return path.startsWith(prefix);").replace(/\\*/g, ".*").replace(/\$/, "$");
+    const pattern = r.rule.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*").replace(/\$$/, "$");
     try { return new RegExp("^" + pattern).test(path); } catch { return true; }
   });
   const blocked = rules.filter(r => !r.allow).sort((a,b) => b.rule.length - a.rule.length)[0];
