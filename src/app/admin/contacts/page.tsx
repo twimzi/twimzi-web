@@ -10,7 +10,7 @@ type Contact = {
   archived_at: string | null; created_at: string; source_type: "manual_contact_add" | "lead_generator" | "user_self_register";
 };
 type Draft = Omit<Contact, "id" | "created_at" | "archived_at">;
-const blank: Draft = { full_name:"", company_name:"", email:"", phone:"", city:"", state:"", country:"India", contact_type:"business", source:"Manual entry", tags:[], notes:"", email_marketing_consent:false, whatsapp_marketing_consent:false };
+const blank: Draft = { source_type:"manual_contact_add", full_name:"", company_name:"", email:"", phone:"", city:"", state:"", country:"India", contact_type:"business", source:"Manual entry", tags:[], notes:"", email_marketing_consent:false, whatsapp_marketing_consent:false };
 const fields: {key:keyof Draft;label:string;type?:string}[] = [
   {key:"full_name",label:"Full name"},{key:"company_name",label:"Company"},{key:"email",label:"Email",type:"email"},{key:"phone",label:"Phone / WhatsApp",type:"tel"},
   {key:"city",label:"City"},{key:"state",label:"State"},{key:"country",label:"Country"},{key:"source",label:"Source"},
