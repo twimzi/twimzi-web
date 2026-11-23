@@ -131,6 +131,7 @@ export default function Register() {
       return;
     }
 
+    setLegalAcceptanceCookie();
     setIsLoading(true);
     const nextPath = getSafeNextPath(
       new URLSearchParams(window.location.search).get("next"),
@@ -156,6 +157,7 @@ export default function Register() {
     await trackAnalyticsEvent("signup_completed");
 
     if (data.session) {
+      await recordAcceptedPolicies(supabase, data.session.user.id, nextPath === "/add-business" || nextPath.startsWith("/add-business?"));
       router.push(nextPath);
       router.refresh();
       return;
@@ -170,6 +172,11 @@ export default function Register() {
   async function handleGoogleRegister() {
     setErrorMessage("");
     setSuccessMessage("");
+    if (!acceptedTerms) {
+      setErrorMessage("Please agree to the Terms & Conditions and Privacy Policy before continuing with Google.");
+      return;
+    }
+    setLegalAcceptanceCookie();
     setIsGoogleLoading(true);
 
     const nextPath = getSafeNextPath(
