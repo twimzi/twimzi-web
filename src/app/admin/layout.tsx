@@ -50,6 +50,7 @@ const sections = [
     [
       ["Notifications", "/admin/notifications"],
       ["Contact Data Bank", "/admin/contacts"],
+      ["Lead Generator", "/admin/lead-generator"],
       ["WhatsApp Messages", "/admin/whatsapp-messages"],
       ["Email Marketing", "/admin/email-messages"],
       ["Media", "/admin/media"],
