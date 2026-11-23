@@ -62,12 +62,24 @@ export default function LeadGeneratorPage() {
     }catch(e){setError(e instanceof Error?e.message:"Could not run business discovery.");}
     finally{setBusy(false);}
   }
+  async function enrichWebsiteLeads(){
+    if(busy)return;
+    if(!window.confirm("Check up to five eligible business websites for publicly listed contact details? The system will respect robots.txt, only check HTTPS pages on the same domain, and will not grant marketing consent."))return;
+    setBusy(true);setError("");setNotice("");
+    try{
+      const res=await fetch("/api/admin/lead-generator",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"enrich_websites"})});
+      const data=await res.json();if(!res.ok)throw new Error(data.error||"Website enrichment failed.");
+      const n=data.counts||{};
+      setNotice("Website enrichment completed: "+(n.checked||0)+" checked, "+(n.enriched||0)+" enriched, "+(n.email_found||0)+" emails found, "+(n.phone_found||0)+" phones found, "+(n.failed||0)+" failed. All new details remain unverified.");
+      await load({page:leadPage,status:leadStatus,email:emailFilter,duplicates:duplicatesOnly,q:leadSearch});
+    }catch(e){setError(e instanceof Error?e.message:"Website enrichment failed.");}finally{setBusy(false);}
+  }
   async function updateJob(job:Job,status:string){setBusy(true);try{const res=await fetch("/api/admin/lead-generator",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({kind:"job",id:job.id,status})});const data=await res.json();if(!res.ok)throw new Error(data.error);await load();}catch(e){setError(e instanceof Error?e.message:"Could not update job.");}finally{setBusy(false);}}
   const approvedSources=sources.filter(s=>s.permission_status==="approved"&&s.enabled);
   const approved=approvedSources.length;
   const pending=sources.filter(s=>s.permission_status==="pending_review").length;
   return <div className="mx-auto max-w-7xl space-y-6">
-    <header className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-sm font-semibold uppercase tracking-wider text-[var(--color-primary)]">Super Admin · Growth</p><h1 className="mt-2 text-3xl font-bold">Nationwide Lead Generator</h1><p className="mt-2 text-sm text-[var(--color-text-secondary)]">Punjab-first business discovery with source permissions, review and audit controls.</p></div><button onClick={()=>void load({page:leadPage,status:leadStatus,email:emailFilter,duplicates:duplicatesOnly,q:leadSearch})} className="inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm"><RefreshCw size={16}/>Refresh</button></header>
+    <header className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-sm font-semibold uppercase tracking-wider text-[var(--color-primary)]">Super Admin · Growth</p><h1 className="mt-2 text-3xl font-bold">Nationwide Lead Generator</h1><p className="mt-2 text-sm text-[var(--color-text-secondary)]">Punjab-first business discovery with source permissions, review and audit controls.</p></div><button onClick={()=>void load({page:leadPage,status:leadStatus,email:emailFilter,duplicates:duplicatesOnly,q:leadSearch})} className="inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm"><RefreshCw size={16}/>Refresh</button><button disabled={busy} onClick={()=>void enrichWebsiteLeads()} className="inline-flex items-center gap-2 rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"><Zap size={16}/>Enrich websites</button></header>
     {error&&<p className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}{notice&&<p className="rounded-xl bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</p>}
     <div className="grid gap-3 sm:grid-cols-3"><div className="rounded-2xl border bg-white p-5"><p className="text-sm text-gray-500">Approved and enabled sources</p><p className="mt-2 text-3xl font-bold">{approved}</p></div><div className="rounded-2xl border bg-white p-5"><p className="text-sm text-gray-500">Awaiting source review</p><p className="mt-2 text-3xl font-bold">{pending}</p></div><div className="rounded-2xl border bg-white p-5"><p className="text-sm text-gray-500">Queued / active jobs</p><p className="mt-2 text-3xl font-bold">{jobs.filter(j=>["queued","running"].includes(j.status)).length}</p></div></div>
     <section className="rounded-2xl border bg-white p-5 space-y-4">
