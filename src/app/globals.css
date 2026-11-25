@@ -1,32 +1,32 @@
 @import "tailwindcss";
 
 :root {
-  /* Twimzi logo palette: midnight navy + purple / electric blue / cyan */
-  --color-primary: #1879FD;
-  --color-primary-dark: #1455C7;
-  --color-primary-darker: #020D3A;
-  --color-primary-light: #E8F2FF;
-  --color-primary-soft: #F2F7FF;
-  --color-secondary: #F3F5F8;
-  --color-secondary-dark: #E7ECF7;
-  --color-accent: #8E07FB;
-  --color-accent-dark: #7000D6;
-  --color-accent-secondary: #05CDFC;
-  --color-accent-light: #F3E8FF;
-  --color-accent-soft: #E8FAFF;
+  /* Unified Twimzi brand palette: teal primary, warm orange accent, deep slate text */
+  --color-primary: #0D9488;
+  --color-primary-dark: #087F75;
+  --color-primary-darker: #14243D;
+  --color-primary-light: #E8F7F4;
+  --color-primary-soft: #F0FAF8;
+  --color-secondary: #F6F8FA;
+  --color-secondary-dark: #E8EEF1;
+  --color-accent: #F97316;
+  --color-accent-dark: #EA580C;
+  --color-accent-secondary: #FDBA74;
+  --color-accent-light: #FFF1E8;
+  --color-accent-soft: #FFF7F0;
   --color-background: #FFFFFF;
   --color-surface: #FFFFFF;
-  --color-surface-soft: #F1F4FC;
-  --color-surface-muted: #E8EDF7;
-  --color-text: #020D3A;
-  --color-text-secondary: #344365;
+  --color-surface-soft: #F6F8FA;
+  --color-surface-muted: #EEF2F4;
+  --color-text: #14243D;
+  --color-text-secondary: #334155;
   --color-text-muted: #64748B;
-  --color-text-light: #71809D;
+  --color-text-light: #718096;
   --color-text-on-primary: #FFFFFF;
   --color-text-on-accent: #FFFFFF;
-  --color-border: #E2E8F3;
-  --color-border-light: #EEF1F8;
-  --color-border-strong: #C9D3E5;
+  --color-border: #E2E8F0;
+  --color-border-light: #EEF2F4;
+  --color-border-strong: #CBD5E1;
   --color-success: #059669;
   --color-success-light: #D1FAE5;
   --color-warning: #D97706;
@@ -35,10 +35,10 @@
   --color-error-light: #FEE2E2;
   --color-info: #0891B2;
   --color-info-light: #CFFAFE;
-  --color-brand-gradient: linear-gradient(115deg, #8E07FB 0%, #1879FD 52%, #05CDFC 100%);
-  --color-primary-gradient: linear-gradient(115deg, #8E07FB 0%, #1879FD 52%, #05CDFC 100%);
-  --color-accent-gradient: linear-gradient(115deg, #8E07FB 0%, #1879FD 55%, #05CDFC 100%);
-  --color-hero-background: #020D3A;
+  --color-brand-gradient: linear-gradient(110deg, #0D9488 0%, #087F75 58%, #F97316 100%);
+  --color-primary-gradient: linear-gradient(110deg, #0D9488 0%, #087F75 58%, #F97316 100%);
+  --color-accent-gradient: linear-gradient(110deg, #0D9488 0%, #087F75 58%, #F97316 100%);
+  --color-hero-background: #14243D;
   --radius-sm: 0.5rem;
   --radius-md: 0.75rem;
   --radius-lg: 1rem;
@@ -46,13 +46,13 @@
   --radius-2xl: 1.5rem;
   --radius-3xl: 2rem;
   --radius-full: 9999px;
-  --shadow-xs: 0 1px 2px rgba(2, 13, 58, 0.04);
-  --shadow-sm: 0 2px 8px rgba(2, 13, 58, 0.05);
-  --shadow-md: 0 8px 22px rgba(2, 13, 58, 0.08);
-  --shadow-lg: 0 16px 38px rgba(2, 13, 58, 0.11);
-  --shadow-xl: 0 24px 55px rgba(2, 13, 58, 0.14);
-  --shadow-primary: 0 10px 28px rgba(24, 121, 253, 0.22);
-  --shadow-accent: 0 10px 28px rgba(142, 7, 251, 0.18);
+  --shadow-xs: 0 1px 2px rgba(20, 36, 61, 0.04);
+  --shadow-sm: 0 2px 8px rgba(20, 36, 61, 0.05);
+  --shadow-md: 0 8px 22px rgba(20, 36, 61, 0.08);
+  --shadow-lg: 0 16px 38px rgba(20, 36, 61, 0.11);
+  --shadow-xl: 0 24px 55px rgba(20, 36, 61, 0.14);
+  --shadow-primary: 0 10px 28px rgba(13, 148, 136, 0.22);
+  --shadow-accent: 0 10px 28px rgba(249, 115, 22, 0.18);
   --container-max-width: 1280px;
   --container-padding: 1.25rem;
 }
@@ -187,12 +187,12 @@ textarea::placeholder {
    BRAND BACKGROUNDS
    ============================================================ */
 
-.twimzi-primary-surface { background: linear-gradient(135deg, #F2E9FF 0%, #E8F2FF 55%, #E8FAFF 100%); }
+.twimzi-primary-surface { background: linear-gradient(135deg, #F2E9FF 0%, #E8F7F4 55%, #FFF7F0 100%); }
 
-.twimzi-brand-surface { background: linear-gradient(135deg, #EDE1FF 0%, #DCEBFF 55%, #DDF8FF 100%); }
+.twimzi-brand-surface { background: linear-gradient(135deg, #E8F7F4 0%, #F0FAF8 55%, #FFF1E8 100%); }
 
 .twimzi-gradient-text { background: var(--color-brand-gradient); background-clip: text; -webkit-background-clip: text; color: transparent; }
-.twimzi-gradient-button { background: var(--color-primary-gradient); color: #fff; box-shadow: 0 10px 28px rgba(24,121,253,.22); }
+.twimzi-gradient-button { background: var(--color-primary-gradient); color: #fff; box-shadow: 0 10px 28px rgba(13,148,136,.22); }
 .twimzi-gradient-button:hover { filter: brightness(1.08); }
 
 
@@ -359,8 +359,8 @@ a.border-purple-600 {
   isolation: isolate;
   background-color: #020d3a;
   background-image:
-    radial-gradient(ellipse at 12% 12%, rgba(142, 7, 251, .42), transparent 35%),
-    radial-gradient(ellipse at 88% 82%, rgba(5, 205, 252, .32), transparent 38%),
+    radial-gradient(ellipse at 12% 12%, rgba(249, 115, 22, .42), transparent 35%),
+    radial-gradient(ellipse at 88% 82%, rgba(253, 186, 116, .32), transparent 38%),
     linear-gradient(125deg, #05072f 0%, #06164a 52%, #071b64 100%);
 }
 .twimzi-home-hero::before,
@@ -378,8 +378,8 @@ a.border-purple-600 {
   top: -34%;
   right: -12%;
   border: 1px solid rgba(99, 231, 255, .16);
-  background: radial-gradient(circle at 35% 35%, rgba(142,7,251,.18), rgba(24,121,253,.10) 42%, transparent 68%);
-  box-shadow: inset 0 0 90px rgba(5,205,252,.10), 0 0 100px rgba(24,121,253,.12);
+  background: radial-gradient(circle at 35% 35%, rgba(249,115,22,.18), rgba(13,148,136,.10) 42%, transparent 68%);
+  box-shadow: inset 0 0 90px rgba(253,186,116,.10), 0 0 100px rgba(13,148,136,.12);
   animation: twimzi-orb-drift 18s ease-in-out infinite alternate;
 }
 .twimzi-home-hero::after {
@@ -387,7 +387,7 @@ a.border-purple-600 {
   aspect-ratio: 1;
   bottom: -42%;
   left: 22%;
-  background: radial-gradient(circle, rgba(5,205,252,.17), transparent 68%);
+  background: radial-gradient(circle, rgba(253,186,116,.17), transparent 68%);
   animation: twimzi-orb-drift 22s ease-in-out infinite alternate-reverse;
 }
 .twimzi-discovery-panel,
@@ -534,7 +534,7 @@ h1, h2, h3, h4 {
 .twimzi-home-hero button:focus-visible,
 header a:focus-visible,
 header button:focus-visible {
-  outline: 3px solid rgba(24, 121, 253, .28);
+  outline: 3px solid rgba(13, 148, 136, .28);
   outline-offset: 3px;
 }
 
@@ -546,13 +546,13 @@ header button:focus-visible {
    ============================================================ */
 :root {
   --meta-canvas: #ffffff;
-  --meta-surface-soft: #F2F7FF;
-  --meta-ink: #020D3A;
-  --meta-ink-secondary: #344365;
+  --meta-surface-soft: #F0FAF8;
+  --meta-ink: #14243D;
+  --meta-ink-secondary: #334155;
   --meta-steel: #64748B;
-  --meta-hairline: #E2E8F3;
-  --meta-cobalt: #1879FD;
-  --meta-cobalt-pressed: #1455C7;
+  --meta-hairline: #E2E8F0;
+  --meta-cobalt: #0D9488;
+  --meta-cobalt-pressed: #087F75;
   --meta-card-radius: 32px;
   --meta-control-radius: 100px;
   --meta-section-space: clamp(48px, 6vw, 80px);
@@ -690,7 +690,7 @@ header nav a:hover {
 .twimzi-home-hero h1,
 .twimzi-home-hero h1 span {
   color: transparent !important;
-  background-image: linear-gradient(100deg, #8E07FB 0%, #1879FD 52%, #05CDFC 100%) !important;
+  background-image: linear-gradient(100deg, #F97316 0%, #0D9488 52%, #FDBA74 100%) !important;
   background-clip: text !important;
   -webkit-background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
@@ -702,8 +702,8 @@ header nav a:hover {
 .twimzi-home-cta {
   border: 1px solid rgba(255,255,255,.12);
   background-image:
-    radial-gradient(ellipse at 92% 8%, rgba(142,7,251,.32), transparent 34%),
-    radial-gradient(ellipse at 4% 100%, rgba(5,205,252,.18), transparent 36%),
+    radial-gradient(ellipse at 92% 8%, rgba(249,115,22,.32), transparent 34%),
+    radial-gradient(ellipse at 4% 100%, rgba(253,186,116,.18), transparent 36%),
     linear-gradient(115deg, #020d3a 0%, #17165b 50%, #3d16a5 100%) !important;
 }
 .twimzi-home-cta h2.twimzi-gradient-heading {
@@ -735,8 +735,8 @@ header nav a:hover {
 .twimzi-home-hero {
   background-color: #ffffff !important;
   background-image:
-    radial-gradient(ellipse at 4% 0%, rgba(142,7,251,.075), transparent 36%),
-    radial-gradient(ellipse at 92% 100%, rgba(5,205,252,.09), transparent 38%),
+    radial-gradient(ellipse at 4% 0%, rgba(249,115,22,.075), transparent 36%),
+    radial-gradient(ellipse at 92% 100%, rgba(253,186,116,.09), transparent 38%),
     linear-gradient(115deg, #ffffff 0%, #fbfcff 55%, #f7fcff 100%) !important;
 }
 .twimzi-home-hero > div[aria-hidden="true"] { display: none !important; }
@@ -752,7 +752,7 @@ header nav a:hover {
   letter-spacing: -.055em !important;
 }
 .twimzi-home-hero h1 span {
-  background-image: linear-gradient(100deg, #8E07FB 0%, #1879FD 52%, #05CDFC 100%) !important;
+  background-image: linear-gradient(100deg, #F97316 0%, #0D9488 52%, #FDBA74 100%) !important;
 }
 .twimzi-home-hero .twimzi-home-discovery-panel {
   background: rgba(255,255,255,.92) !important;
@@ -780,8 +780,8 @@ header nav a:hover {
   position: relative;
   isolation: isolate;
   background:
-    radial-gradient(ellipse at 2% 0%, rgba(142,7,251,.065), transparent 38%),
-    radial-gradient(ellipse at 96% 100%, rgba(5,205,252,.075), transparent 40%),
+    radial-gradient(ellipse at 2% 0%, rgba(249,115,22,.065), transparent 38%),
+    radial-gradient(ellipse at 96% 100%, rgba(253,186,116,.075), transparent 40%),
     linear-gradient(115deg, #fff 0%, #fbfcff 58%, #f7fcff 100%) !important;
   border-bottom-color: #e5eaf3 !important;
 }
@@ -790,13 +790,13 @@ header nav a:hover {
   position: absolute;
   inset: 0 0 auto;
   height: 3px;
-  background: linear-gradient(100deg, #8E07FB 0%, #1879FD 52%, #05CDFC 100%);
+  background: linear-gradient(100deg, #F97316 0%, #0D9488 52%, #FDBA74 100%);
   pointer-events: none;
 }
 .twimzi-directory-hero h1,
 .twimzi-directory-hero .twimzi-gradient-heading {
   color: transparent !important;
-  background: linear-gradient(100deg, #8E07FB 0%, #1879FD 52%, #05CDFC 100%) !important;
+  background: linear-gradient(100deg, #F97316 0%, #0D9488 52%, #FDBA74 100%) !important;
   background-clip: text !important;
   -webkit-background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
@@ -813,7 +813,7 @@ header nav a:hover {
   min-height: 48px;
   border-radius: 999px !important;
   padding-inline: 24px;
-  background: linear-gradient(100deg, #1879FD, #1455C7) !important;
+  background: linear-gradient(100deg, #0D9488, #087F75) !important;
 }
 .twimzi-directory-hero form button:hover { filter: brightness(.96); }
 .twimzi-directory-hero form a {
@@ -837,9 +837,9 @@ header nav a:hover {
   z-index: -2;
   display: block !important;
   background:
-    radial-gradient(ellipse at 5% 8%, rgba(142,7,251,.105), transparent 34%),
-    radial-gradient(ellipse at 94% 88%, rgba(5,205,252,.13), transparent 38%),
-    radial-gradient(ellipse at 56% 42%, rgba(24,121,253,.045), transparent 48%),
+    radial-gradient(ellipse at 5% 8%, rgba(249,115,22,.105), transparent 34%),
+    radial-gradient(ellipse at 94% 88%, rgba(253,186,116,.13), transparent 38%),
+    radial-gradient(ellipse at 56% 42%, rgba(13,148,136,.045), transparent 48%),
     linear-gradient(115deg, #fff 0%, #fdfcff 48%, #f7fcff 100%);
 }
 .twimzi-home-hero .twimzi-hero-backdrop::before,
@@ -851,13 +851,13 @@ header nav a:hover {
   width: 116%;
   height: 150px;
   border-radius: 50%;
-  border: 1px solid rgba(142,7,251,.10);
+  border: 1px solid rgba(249,115,22,.10);
   transform: rotate(-3deg);
 }
 .twimzi-home-hero .twimzi-hero-backdrop::before {
   bottom: -112px;
-  background: linear-gradient(90deg, rgba(142,7,251,.11), rgba(24,121,253,.06), rgba(5,205,252,.12));
-  box-shadow: 0 -14px 50px rgba(142,7,251,.045);
+  background: linear-gradient(90deg, rgba(249,115,22,.11), rgba(13,148,136,.06), rgba(253,186,116,.12));
+  box-shadow: 0 -14px 50px rgba(249,115,22,.045);
 }
 .twimzi-home-hero .twimzi-hero-backdrop::after {
   bottom: -138px;
@@ -870,20 +870,20 @@ header nav a:hover {
   display: block !important;
   width: 430px;
   height: 430px;
-  border: 1px solid rgba(142,7,251,.08);
+  border: 1px solid rgba(249,115,22,.08);
   border-radius: 50%;
   pointer-events: none;
 }
 .twimzi-home-hero .twimzi-hero-orbit-one {
   right: -190px;
   top: -270px;
-  box-shadow: 0 0 0 32px rgba(142,7,251,.025), 0 0 0 66px rgba(24,121,253,.02);
+  box-shadow: 0 0 0 32px rgba(249,115,22,.025), 0 0 0 66px rgba(13,148,136,.02);
 }
 .twimzi-home-hero .twimzi-hero-orbit-two {
   left: -300px;
   bottom: -340px;
-  border-color: rgba(5,205,252,.12);
-  box-shadow: 0 0 0 36px rgba(5,205,252,.025), 0 0 0 72px rgba(142,7,251,.02);
+  border-color: rgba(253,186,116,.12);
+  box-shadow: 0 0 0 36px rgba(253,186,116,.025), 0 0 0 72px rgba(249,115,22,.02);
 }
 .twimzi-home-hero > div.relative.z-10 {
   min-height: 680px !important;
@@ -893,7 +893,7 @@ header nav a:hover {
 .twimzi-home-hero h1 {
   max-width: 13ch;
   color: transparent !important;
-  background: linear-gradient(100deg, #8E07FB 0%, #1879FD 52%, #05CDFC 100%) !important;
+  background: linear-gradient(100deg, #F97316 0%, #0D9488 52%, #FDBA74 100%) !important;
   background-clip: text !important;
   -webkit-background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
@@ -906,16 +906,16 @@ header nav a:hover {
 .twimzi-home-hero h1 span {
   display: block;
   color: transparent !important;
-  background: linear-gradient(100deg, #8E07FB 0%, #1879FD 52%, #05CDFC 100%) !important;
+  background: linear-gradient(100deg, #F97316 0%, #0D9488 52%, #FDBA74 100%) !important;
   background-clip: text !important;
   -webkit-background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
 }
 .twimzi-home-hero > div.relative.z-10 > div:first-child > div:first-child {
-  border: 1px solid rgba(24,121,253,.13) !important;
+  border: 1px solid rgba(13,148,136,.13) !important;
   background: rgba(255,255,255,.74) !important;
   color: #1757d8 !important;
-  box-shadow: 0 8px 24px rgba(24,121,253,.07) !important;
+  box-shadow: 0 8px 24px rgba(13,148,136,.07) !important;
 }
 .twimzi-home-hero > div.relative.z-10 > div:first-child > p {
   color: #34425e !important;
@@ -960,7 +960,7 @@ header nav a:hover {
 }
 .twimzi-home-hero .twimzi-home-discovery-panel a:hover {
   transform: translateY(-2px);
-  border-color: rgba(24,121,253,.28) !important;
+  border-color: rgba(13,148,136,.28) !important;
   box-shadow: 0 12px 24px rgba(40,65,125,.08) !important;
 }
 .twimzi-home-hero .twimzi-home-discovery-panel a > div:first-child {
@@ -1037,7 +1037,7 @@ header nav a:hover {
 }
 .twimzi-home-hero form button {
   background: linear-gradient(105deg, #8e07fb 0%, #1879fd 58%, #05cdfc 100%) !important;
-  box-shadow: 0 9px 22px rgba(24,121,253,.22);
+  box-shadow: 0 9px 22px rgba(13,148,136,.22);
 }
 .twimzi-home-hero > div.relative.z-10 > div:first-child > div.mt-7 a:last-child button {
   border-color: #dce4f2 !important;
@@ -1305,9 +1305,9 @@ header nav a:hover {
 /* Twimzi hero: tighten search-to-content spacing and add a soft brand-tinted canvas. */
 .twimzi-home-hero {
   background:
-    radial-gradient(ellipse at 52% 34%, rgba(24,121,253,.075) 0%, rgba(24,121,253,0) 34%),
-    radial-gradient(ellipse at 8% 18%, rgba(142,7,251,.065) 0%, rgba(142,7,251,0) 32%),
-    radial-gradient(ellipse at 92% 76%, rgba(5,205,252,.07) 0%, rgba(5,205,252,0) 30%),
+    radial-gradient(ellipse at 52% 34%, rgba(13,148,136,.075) 0%, rgba(13,148,136,0) 34%),
+    radial-gradient(ellipse at 8% 18%, rgba(249,115,22,.065) 0%, rgba(249,115,22,0) 32%),
+    radial-gradient(ellipse at 92% 76%, rgba(253,186,116,.07) 0%, rgba(253,186,116,0) 30%),
     linear-gradient(115deg, #fcfaff 0%, #f8fbff 48%, #f5fcff 100%) !important;
 }
 @media (min-width: 1280px) {
@@ -1355,7 +1355,7 @@ header a[href="/add-business"] {
   background: linear-gradient(105deg, #8e07fb 0%, #1879fd 58%, #05cdfc 100%) !important;
   color: #ffffff !important;
   -webkit-text-fill-color: #ffffff !important;
-  box-shadow: 0 8px 22px rgba(24, 121, 253, .18) !important;
+  box-shadow: 0 8px 22px rgba(13, 148, 136, .18) !important;
 }
 header a[href="/add-business"]:hover {
   filter: brightness(1.06);
@@ -1366,8 +1366,8 @@ header a[href="/add-business"]:hover {
   .twimzi-home-hero {
     isolation: isolate !important;
     background:
-      radial-gradient(ellipse at 15% 18%, rgba(142,7,251,.09), transparent 36%),
-      radial-gradient(ellipse at 88% 78%, rgba(5,205,252,.10), transparent 38%),
+      radial-gradient(ellipse at 15% 18%, rgba(249,115,22,.09), transparent 36%),
+      radial-gradient(ellipse at 88% 78%, rgba(253,186,116,.10), transparent 38%),
       linear-gradient(115deg, #fbf8ff 0%, #f7faff 52%, #f2fbff 100%) !important;
   }
   .twimzi-home-hero::before {
@@ -1453,17 +1453,17 @@ header a[href="/add-business"]:hover {
    Shared palette for public pages, listings, articles and controls.
    ============================================================ */
 :root {
-  --twimzi-brand-purple: #8E07FB;
-  --twimzi-brand-blue: #1879FD;
-  --twimzi-brand-cyan: #05CDFC;
-  --twimzi-brand-gradient: linear-gradient(115deg, #8E07FB 0%, #1879FD 52%, #05CDFC 100%);
+  --twimzi-brand-purple: #F97316;
+  --twimzi-brand-blue: #0D9488;
+  --twimzi-brand-cyan: #FDBA74;
+  --twimzi-brand-gradient: linear-gradient(115deg, #F97316 0%, #0D9488 52%, #FDBA74 100%);
   --twimzi-page-canvas: #FBFAFF;
   --twimzi-page-surface: #FFFFFF;
   --twimzi-page-tint: #F3F7FF;
-  --twimzi-page-ink: #020D3A;
-  --twimzi-page-copy: #344365;
+  --twimzi-page-ink: #14243D;
+  --twimzi-page-copy: #334155;
   --twimzi-page-muted: #64748B;
-  --twimzi-page-border: #E2E8F3;
+  --twimzi-page-border: #E2E8F0;
 }
 body { color: var(--twimzi-page-ink); }
 main { color: var(--twimzi-page-ink); }
@@ -1488,20 +1488,20 @@ main a[class*="bg-blue-700"],
 main a[class*="bg-blue-600"],
 main a[class*="bg-indigo-600"],
 main a[class*="bg-purple-600"] { color: #FFFFFF !important; }
-main :is(.focus\:ring-blue-300,.focus\:ring-blue-500) { --tw-ring-color: rgba(24,121,253,.3); }
+main :is(.focus\:ring-blue-300,.focus\:ring-blue-500) { --tw-ring-color: rgba(13,148,136,.3); }
 
 
 /* Blog article typography: keep editorial headings visibly on-brand and
    enforce real vertical rhythm between independently rendered paragraphs. */
 .blog-article-content {
-  color: #344365;
+  color: #334155;
   font-size: 17px;
   line-height: 1.9;
 }
 .blog-article-content > p {
   display: block;
   margin-block: 0 1.45rem !important;
-  color: #344365 !important;
+  color: #334155 !important;
   font-size: 17px !important;
   line-height: 1.9 !important;
 }
@@ -1514,7 +1514,7 @@ main :is(.focus\:ring-blue-300,.focus\:ring-blue-500) { --tw-ring-color: rgba(24
   margin: 3rem 0 1.35rem !important;
   padding-bottom: .65rem;
   border-bottom: 1px solid #E4D8FF;
-  background: linear-gradient(100deg, #8E07FB 0%, #1879FD 55%, #05CDFC 100%) !important;
+  background: linear-gradient(100deg, #F97316 0%, #0D9488 55%, #FDBA74 100%) !important;
   background-clip: text !important;
   -webkit-background-clip: text !important;
   color: transparent !important;
@@ -1525,8 +1525,8 @@ main :is(.focus\:ring-blue-300,.focus\:ring-blue-500) { --tw-ring-color: rgba(24
 }
 .blog-article-content > h3 {
   margin: 2.1rem 0 .9rem !important;
-  color: #7000D6 !important;
-  -webkit-text-fill-color: #7000D6 !important;
+  color: #EA580C !important;
+  -webkit-text-fill-color: #EA580C !important;
   font-size: clamp(1.2rem, 2vw, 1.5rem) !important;
   font-weight: 800 !important;
   line-height: 1.35 !important;
@@ -1553,8 +1553,8 @@ main :is(.focus\:ring-blue-300,.focus\:ring-blue-500) { --tw-ring-color: rgba(24
 .twimzi-home-hero {
   min-height: 0 !important;
   background:
-    radial-gradient(ellipse at 18% 24%, rgba(142,7,251,.13), transparent 34%),
-    radial-gradient(ellipse at 78% 78%, rgba(5,205,252,.15), transparent 36%),
+    radial-gradient(ellipse at 18% 24%, rgba(249,115,22,.13), transparent 34%),
+    radial-gradient(ellipse at 78% 78%, rgba(253,186,116,.15), transparent 36%),
     linear-gradient(112deg, #fbf9ff 0%, #f6f9ff 48%, #effbff 100%) !important;
 }
 .twimzi-home-hero::before {
@@ -1564,17 +1564,17 @@ main :is(.focus\:ring-blue-300,.focus\:ring-blue-500) { --tw-ring-color: rgba(24
   z-index: 0;
   opacity: .62;
   background-image:
-    radial-gradient(circle at 14% 26%, rgba(142,7,251,.23) 0 1.2px, transparent 1.8px),
-    radial-gradient(circle at 82% 32%, rgba(24,121,253,.22) 0 1.2px, transparent 1.8px),
-    radial-gradient(circle at 72% 78%, rgba(5,205,252,.26) 0 1.4px, transparent 2px),
-    radial-gradient(ellipse at 50% 50%, transparent 42%, rgba(24,121,253,.07) 72%, transparent 74%);
+    radial-gradient(circle at 14% 26%, rgba(249,115,22,.23) 0 1.2px, transparent 1.8px),
+    radial-gradient(circle at 82% 32%, rgba(13,148,136,.22) 0 1.2px, transparent 1.8px),
+    radial-gradient(circle at 72% 78%, rgba(253,186,116,.26) 0 1.4px, transparent 2px),
+    radial-gradient(ellipse at 50% 50%, transparent 42%, rgba(13,148,136,.07) 72%, transparent 74%);
   background-size: 34px 34px, 42px 42px, 48px 48px, 100% 100%;
   mask-image: linear-gradient(110deg, #000 0%, rgba(0,0,0,.4) 52%, #000 100%);
   animation: twimzi-pattern-breathe 9s ease-in-out infinite alternate;
 }
 .twimzi-hero-art-glow {
   background:
-    radial-gradient(circle, rgba(24,121,253,.15) 0%, rgba(5,205,252,.10) 42%, rgba(142,7,251,.06) 64%, transparent 74%);
+    radial-gradient(circle, rgba(13,148,136,.15) 0%, rgba(253,186,116,.10) 42%, rgba(249,115,22,.06) 64%, transparent 74%);
   filter: blur(22px);
   animation: twimzi-art-pulse 7s ease-in-out infinite alternate;
 }
@@ -1640,7 +1640,7 @@ main :is(.focus\:ring-blue-300,.focus\:ring-blue-500) { --tw-ring-color: rgba(24
 /* Final homepage-only composition: compact stories strip + clean pattern-led hero.
    These overrides intentionally target only the stories and hero sections. */
 .twimzi-home-stories {
-  border-bottom: 1px solid #EEF1F8;
+  border-bottom: 1px solid #EEF2F4;
   background: rgba(255,255,255,.96);
 }
 .twimzi-home-stories > div:last-child {
@@ -1650,7 +1650,7 @@ main :is(.focus\:ring-blue-300,.focus\:ring-blue-500) { --tw-ring-color: rgba(24
 .twimzi-home-stories button > span:first-child {
   border-radius: 14px !important;
   padding: 2px !important;
-  background: linear-gradient(135deg,#8E07FB,#1879FD,#05CDFC) !important;
+  background: linear-gradient(135deg,#F97316,#0D9488,#FDBA74) !important;
 }
 .twimzi-home-stories button > span:first-child > span {
   border-radius: 12px !important;
@@ -1661,8 +1661,8 @@ main :is(.focus\:ring-blue-300,.focus\:ring-blue-500) { --tw-ring-color: rgba(24
 .twimzi-home-hero {
   min-height: 0 !important;
   background:
-    radial-gradient(ellipse at 6% 8%, rgba(142,7,251,.075), transparent 30%),
-    radial-gradient(ellipse at 94% 88%, rgba(5,205,252,.10), transparent 34%),
+    radial-gradient(ellipse at 6% 8%, rgba(249,115,22,.075), transparent 30%),
+    radial-gradient(ellipse at 94% 88%, rgba(253,186,116,.10), transparent 34%),
     linear-gradient(120deg,#FCFAFF 0%,#F8FAFF 54%,#F4FCFF 100%) !important;
 }
 .twimzi-home-hero > div.relative.z-10 {
@@ -1677,9 +1677,9 @@ main :is(.focus\:ring-blue-300,.focus\:ring-blue-500) { --tw-ring-color: rgba(24
 .twimzi-home-hero .twimzi-hero-pattern {
   opacity: .55 !important;
   background-image:
-    radial-gradient(circle,rgba(142,7,251,.20) 1px,transparent 1.7px),
-    radial-gradient(circle,rgba(24,121,253,.15) 1px,transparent 1.7px),
-    radial-gradient(ellipse at 50% 50%,transparent 52%,rgba(24,121,253,.055) 72%,transparent 74%) !important;
+    radial-gradient(circle,rgba(249,115,22,.20) 1px,transparent 1.7px),
+    radial-gradient(circle,rgba(13,148,136,.15) 1px,transparent 1.7px),
+    radial-gradient(ellipse at 50% 50%,transparent 52%,rgba(13,148,136,.055) 72%,transparent 74%) !important;
   background-size: 28px 28px,42px 42px,100% 100% !important;
   background-position: 0 0,14px 12px,center !important;
   mask-image: linear-gradient(90deg,#000 0%,rgba(0,0,0,.35) 55%,#000 100%) !important;
@@ -2021,9 +2021,9 @@ main :is(.focus\:ring-blue-300,.focus\:ring-blue-500) { --tw-ring-color: rgba(24
   /* Soft brand-colour atmosphere — CSS only, no imagery or layout changes */
   background-color: #fbfcff !important;
   background-image:
-    radial-gradient(ellipse at 7% 12%, rgba(142, 7, 251, .11) 0, rgba(142, 7, 251, 0) 34%),
-    radial-gradient(ellipse at 92% 82%, rgba(5, 205, 252, .13) 0, rgba(5, 205, 252, 0) 36%),
-    radial-gradient(ellipse at 54% 45%, rgba(24, 121, 253, .065) 0, rgba(24, 121, 253, 0) 42%),
+    radial-gradient(ellipse at 7% 12%, rgba(249, 115, 22, .11) 0, rgba(249, 115, 22, 0) 34%),
+    radial-gradient(ellipse at 92% 82%, rgba(253, 186, 116, .13) 0, rgba(253, 186, 116, 0) 36%),
+    radial-gradient(ellipse at 54% 45%, rgba(13, 148, 136, .065) 0, rgba(13, 148, 136, 0) 42%),
     linear-gradient(120deg, #fdfaff 0%, #f8fbff 52%, #f4fcff 100%) !important;
   color: #14243d !important;
   isolation: isolate;
@@ -2035,8 +2035,8 @@ main :is(.focus\:ring-blue-300,.focus\:ring-blue-500) { --tw-ring-color: rgba(24
   z-index: 0;
   pointer-events: none;
   background-image:
-    radial-gradient(circle, rgba(24, 121, 253, .18) 1px, transparent 1.5px),
-    radial-gradient(circle, rgba(142, 7, 251, .12) 1px, transparent 1.5px);
+    radial-gradient(circle, rgba(13, 148, 136, .18) 1px, transparent 1.5px),
+    radial-gradient(circle, rgba(249, 115, 22, .12) 1px, transparent 1.5px);
   background-position: 0 0, 18px 18px;
   background-size: 36px 36px, 54px 54px;
   opacity: .22;
