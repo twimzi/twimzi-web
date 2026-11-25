@@ -236,7 +236,7 @@ export async function POST(request: Request) {
       if (!projectUrl || !anonKey || sessionError || !accessToken) {
         return NextResponse.json({ error: "Your Super Admin session could not be forwarded to the enrichment worker. Please sign in again and retry." }, { status: 503 });
       }
-      const response = await fetch(projectUrl.replace(/\\/$/, "") + "/functions/v1/lead-generator-worker", {
+      const response = await fetch(projectUrl.replace(/\/$/, "") + "/functions/v1/lead-generator-worker", {
         method: "POST", cache: "no-store",
         headers: { Authorization: "Bearer " + accessToken, apikey: anonKey, "Content-Type": "application/json" },
         body: JSON.stringify({ action: "enrich_websites" }),
