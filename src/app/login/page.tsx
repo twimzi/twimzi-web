@@ -95,7 +95,7 @@ function LoginForm() {
     event.preventDefault();
     setErrorMessage("");
     setSuccessMessage("");
-    if (!/^\\d{6}$/.test(otp)) { setErrorMessage("Enter the 6-digit code."); return; }
+    if (!/^\d{6}$/.test(otp)) { setErrorMessage("Enter the 6-digit code."); return; }
     setOtpLoading(true);
     const { error } = await supabase.auth.verifyOtp({
       email: email.trim(),
@@ -198,7 +198,7 @@ function LoginForm() {
               {otpSent ? (
                 <div>
                   <label htmlFor="login-otp" className="mb-2 block text-sm font-semibold">6-digit email code</label>
-                  <input id="login-otp" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={otp} onChange={(event) => setOtp(event.target.value.replace(/\\D/g, "").slice(0, 6))} placeholder="Enter code" required className="w-full rounded-xl border border-[var(--color-border)] px-4 py-3 tracking-widest" />
+                  <input id="login-otp" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={otp} onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="Enter code" required className="w-full rounded-xl border border-[var(--color-border)] px-4 py-3 tracking-widest" />
                   <button type="button" disabled={otpLoading} onClick={sendLoginOtp} className="mt-3 text-sm font-semibold text-[var(--color-primary)] underline">Resend code</button>
                 </div>
               ) : null}
