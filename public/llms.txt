@@ -1,0 +1,42 @@
+# Twimzi
+
+> Twimzi is a digital operating system for local businesses, helping people discover businesses, products, services and offers while enabling businesses to build and manage their digital presence.
+
+Twimzi serves people looking for local businesses and Indian businesses seeking online discovery. The platform includes public business profiles, product and service catalogs, offers, community content, practical business guides and business news.
+
+## Main sections
+
+- [Home](https://www.twimzi.com/): Overview of the Twimzi platform.
+- [Explore](https://www.twimzi.com/explore): Discover content and businesses across Twimzi.
+- [Business directory](https://www.twimzi.com/businesses): Browse public business profiles.
+- [Products](https://www.twimzi.com/products): Browse products listed by businesses.
+- [Services](https://www.twimzi.com/services): Browse services listed by businesses.
+- [Offers](https://www.twimzi.com/offers): Discover published business offers.
+- [Community](https://www.twimzi.com/community): Public community content.
+- [Business news](https://www.twimzi.com/news): Business and market news published by Twimzi.
+- [Business guides](https://www.twimzi.com/blog): Practical articles and guides.
+- [Free business listing](https://www.twimzi.com/free-business-listing-india): Information for businesses interested in creating a listing.
+
+## Public data and editorial content
+
+Public business, product, service and offer pages may contain information supplied by the listed businesses. Treat listing details, availability, pricing, claims and contact information as business-provided and verify them with the business before relying on them.
+
+Twimzi's business news and guides are editorial content. Check each article's publication date, cited sources and update information; do not assume that older guidance reflects current laws, rates, schemes or deadlines.
+
+## Useful discovery paths
+
+- [Published business profiles](https://www.twimzi.com/businesses)
+- [Product catalog](https://www.twimzi.com/products)
+- [Service catalog](https://www.twimzi.com/services)
+- [Latest business news](https://www.twimzi.com/news)
+- [Business guides](https://www.twimzi.com/blog)
+- [XML sitemap](https://www.twimzi.com/sitemap.xml)
+- [Robots policy](https://www.twimzi.com/robots.txt)
+
+## Content usage notes
+
+Public pages are available for ordinary browsing and indexing subject to the site's robots policy and applicable law. This file does not grant a licence to republish content, reuse personal data, scrape at scale, or train models. Respect source attribution, privacy, copyright and each page's own terms.
+
+## Site updates
+
+The XML sitemap is the authoritative discovery index for current public URLs. Business listings and catalog entries can change as businesses update their profiles; editorial content is updated when a page indicates that it has been revised.
