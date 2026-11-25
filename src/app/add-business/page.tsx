@@ -58,6 +58,12 @@ export default function AddBusiness() {
   const [hashtags, setHashtags] = useState("");
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
+  const [accountPassword, setAccountPassword] = useState("");
+  const [confirmAccountPassword, setConfirmAccountPassword] = useState("");
+  const [signupOtp, setSignupOtp] = useState("");
+  const [signupOtpSent, setSignupOtpSent] = useState(false);
+  const [otpLoading, setOtpLoading] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
   const [leadCaptureConsent, setLeadCaptureConsent] = useState(false);
   const [phone, setPhone] = useState("");
   const [website, setWebsite] = useState("");
@@ -626,6 +632,16 @@ export default function AddBusiness() {
       }
 
       if (!user) {
+        if (!signupOtpSent) {
+          if (accountPassword.length < 12 || !/[A-Z]/.test(accountPassword) ||
+              !/[a-z]/.test(accountPassword) || !/[0-9]/.test(accountPassword) ||
+              !/[^A-Za-z0-9]/.test(accountPassword)) {
+            throw new Error("Password must contain at least 12 characters, including uppercase, lowercase, a number and a special character.");
+          }
+          if (accountPassword !== confirmAccountPassword) {
+            throw new Error("Passwords do not match.");
+          }
+        }
         window.localStorage.setItem(
           "twimzi-business-registration-draft",
           JSON.stringify({
@@ -648,8 +664,22 @@ export default function AddBusiness() {
           });
         }
         await trackAnalyticsEvent("business_registration_auth_required");
-        router.push("/register?next=%2Fadd-business");
-        return;
+        if (!signupOtpSent) {
+          const { data: signupData, error: signupError } = await supabase.auth.signUp({
+            email: contactEmail.trim(),
+            password: accountPassword,
+            options: { data: { full_name: contactName.trim() || businessName.trim() } },
+          });
+          if (signupError) throw signupError;
+          if (signupData.session) {
+            formRef.current?.requestSubmit();
+            return;
+          }
+          setSignupOtpSent(true);
+          setMessage("A 6-digit verification code has been sent to your email. Enter it below to create your account and submit the listing.");
+          return;
+        }
+        throw new Error("Please verify the email OTP to continue.");
       }
 
       let businessId = createdBusinessId;
@@ -843,6 +873,7 @@ export default function AddBusiness() {
             Fill in your business details first. When you submit, you will be asked to create an account or sign in. Your text details will be saved in this browser while you complete that step. Selected photos are not saved and can be added after sign-in.
           </div>
           <form
+            ref={formRef}
             onSubmit={handleSubmit}
             onFocusCapture={handleRegistrationFocus}
             className="rounded-3xl border border-[var(--color-border)] bg-white p-6 shadow-[var(--shadow-md)] sm:p-8"
@@ -1406,11 +1437,50 @@ export default function AddBusiness() {
                 <span>I agree that Twimzi may securely save the business and contact details I enter here if I do not complete registration, so the Twimzi team can contact me to help finish setup. I can continue registration without opting in.</span>
               </label>
 
-              <Button type="submit" disabled={loading}>
-                {loading
-                  ? uploadProgress || "Submitting..."
-                  : "Create Business"}
-              </Button>
+              {!signupOtpSent ? (
+                <section className="space-y-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-secondary)] p-5">
+                  <h3 className="font-semibold">Create your account</h3>
+                  <p className="text-sm text-[var(--color-text-muted)]">Your email is compulsory. Set a password, then verify the 6-digit code sent to your email.</p>
+                  <div>
+                    <label htmlFor="account-password" className="mb-2 block text-sm font-semibold">Password *</label>
+                    <input id="account-password" type="password" autoComplete="new-password" value={accountPassword} onChange={(event) => setAccountPassword(event.target.value)} required minLength={12} className="min-h-12 w-full rounded-xl border border-[var(--color-border)] px-4 text-sm" placeholder="Create a strong password" />
+                    <p className="mt-1 text-xs text-[var(--color-text-muted)]">At least 12 characters with uppercase, lowercase, a number and a special character.</p>
+                  </div>
+                  <div>
+                    <label htmlFor="confirm-account-password" className="mb-2 block text-sm font-semibold">Confirm password *</label>
+                    <input id="confirm-account-password" type="password" autoComplete="new-password" value={confirmAccountPassword} onChange={(event) => setConfirmAccountPassword(event.target.value)} required minLength={12} className="min-h-12 w-full rounded-xl border border-[var(--color-border)] px-4 text-sm" placeholder="Confirm your password" />
+                  </div>
+                </section>
+              ) : (
+                <section className="space-y-3 rounded-2xl border border-green-200 bg-green-50 p-5">
+                  <h3 className="font-semibold text-green-900">Verify your email</h3>
+                  <p className="text-sm text-green-800">Enter the 6-digit code sent to {contactEmail}.</p>
+                  <input aria-label="Email verification code" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={signupOtp} onChange={(event) => setSignupOtp(event.target.value.replace(/\\D/g, "").slice(0, 6))} placeholder="6-digit code" className="min-h-12 w-full rounded-xl border border-[var(--color-border)] bg-white px-4 text-sm tracking-widest" />
+                  <div className="flex flex-wrap gap-3">
+                    <button type="button" disabled={otpLoading} onClick={async () => {
+                      setOtpLoading(true); setErrorMessage(""); setMessage("");
+                      const { error } = await createSupabaseBrowserClient().auth.resend({ type: "signup", email: contactEmail.trim() });
+                      setOtpLoading(false);
+                      if (error) setErrorMessage(error.message); else setMessage("A new verification code has been sent.");
+                    }} className="text-sm font-semibold text-[var(--color-primary)] underline">Resend code</button>
+                    <button type="button" onClick={() => { setSignupOtpSent(false); setSignupOtp(""); }} className="text-sm font-semibold text-[var(--color-primary)] underline">Change email or password</button>
+                  </div>
+                  <Button type="button" disabled={otpLoading || signupOtp.length !== 6} onClick={async () => {
+                    setOtpLoading(true); setErrorMessage(""); setMessage("");
+                    const supabase = createSupabaseBrowserClient();
+                    const { error } = await supabase.auth.verifyOtp({ email: contactEmail.trim(), token: signupOtp, type: "signup" });
+                    setOtpLoading(false);
+                    if (error) { setErrorMessage(error.message); return; }
+                    setMessage("Email verified. Creating your business listing...");
+                    window.setTimeout(() => formRef.current?.requestSubmit(), 0);
+                  }} className="w-full">{otpLoading ? "Verifying..." : "Verify email & create business"}</Button>
+                </section>
+              )}
+              {!signupOtpSent ? (
+                <Button type="submit" disabled={loading}>
+                  {loading ? uploadProgress || "Continuing..." : "Continue & send email OTP"}
+                </Button>
+              ) : null}
 
               <p className="text-center text-xs leading-5 text-[var(--color-text-muted)]">
                 You must be signed in to submit a business. Submitted
