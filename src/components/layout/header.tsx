@@ -98,11 +98,6 @@ export function Header() {
     };
   }, [supabase]);
 
-  useEffect(() => {
-    setIsProfileMenuOpen(false);
-    setIsMobileMenuOpen(false);
-  }, [pathname]);
-
   const handleLogout = async () => {
     if (isSigningOut) return;
     setIsSigningOut(true);
