@@ -574,6 +574,16 @@ export default function AddBusiness() {
       setErrorMessage("Enter a valid 6-digit PIN code.");
       return;
     }
+    const normalizedContactEmail = contactEmail.trim();
+    if (!normalizedContactEmail) {
+      setErrorMessage("Contact email is required.");
+      return;
+    }
+    if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(normalizedContactEmail)) {
+      setErrorMessage("Enter a valid contact email address.");
+      return;
+    }
+
     const normalizedPhone = phone.trim();
     if (!normalizedPhone) {
       setErrorMessage("Business mobile number is required.");
@@ -1057,8 +1067,8 @@ export default function AddBusiness() {
                   <input id="contact-name" value={contactName} onChange={(event) => setContactName(event.target.value)} placeholder="Your name" autoComplete="name" className="min-h-12 w-full rounded-xl border border-[var(--color-border)] px-4 text-sm outline-none transition focus:border-[var(--color-primary)]" />
                 </div>
                 <div>
-                  <label htmlFor="contact-email" className="mb-2 block text-sm font-semibold">Contact email (optional)</label>
-                  <input id="contact-email" type="email" value={contactEmail} onChange={(event) => setContactEmail(event.target.value)} placeholder="you@example.com" autoComplete="email" className="min-h-12 w-full rounded-xl border border-[var(--color-border)] px-4 text-sm outline-none transition focus:border-[var(--color-primary)]" />
+                  <label htmlFor="contact-email" className="mb-2 block text-sm font-semibold">Contact email *</label>
+                  <input id="contact-email" type="email" value={contactEmail} onChange={(event) => setContactEmail(event.target.value)} placeholder="you@example.com" autoComplete="email" required aria-required="true" className="min-h-12 w-full rounded-xl border border-[var(--color-border)] px-4 text-sm outline-none transition focus:border-[var(--color-primary)]" />
                 </div>
               </div>
 
