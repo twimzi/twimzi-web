@@ -13,7 +13,6 @@ import {
   X,
   LayoutDashboard,
   ShieldCheck,
-  Settings,
   LogOut,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -201,9 +200,6 @@ export function Header() {
               <ShieldCheck className="h-4 w-4 text-[var(--color-primary)]" /> Admin panel
             </Link>
           )}
-          <Link href="/businesses/dashboard/settings" role="menuitem" onClick={closeMenus} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-[var(--color-text)] hover:bg-[var(--color-primary-light)]">
-            <Settings className="h-4 w-4 text-[var(--color-text-muted)]" /> Account settings
-          </Link>
           <div className="my-1 border-t border-[var(--color-border-light)]" />
           <button type="button" role="menuitem" onClick={handleLogout} disabled={isSigningOut} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-[var(--color-error)] hover:bg-[var(--color-error-light)] disabled:opacity-60">
             <LogOut className="h-4 w-4" /> {isSigningOut ? "Signing out..." : "Log out"}
