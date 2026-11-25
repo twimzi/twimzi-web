@@ -579,7 +579,7 @@ export default function AddBusiness() {
       setErrorMessage("Contact email is required.");
       return;
     }
-    if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(normalizedContactEmail)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedContactEmail)) {
       setErrorMessage("Enter a valid contact email address.");
       return;
     }
