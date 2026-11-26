@@ -13,7 +13,7 @@ const routes = [
   "/business-terms", "/marketplace-policy", "/user-content-policy",
   "/intellectual-property-policy", "/messaging-policy", "/data-deletion-policy",
   "/grievance-redressal", "/cookie-policy", "/refund-policy", "/shipping-policy",
-  "/disclaimer", "/free-business-listing-india",
+  "/disclaimer", "/free-business-listing-india", "/hi", "/pa",
 ];
 
 const highPriorityRoutes = new Set([
@@ -90,11 +90,18 @@ function createPublicSupabaseClient() {
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
+  const languageAlternates = {
+    "en-IN": siteConfig.url,
+    "hi-IN": `${siteConfig.url}/hi`,
+    "pa-IN": `${siteConfig.url}/pa`,
+    "x-default": siteConfig.url,
+  };
   const staticPages: MetadataRoute.Sitemap = routes.map((route) => ({
     url: `${siteConfig.url}${route}`,
     lastModified: now,
     changeFrequency: highPriorityRoutes.has(route) ? "daily" : "monthly",
-    priority: route === "/" ? 1 : highPriorityRoutes.has(route) ? 0.8 : 0.5,
+    priority: route === "/" ? 1 : route === "/hi" || route === "/pa" ? 0.8 : highPriorityRoutes.has(route) ? 0.8 : 0.5,
+    ...(route === "/" || route === "/hi" || route === "/pa" ? { alternates: { languages: languageAlternates } } : {}),
   }));
 
   const businessPages: MetadataRoute.Sitemap = [];
