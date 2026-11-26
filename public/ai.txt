@@ -1,0 +1,33 @@
+# Twimzi — AI and automated agent information
+
+Twimzi is an Indian business discovery and marketplace platform. It helps people discover businesses, manufacturers, suppliers, products, services and offers, and helps businesses publish a public digital profile.
+
+Website: https://www.twimzi.com/
+Support: support@twimzi.com
+
+## Public sections
+
+- Home: https://www.twimzi.com/
+- Business directory: https://www.twimzi.com/businesses
+- Products: https://www.twimzi.com/products
+- Services: https://www.twimzi.com/services
+- Offers: https://www.twimzi.com/offers
+- Community: https://www.twimzi.com/community
+- Business news: https://www.twimzi.com/news
+- Business guides: https://www.twimzi.com/blog
+- Free business listing: https://www.twimzi.com/free-business-listing-india
+- XML sitemap: https://www.twimzi.com/sitemap.xml
+- Machine-readable site guide: https://www.twimzi.com/llms.txt
+- Crawler policy: https://www.twimzi.com/robots.txt
+
+## Use of public information
+
+Public business listings may contain information submitted by the businesses themselves. Treat business descriptions, contact details, product information, prices, availability and claims as third-party supplied information. Verify important details with the relevant business before relying on them.
+
+Twimzi news and guides are editorial resources. Check the article date and cited sources, and verify current laws, policies, schemes, rates and deadlines with the relevant official authority.
+
+## Content, privacy and attribution
+
+Public accessibility does not grant permission to republish copyrighted material, collect or process personal data unlawfully, bypass access controls, or conduct abusive or excessive automated requests. Respect applicable law, privacy, copyright, attribution requirements and the site's published policies.
+
+This file is informational. It does not create a licence, grant special access, or override robots.txt, terms, privacy notices or applicable law.
