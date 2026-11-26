@@ -74,6 +74,24 @@ const nextConfig: NextConfig = {
     ],
   },
 
+  async rewrites() {
+    return {
+      beforeFiles: [
+        {
+          source: "/",
+          destination: "/agent/markdown",
+          has: [
+            {
+              type: "header",
+              key: "accept",
+              value: ".*text/markdown.*",
+            },
+          ],
+        },
+      ],
+    };
+  },
+
   async headers() {
     return [
       {

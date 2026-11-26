@@ -6,6 +6,7 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { AnalyticsTracker } from "@/components/analytics/analytics-tracker";
 import { StructuredData } from "@/components/seo/structured-data";
+import { WebMcpRegistration } from "@/components/seo/webmcp-registration";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -139,6 +140,7 @@ export default function RootLayout({
       <body className={poppins.variable} suppressHydrationWarning>
         <StructuredData data={organizationSchema} />
         <StructuredData data={websiteSchema} />
+        <WebMcpRegistration />
         <Header />
         <AnalyticsTracker />
         <main>{children}</main>
