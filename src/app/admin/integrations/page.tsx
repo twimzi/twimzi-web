@@ -1,4 +1,5 @@
 import Link from "next/link";
+import IntegrationTestButton from "./integration-test-button";
 
 export const dynamic = "force-dynamic";
 
@@ -153,6 +154,10 @@ export default function AdminIntegrationsPage() {
               >
                 Open {item.name}
               </Link>
+              <IntegrationTestButton
+                provider={item.name === "Google Analytics 4" ? "ga4" : item.name === "Google Search Console" ? "gsc" : "bing"}
+                configured={ready}
+              />
             </article>
           );
         })}
