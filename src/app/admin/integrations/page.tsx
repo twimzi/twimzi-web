@@ -179,9 +179,9 @@ export default function AdminIntegrationsPage() {
           ))}
         </div>
         <p className="mt-4 text-xs leading-5 text-[var(--color-text-muted)]">
-          This screen currently reports credential presence only. Live reports and connection
-          tests will become available after the server credentials and property identifiers
-          are configured; no external metrics are fabricated or shown as connected.
+          The dashboard reports server-side credential presence and can run a live, read-only API
+          test for each provider. A detected credential is not treated as connected until the
+          provider responds successfully; no external metrics are fabricated.
         </p>
       </section>
     </div>
