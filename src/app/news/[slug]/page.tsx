@@ -63,7 +63,7 @@ async function getRelatedNews(category: string, excludeSlug: string) {
     .select("id,title,slug,summary,category,published_at")
     .eq("category", category)
     .neq("slug", excludeSlug)
-    .in("status", ["published", "scheduled"])
+    .eq("status", "published")
     .lte("published_at", new Date().toISOString())
     .order("published_at", { ascending: false })
     .limit(3);
