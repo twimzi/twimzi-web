@@ -151,7 +151,7 @@ export default async function BusinessNewsPage({ searchParams }: { searchParams:
               <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3.5 py-2 text-[11px] font-extrabold uppercase tracking-[0.17em] text-orange-200 backdrop-blur">
                 <Sparkles className="h-3.5 w-3.5" /> Twimzi Business Desk
               </span>
-              <h1 className="mt-6 max-w-3xl text-[2.65rem] font-extrabold leading-[1.04] tracking-[-0.055em] sm:text-6xl lg:text-[4.25rem]">
+              <h1 className="mt-6 max-w-3xl !text-white text-[2.65rem] font-extrabold leading-[1.04] tracking-[-0.055em] sm:text-6xl lg:text-[4.25rem]">
                 Know what&apos;s changing.
                 <span className="mt-2 block bg-gradient-to-r from-[#FDBA74] via-[#5EEAD4] to-[#FDBA74] bg-clip-text text-transparent">Move your business forward.</span>
               </h1>
