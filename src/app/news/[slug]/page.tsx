@@ -48,7 +48,7 @@ async function getNews(slug: string): Promise<NewsItem | null> {
     .from("business_news")
     .select("id,title,slug,category,summary,content,source_name,source_url,featured_image_url,meta_title,meta_description,published_at,reading_time_minutes,editorial_updated_at,primary_keyword,secondary_keywords,key_takeaways,business_impact,action_points,key_figures,faq,related_links")
     .eq("slug", slug)
-    .in("status", ["published", "scheduled"])
+    .eq("status", "published")
     .lte("published_at", new Date().toISOString())
     .maybeSingle();
   if (error) console.error("News article could not be loaded:", error.message);
