@@ -119,7 +119,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const { data: newsPosts, error: newsError } = await supabase
       .from("business_news")
       .select("slug, updated_at, published_at")
-      .in("status", ["published", "scheduled"])
+      .eq("status", "published")
       .lte("published_at", now.toISOString())
       .order("published_at", { ascending: false })
       .limit(1000);
