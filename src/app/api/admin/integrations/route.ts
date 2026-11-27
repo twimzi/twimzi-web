@@ -34,7 +34,7 @@ function serviceAccount() {
 }
 
 function base64url(value: string | Buffer) {
-  return Buffer.from(value).toString("base64").replace(/=/g, "").replace(/\\+/g, "-").replace(/\\//g, "_");
+  return Buffer.from(value).toString("base64url");
 }
 
 async function googleAccessToken(scope: string) {
@@ -68,7 +68,7 @@ async function testGoogle(provider: "ga4" | "gsc") {
 
   if (provider === "ga4") {
     const property = process.env.GA4_PROPERTY_ID;
-    if (!property || !/^\\d+$/.test(property)) throw new Error("GA4_PROPERTY_ID is missing or is not a numeric GA4 property ID.");
+    if (!property || !/^\d+$/.test(property)) throw new Error("GA4_PROPERTY_ID is missing or is not a numeric GA4 property ID.");
     const response = await fetch("https://analyticsdata.googleapis.com/v1beta/properties/" + property + ":runReport", {
       method: "POST", headers, body: JSON.stringify({ dateRanges: [{ startDate: "7daysAgo", endDate: "today" }], metrics: [{ name: "sessions" }] }),
       signal: AbortSignal.timeout(15000), cache: "no-store",
