@@ -119,7 +119,7 @@ export default async function BusinessNewsPage({ searchParams }: { searchParams:
     let request = supabase
       .from("business_news")
       .select("id,title,slug,category,summary,source_name,source_url,featured_image_url,published_at,reading_time_minutes")
-      .in("status", ["published", "scheduled"])
+      .eq("status", "published")
       .lte("published_at", new Date().toISOString())
       .order("published_at", { ascending: false })
       .limit(100);
