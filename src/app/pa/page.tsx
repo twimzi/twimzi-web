@@ -6,7 +6,7 @@ const canonical = `${siteConfig.url}/pa`;
 
 export const metadata: Metadata = {
   title: "ਪੰਜਾਬ ਅਤੇ ਭਾਰਤ ਦੀ ਬਿਜ਼ਨਸ ਡਾਇਰੈਕਟਰੀ ਅਤੇ B2B ਮਾਰਕੀਟਪਲੇਸ | Twimzi",
-  description: "Twimzi 'ਤੇ ਪੰਜਾਬ ਅਤੇ ਭਾਰਤ ਦੇ ਨਿਰਮਾਤਾ, ਥੋਕ ਵਿਕਰੇਤਾ, ਸਪਲਾਇਰ, ਵਪਾਰੀ ਅਤੇ ਸਥਾਨਕ ਕਾਰੋਬਾਰ ਲੱਭੋ। ਉਤਪਾਦਾਂ ਅਤੇ ਸੇਵਾਵਾਂ ਦੀ ਜਾਣਕਾਰੀ ਵੇਖੋ ਅਤੇ ਸਿੱਧਾ ਸੰਪਰਕ ਕਰੋ।",
+  description: "Twimzi ’ਤੇ ਪੰਜਾਬ ਅਤੇ ਭਾਰਤ ਦੇ ਨਿਰਮਾਤਾ, ਥੋਕ ਵਿਕਰੇਤਾ, ਸਪਲਾਇਰ, ਵਪਾਰੀ ਅਤੇ ਸਥਾਨਕ ਕਾਰੋਬਾਰ ਲੱਭੋ। ਉਤਪਾਦਾਂ ਅਤੇ ਸੇਵਾਵਾਂ ਦੀ ਜਾਣਕਾਰੀ ਵੇਖੋ ਅਤੇ ਸਿੱਧਾ ਸੰਪਰਕ ਕਰੋ।",
   keywords: [
     "ਪੰਜਾਬ ਬਿਜ਼ਨਸ ਡਾਇਰੈਕਟਰੀ", "ਲੁਧਿਆਣਾ ਨਿਰਮਾਤਾ", "ਥੋਕ ਵਿਕਰੇਤਾ ਪੰਜਾਬ",
     "ਖੇਤੀਬਾੜੀ ਮਸ਼ੀਨਰੀ ਨਿਰਮਾਤਾ", "ਸਪਲਾਇਰ ਪੰਜਾਬ", "ਵਪਾਰੀ ਪੰਜਾਬ",
@@ -53,11 +53,11 @@ export default function PunjabiLandingPage() {
         </div>
       </section>
       <section className="mt-14 rounded-2xl bg-[#F6F8FA] p-7">
-        <h2 className="text-2xl font-bold text-[#14243D]">Twimzi 'ਤੇ ਆਪਣਾ ਕਾਰੋਬਾਰ ਦਰਜ ਕਰੋ</h2>
+        <h2 className="text-2xl font-bold text-[#14243D]">Twimzi ’ਤੇ ਆਪਣਾ ਕਾਰੋਬਾਰ ਦਰਜ ਕਰੋ</h2>
         <p className="mt-3 leading-7 text-slate-600">ਆਪਣੀ ਕਾਰੋਬਾਰੀ ਪ੍ਰੋਫਾਈਲ ਬਣਾਓ, ਉਤਪਾਦਾਂ ਅਤੇ ਸੇਵਾਵਾਂ ਦੀ ਜਾਣਕਾਰੀ ਸਾਂਝੀ ਕਰੋ ਅਤੇ ਸੰਭਾਵੀ ਗਾਹਕਾਂ ਅਤੇ ਵਪਾਰਕ ਖਰੀਦਦਾਰਾਂ ਤੱਕ ਪਹੁੰਚੋ।</p>
         <Link href="/add-business" className="mt-5 inline-flex rounded-xl bg-[#F97316] px-5 py-3 font-bold text-white">ਮੁਫ਼ਤ ਕਾਰੋਬਾਰੀ ਲਿਸਟਿੰਗ</Link>
       </section>
-      <p className="mt-10 text-sm text-slate-500">Twimzi 'ਤੇ ਪੰਜਾਬੀ ਵਿੱਚ ਕਾਰੋਬਾਰ ਲੱਭੋ। ਉਪਲਬਧ ਲਿਸਟਿੰਗ ਅਤੇ ਜਾਣਕਾਰੀ ਸੰਬੰਧਿਤ ਕਾਰੋਬਾਰਾਂ ਵੱਲੋਂ ਸਾਂਝੀ ਕੀਤੀ ਜਾਂਦੀ ਹੈ।</p>
+      <p className="mt-10 text-sm text-slate-500">Twimzi ’ਤੇ ਪੰਜਾਬੀ ਵਿੱਚ ਕਾਰੋਬਾਰ ਲੱਭੋ। ਉਪਲਬਧ ਲਿਸਟਿੰਗ ਅਤੇ ਜਾਣਕਾਰੀ ਸੰਬੰਧਿਤ ਕਾਰੋਬਾਰਾਂ ਵੱਲੋਂ ਸਾਂਝੀ ਕੀਤੀ ਜਾਂਦੀ ਹੈ।</p>
     </main>
   );
 }
