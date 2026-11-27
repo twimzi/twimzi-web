@@ -288,7 +288,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ sl
         image: [{ "@type": "ImageObject", url: cover }],
         wordCount,
         timeRequired: `PT${minutes}M`,
-        inLanguage: "en-IN",
+        inLanguage: post.slug.startsWith("hi-") ? "hi-IN" : post.slug.startsWith("pa-") ? "pa-IN" : "en-IN",
         author: {
           "@type": "Organization",
           name: "Twimzi Editorial Team",
