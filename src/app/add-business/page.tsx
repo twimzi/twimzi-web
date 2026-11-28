@@ -673,8 +673,9 @@ export default function AddBusiness() {
     try {
       const supabase = createSupabaseBrowserClient();
 
-      let { data: { user }, error: userError } = await supabase.auth.getUser();
+      const { data: { user: initialUser }, error: userError } = await supabase.auth.getUser();
       if (userError) throw userError;
+      let user = initialUser;
       if (!user) {
         const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession();
         if (!refreshError && refreshed.user) user = refreshed.user;
