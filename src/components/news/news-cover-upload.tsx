@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { optimizeImageForUpload } from "@/lib/media/optimize-image";
 
 type NewsCoverUploadProps = {
   initialValue?: string | null;
@@ -35,6 +36,7 @@ export default function NewsCoverUpload({ initialValue = "" }: NewsCoverUploadPr
 
     setUploading(true);
     try {
+      const optimizedFile = await optimizeImageForUpload(file);
       const supabase = createSupabaseBrowserClient();
       const extensionByType: Record<string, string> = {
         "image/jpeg": "jpg",
@@ -42,10 +44,10 @@ export default function NewsCoverUpload({ initialValue = "" }: NewsCoverUploadPr
         "image/webp": "webp",
         "image/avif": "avif",
       };
-      const filePath = `${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}.${extensionByType[file.type]}`;
+      const filePath = `${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}.${extensionByType[optimizedFile.type]}`;
       const { error: uploadError } = await supabase.storage
         .from("news-covers")
-        .upload(filePath, file, { contentType: file.type, cacheControl: "31536000", upsert: false });
+        .upload(filePath, optimizedFile, { contentType: optimizedFile.type, cacheControl: "31536000", upsert: false });
 
       if (uploadError) throw uploadError;
 
