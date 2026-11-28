@@ -13,6 +13,13 @@ async function adminClient() {
 }
 
 const clean = (value: unknown, max = 500) => typeof value === "string" ? value.trim().slice(0, max) : "";
+function normalizePhoneKey(value: unknown) {
+  const digits = clean(value, 40).replace(/\D/g, "");
+  if (!digits) return null;
+  if (digits.length === 12 && digits.startsWith("91")) return digits.slice(-10);
+  if (digits.length === 11 && digits.startsWith("0")) return digits.slice(-10);
+  return digits;
+}
 function normalize(payload: Record<string, unknown>) {
   const full_name = clean(payload.full_name, 160);
   const email = clean(payload.email, 254).toLowerCase();
@@ -66,10 +73,21 @@ export async function POST(request: Request) {
   try {
     const payload = await request.json();
     const record = normalize(payload);
-    const { data: duplicates } = await auth.supabase.from("admin_contact_bank").select("id,full_name,email,phone").is("archived_at", null);
-    const duplicate = (duplicates || []).find((item) => (record.email && item.email?.toLowerCase() === record.email) || (record.phone && item.phone?.replace(/\D/g, "") === record.phone?.replace(/\D/g, "")));
-    if (duplicate) return NextResponse.json({ error: "A contact with the same email or phone already exists.", duplicate }, { status: 409 });
+    let duplicate = null;
+    if (record.email) {
+      const { data, error } = await auth.supabase.from("admin_contact_bank_review").select("id,full_name,email,phone").eq("normalized_email", record.email).limit(1);
+      if (error) return NextResponse.json({ error: "Could not verify whether this email is already registered." }, { status: 500 });
+      duplicate = data?.[0] ?? null;
+    }
+    const phoneKey = normalizePhoneKey(record.phone);
+    if (!duplicate && phoneKey) {
+      const { data, error } = await auth.supabase.from("admin_contact_bank_review").select("id,full_name,email,phone").eq("normalized_phone", phoneKey).limit(1);
+      if (error) return NextResponse.json({ error: "Could not verify whether this phone number is already registered." }, { status: 500 });
+      duplicate = data?.[0] ?? null;
+    }
+    if (duplicate) return NextResponse.json({ error: "A contact with the same email or normalized phone number already exists.", duplicate }, { status: 409 });
     const { data, error } = await auth.supabase.from("admin_contact_bank").insert({ ...record, created_by: auth.user.id, updated_by: auth.user.id }).select("*").single();
+    if (error?.code === "23505") return NextResponse.json({ error: "This email address or normalized phone number is already assigned to another contact." }, { status: 409 });
     if (error) return NextResponse.json({ error: "Contact could not be saved." }, { status: 500 });
     return NextResponse.json({ contact: data }, { status: 201 });
   } catch (error) {
@@ -109,10 +127,21 @@ export async function PATCH(request: Request) {
     const id = clean(payload.id, 80);
     if (!id) return NextResponse.json({ error: "Contact ID is required." }, { status: 400 });
     const record = normalize(payload);
-    const { data: duplicateRows } = await auth.supabase.from("admin_contact_bank").select("id,email,phone").neq("id", id).is("archived_at", null);
-    const duplicate = (duplicateRows || []).find((item) => (record.email && item.email?.toLowerCase() === record.email) || (record.phone && item.phone?.replace(/\D/g, "") === record.phone?.replace(/\D/g, "")));
-    if (duplicate) return NextResponse.json({ error: "Another contact already uses this email or phone." }, { status: 409 });
+    let duplicate = null;
+    if (record.email) {
+      const { data, error } = await auth.supabase.from("admin_contact_bank_review").select("id,full_name,email,phone").eq("normalized_email", record.email).neq("id", id).limit(1);
+      if (error) return NextResponse.json({ error: "Could not verify whether this email is already registered." }, { status: 500 });
+      duplicate = data?.[0] ?? null;
+    }
+    const phoneKey = normalizePhoneKey(record.phone);
+    if (!duplicate && phoneKey) {
+      const { data, error } = await auth.supabase.from("admin_contact_bank_review").select("id,full_name,email,phone").eq("normalized_phone", phoneKey).neq("id", id).limit(1);
+      if (error) return NextResponse.json({ error: "Could not verify whether this phone number is already registered." }, { status: 500 });
+      duplicate = data?.[0] ?? null;
+    }
+    if (duplicate) return NextResponse.json({ error: "Another contact already uses this email or normalized phone number.", duplicate }, { status: 409 });
     const { data, error } = await auth.supabase.from("admin_contact_bank").update({ ...record, updated_by: auth.user.id, updated_at: new Date().toISOString() }).eq("id", id).select("*").single();
+    if (error?.code === "23505") return NextResponse.json({ error: "This email address or normalized phone number is already assigned to another contact." }, { status: 409 });
     if (error || !data) return NextResponse.json({ error: "Contact could not be updated." }, { status: 500 });
     return NextResponse.json({ contact: data });
   } catch (error) {
