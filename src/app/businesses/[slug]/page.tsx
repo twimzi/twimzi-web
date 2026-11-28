@@ -502,6 +502,10 @@ export async function generateMetadata({
 
   const businessPath = `/businesses/${business.slug || business.id}`;
   const canonicalUrl = new URL(businessPath, siteConfig.url).toString();
+  const media = await getBusinessMedia(business.id);
+  const coverImage = getStoragePublicUrl(media?.cover_bucket_name ?? null, media?.cover_object_path ?? null, media?.cover_is_public ?? null);
+  const logoImage = getStoragePublicUrl(media?.logo_bucket_name ?? null, media?.logo_object_path ?? null, media?.logo_is_public ?? null);
+  const socialImage = coverImage || logoImage || "/twimzi-logo.png";
 
   return {
     title: `${business.business_name} | Twimzi`,
@@ -514,7 +518,9 @@ export async function generateMetadata({
       description,
       url: canonicalUrl,
       type: "website",
+      images: [{ url: socialImage, alt: `${business.business_name} business profile` }],
     },
+    twitter: { card: "summary_large_image", title: `${business.business_name} | Twimzi`, description, images: [socialImage] },
   };
 }
 

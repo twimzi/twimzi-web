@@ -56,10 +56,19 @@ const nextConfig: NextConfig = {
   },
 
   images: {
+    qualities: [75, 85],
     remotePatterns: [
       {
         protocol: "https",
         hostname: "twimzi-media.twimziofficial.workers.dev",
+      },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
+      {
+        protocol: "https",
+        hostname: "www.icar.org.in",
       },
       {
         protocol: "https",

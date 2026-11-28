@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import OptimizedImage from "@/components/media/optimized-image";
 import Link from "next/link";
 import { ArrowLeft, Check, Package, Store, Tag } from "lucide-react";
 import { notFound } from "next/navigation";
@@ -119,13 +120,13 @@ export async function generateMetadata({
       description,
       type: "website",
       url: canonicalUrl,
-      images: product.thumbnail_url ? [{ url: product.thumbnail_url }] : undefined,
+      images: [{ url: product.thumbnail_url || "/twimzi-logo.png", alt: name }],
     },
     twitter: {
       card: "summary_large_image",
       title: `${name} | Twimzi`,
       description,
-      images: product.thumbnail_url ? [product.thumbnail_url] : ["/twimzi-logo.png"],
+      images: [product.thumbnail_url || "/twimzi-logo.png"],
     },
   };
 }
@@ -230,16 +231,14 @@ export default async function ProductDetailPage({ params }: PageProps) {
           <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
             <div className="relative aspect-square overflow-hidden bg-slate-100 sm:aspect-[4/3]">
               {product.thumbnail_url ? (
-                <div
-                  className="absolute inset-0 bg-cover bg-center"
-                  style={{
-                    backgroundImage: `url("${product.thumbnail_url.replace(
-                      /"/g,
-                      '\\"',
-                    )}")`,
-                  }}
-                  role="img"
-                  aria-label={name}
+                <OptimizedImage
+                  src={product.thumbnail_url}
+                  alt={`${name}${product.brand ? ` by ${product.brand}` : ""}`}
+                  className="absolute inset-0 h-full w-full object-contain p-4"
+                  sizes="(max-width: 1024px) 100vw, 55vw"
+                  loading="eager"
+                  fetchPriority="high"
+                  fallbackSrc="/images/blog-image-fallback.svg"
                 />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center">
