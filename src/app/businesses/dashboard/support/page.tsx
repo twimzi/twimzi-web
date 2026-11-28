@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2, Clock3, Headset, MessageSquareText, RefreshCw, Send } from "lucide-react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
@@ -24,7 +24,7 @@ export default function BusinessSupportPage() {
   const [submitting,setSubmitting]=useState(false);
   const [error,setError]=useState("");
   const [success,setSuccess]=useState("");
-  const supabase=createSupabaseBrowserClient();
+  const supabase=useMemo(()=>createSupabaseBrowserClient(),[]);
 
   const load=useCallback(async()=>{
     setLoading(true);setError("");
