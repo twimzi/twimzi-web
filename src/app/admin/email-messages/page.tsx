@@ -138,10 +138,10 @@ export default function AdminEmailMessagesPage() {
       if (!response.ok) throw new Error(result.error || "Could not load opted-in users.");
       const emails = (result.recipients || []).map((item: { email: string }) => item.email);
       if (!emails.length) {
-        setAudienceMessage("No registered users have a recorded marketing opt-in yet.");
+        setAudienceMessage("No contacts have a recorded marketing opt-in yet.");
       } else {
         setRecipientsText((current) => Array.from(new Set([...current.split(/[\s,;]+/), ...emails].map((value) => value.trim().toLowerCase()).filter(Boolean))).join("\n"));
-        setAudienceMessage(String(emails.length) + " opted-in registered user(s) added.");
+        setAudienceMessage(String(emails.length) + " opted-in contact(s) added.");
       }
     } catch (error) {
       setAudienceMessage(error instanceof Error ? error.message : "Could not load opted-in users.");
@@ -272,7 +272,7 @@ export default function AdminEmailMessagesPage() {
               <textarea id="recipients" value={recipientsText} onChange={(e) => setRecipientsText(e.target.value)} required rows={4} placeholder={"business@example.com\ncontact@example.com"} className="w-full rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)]" />
               <div className="mt-2 flex justify-between gap-3 text-xs text-[var(--color-text-muted)]"><span>{recipients.length} unique recipient(s) · maximum 25 per send</span><span>Separate with commas or new lines</span></div>
               <div className="mt-3 flex flex-wrap items-center gap-3">
-                <button type="button" onClick={loadOptedInAudience} disabled={audienceLoading} className="rounded-lg border border-[var(--color-border)] px-3 py-2 text-xs font-semibold hover:bg-gray-50 disabled:opacity-50">{audienceLoading ? "Loading opted-in users…" : "Add opted-in registered users"}</button>
+                <button type="button" onClick={loadOptedInAudience} disabled={audienceLoading} className="rounded-lg border border-[var(--color-border)] px-3 py-2 text-xs font-semibold hover:bg-gray-50 disabled:opacity-50">{audienceLoading ? "Loading opted-in contacts…" : "Add all verified opted-in contacts"}</button>
                 {audienceMessage && <span className="text-xs text-[var(--color-text-secondary)]">{audienceMessage}</span>}
               </div>
               {invalidRecipients.length > 0 && <p className="mt-2 text-xs text-red-600">Invalid email(s): {invalidRecipients.slice(0, 3).join(", ")}</p>}
@@ -280,7 +280,7 @@ export default function AdminEmailMessagesPage() {
             </div>
             <label className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
               <input type="checkbox" checked={consentConfirmed} onChange={(event) => setConsentConfirmed(event.target.checked)} className="mt-1 h-4 w-4 shrink-0" />
-              <span>I confirm every recipient agreed to receive Twimzi marketing emails. This is not a purchased or unsolicited list. Unsubscribed addresses are suppressed.</span>
+              <span>I confirm this campaign is intended only for opted-in recipients. This checkbox is an acknowledgement only; Twimzi verifies saved consent and suppression records before sending.</span>
             </label>
             <div>
               <label htmlFor="subject" className="mb-2 block text-sm font-semibold">Email subject</label>
@@ -318,7 +318,7 @@ export default function AdminEmailMessagesPage() {
             </div>
             <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm leading-6 text-amber-900">
               <strong className="block">Responsible sending</strong>
-              Send only to contacts who opted in to marketing emails. Every marketing send includes an unsubscribe link, and unsubscribed addresses are blocked. SMTP acceptance is not proof of inbox delivery.
+              Only contacts with recorded marketing opt-in are eligible. This checkbox does not create consent. Unsubscribed, archived and do-not-contact records are blocked. SMTP acceptance is not proof of inbox delivery.
             </div>
           </aside>
         </form>
