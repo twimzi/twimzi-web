@@ -4,6 +4,7 @@ import { createInterface } from "node:readline";
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
+import { EMAIL_TEMPLATE_LIBRARY } from "@/lib/email/templates";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -66,12 +67,15 @@ function escapeEmailHtml(value: string) {
   })[character] || character);
 }
 
-function buildBrandedHtml(subject: string, body: string) {
+function buildBrandedHtml(subject: string, body: string, ctaLabel?: string, ctaUrl?: string) {
   const paragraphs = body.split(/\n\n+/).map((part) =>
     '<p style="margin:0 0 18px;color:#475569;font-size:15px;line-height:1.8">' +
     part.split("\n").map(escapeEmailHtml).join("<br>") + "</p>"
   ).join("");
-  return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:32px 12px;background:#f1f5f9"><tr><td align="center"><table role="presentation" width="600" cellspacing="0" cellpadding="0" style="width:100%;max-width:600px;background:#fff;border-radius:16px;overflow:hidden"><tr><td style="padding:24px 32px;background:#0d9488;color:#fff;font-size:25px;font-weight:800">twimzi</td></tr><tr><td style="padding:34px 32px"><h1 style="margin:0 0 22px;color:#0f172a;font-size:22px">' + escapeEmailHtml(subject) + '</h1>' + paragraphs + '<p style="margin-top:28px;color:#64748b;font-size:12px">© ' + new Date().getFullYear() + ' Twimzi · <a href="https://www.twimzi.com" style="color:#0d9488">www.twimzi.com</a></p></td></tr></table></td></tr></table></body></html>';
+  const cta = ctaLabel && ctaUrl
+    ? '<table role="presentation" cellspacing="0" cellpadding="0" style="margin:26px 0 24px"><tr><td bgcolor="#0d9488" style="border-radius:9px"><a href="' + escapeEmailHtml(ctaUrl) + '" style="display:inline-block;padding:14px 22px;color:#fff;font-size:14px;font-weight:700;text-decoration:none">' + escapeEmailHtml(ctaLabel) + '</a></td></tr></table>'
+    : '';
+  return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:32px 12px;background:#f1f5f9"><tr><td align="center"><table role="presentation" width="600" cellspacing="0" cellpadding="0" style="width:100%;max-width:600px;background:#fff;border-radius:16px;overflow:hidden"><tr><td style="padding:24px 32px;background:#0d9488;color:#fff;font-size:25px;font-weight:800">twimzi</td></tr><tr><td style="padding:34px 32px"><h1 style="margin:0 0 22px;color:#0f172a;font-size:22px">' + escapeEmailHtml(subject) + '</h1>' + paragraphs + cta + '<p style="margin-top:28px;color:#64748b;font-size:12px">© ' + new Date().getFullYear() + ' Twimzi · <a href="https://www.twimzi.com" style="color:#0d9488">www.twimzi.com</a></p></td></tr></table></td></tr></table></body></html>';
 }
 
 async function sendViaHostinger(to: string, subject: string, body: string, html: string) {
@@ -178,7 +182,18 @@ export async function POST(request: Request) {
     if (!body || body.length > 20000 || suppliedHtml.length > 60000) {
       return NextResponse.json({ error: "Enter a message up to 20,000 characters and HTML up to 60,000 characters." }, { status: 400 });
     }
-    const html = suppliedHtml || buildBrandedHtml(subject, body);
+    const templateId = typeof payload.templateId === "string" ? payload.templateId : "";
+    const selectedTemplate = EMAIL_TEMPLATE_LIBRARY.find((item) => item.id === templateId)
+      ?? EMAIL_TEMPLATE_LIBRARY.find((item) => item.label === campaignName);
+    const templateCtaUrl = selectedTemplate?.ctaUrl
+      .replace("{{register_url}}", "https://www.twimzi.com/add-business")
+      .replace("{{business_url}}", "https://www.twimzi.com")
+      .replace("{{claim_url}}", "https://www.twimzi.com")
+      .replace("{{enquiry_url}}", "https://www.twimzi.com");
+    const safeTemplateCtaUrl = templateCtaUrl && /^https:\/\/(www\.)?twimzi\.com(?:[/:?#]|$)/i.test(templateCtaUrl)
+      ? templateCtaUrl
+      : undefined;
+    const html = suppliedHtml || buildBrandedHtml(subject, body, selectedTemplate?.ctaLabel, safeTemplateCtaUrl);
 
     const campaignType = payload.campaignType === "transactional" ? "transactional" : "marketing";
     const unsubscribeSecret = process.env.EMAIL_UNSUBSCRIBE_SECRET || process.env.EMAIL_AUTOMATION_CRON_SECRET;
@@ -268,7 +283,7 @@ export async function POST(request: Request) {
     for (const recipient of eligibleRecipients) {
       try {
         let personalizedBody = body.replace(/\{\{name\}\}/g, "there");
-        let personalizedHtml = suppliedHtml || buildBrandedHtml(subject, personalizedBody);
+        let personalizedHtml = suppliedHtml || buildBrandedHtml(subject, personalizedBody, selectedTemplate?.ctaLabel, safeTemplateCtaUrl);
         if (campaignType === "marketing" && unsubscribeSecret) {
           const token = createHmac("sha256", unsubscribeSecret).update(recipient).digest("base64url");
           const site = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.twimzi.com").replace(/\/$/, "");
