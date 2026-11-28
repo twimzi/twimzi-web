@@ -88,21 +88,23 @@ export async function PATCH(request: Request) {
       const hasEmail = typeof changes.email_marketing_consent === "boolean";
       const hasWhatsapp = typeof changes.whatsapp_marketing_consent === "boolean";
       if (!ids.length || (!hasEmail && !hasWhatsapp)) return NextResponse.json({ error: "Select contacts and at least one consent change." }, { status: 400 });
-      const update: Record<string, unknown> = { updated_by: auth.user.id, updated_at: new Date().toISOString() };
+      const updatedIds = new Set<string>();
+      const baseUpdate = { updated_by: auth.user.id, updated_at: new Date().toISOString() };
       if (hasEmail) {
-        update.email_marketing_consent = changes.email_marketing_consent;
-        update.email_consent_at = changes.email_marketing_consent ? new Date().toISOString() : null;
+        let emailQuery = auth.supabase.from("admin_contact_bank").update({ ...baseUpdate, email_marketing_consent: changes.email_marketing_consent, email_consent_at: changes.email_marketing_consent ? new Date().toISOString() : null }).in("id", ids).is("archived_at", null).eq("do_not_contact", false);
+        if (changes.email_marketing_consent === true) emailQuery = emailQuery.is("email_unsubscribed_at", null).not("email", "is", null);
+        const { data, error } = await emailQuery.select("id");
+        if (error) return NextResponse.json({ error: "Email consent update failed." }, { status: 500 });
+        for (const row of data || []) updatedIds.add(row.id);
       }
       if (hasWhatsapp) {
-        update.whatsapp_marketing_consent = changes.whatsapp_marketing_consent;
-        update.whatsapp_consent_at = changes.whatsapp_marketing_consent ? new Date().toISOString() : null;
+        let whatsappQuery = auth.supabase.from("admin_contact_bank").update({ ...baseUpdate, whatsapp_marketing_consent: changes.whatsapp_marketing_consent, whatsapp_consent_at: changes.whatsapp_marketing_consent ? new Date().toISOString() : null }).in("id", ids).is("archived_at", null).eq("do_not_contact", false);
+        if (changes.whatsapp_marketing_consent === true) whatsappQuery = whatsappQuery.is("whatsapp_opted_out_at", null).not("phone", "is", null);
+        const { data, error } = await whatsappQuery.select("id");
+        if (error) return NextResponse.json({ error: "WhatsApp consent update failed." }, { status: 500 });
+        for (const row of data || []) updatedIds.add(row.id);
       }
-      let bulkQuery = auth.supabase.from("admin_contact_bank").update(update).in("id", ids).is("archived_at", null).eq("do_not_contact", false);
-      if (hasEmail && changes.email_marketing_consent === true) bulkQuery = bulkQuery.is("email_unsubscribed_at", null).not("email", "is", null);
-      if (hasWhatsapp && changes.whatsapp_marketing_consent === true) bulkQuery = bulkQuery.is("whatsapp_opted_out_at", null).not("phone", "is", null);
-      const { data, error } = await bulkQuery.select("id");
-      if (error) return NextResponse.json({ error: "Bulk consent update failed." }, { status: 500 });
-      return NextResponse.json({ updated: data?.length || 0, skipped: ids.length - (data?.length || 0) });
+      return NextResponse.json({ updated: updatedIds.size, skipped: ids.length - updatedIds.size });
     }
     const id = clean(payload.id, 80);
     if (!id) return NextResponse.json({ error: "Contact ID is required." }, { status: 400 });
