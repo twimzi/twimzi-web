@@ -145,7 +145,7 @@ export default function AdminEmailMessagesPage() {
         const response = await fetch("/api/admin/send-email", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ recipients: batches[index], subject, body, campaignName: batches.length > 1 ? campaignName + " (" + (index + 1) + "/" + batches.length + ")" : campaignName, consentConfirmed }),
+          body: JSON.stringify({ recipients: batches[index], subject, body, templateId, campaignName: batches.length > 1 ? campaignName + " (" + (index + 1) + "/" + batches.length + ")" : campaignName, consentConfirmed }),
         });
         const result = await response.json();
         if (!response.ok && response.status !== 207) {
