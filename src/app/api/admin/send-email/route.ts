@@ -67,9 +67,9 @@ function escapeEmailHtml(value: string) {
 }
 
 function buildBrandedHtml(subject: string, body: string) {
-  const paragraphs = body.split(/\\n\\n+/).map((part) =>
-    "<p style=\\"margin:0 0 18px;color:#475569;font-size:15px;line-height:1.8\\">" +
-    part.split("\\n").map(escapeEmailHtml).join("<br>") + "</p>"
+  const paragraphs = body.split(/\n\n+/).map((part) =>
+    "<p style=\"margin:0 0 18px;color:#475569;font-size:15px;line-height:1.8\">" +
+    part.split("\n").map(escapeEmailHtml).join("<br>") + "</p>"
   ).join("");
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:32px 12px;background:#f1f5f9"><tr><td align="center"><table role="presentation" width="600" cellspacing="0" cellpadding="0" style="width:100%;max-width:600px;background:#fff;border-radius:16px;overflow:hidden"><tr><td style="padding:24px 32px;background:#0d9488;color:#fff;font-size:25px;font-weight:800">twimzi</td></tr><tr><td style="padding:34px 32px"><h1 style="margin:0 0 22px;color:#0f172a;font-size:22px">${escapeEmailHtml(subject)}</h1>${paragraphs}<p style="margin-top:28px;color:#64748b;font-size:12px">© ${new Date().getFullYear()} Twimzi · <a href="https://www.twimzi.com" style="color:#0d9488">www.twimzi.com</a></p></td></tr></table></td></tr></table></body></html>`;
 }
@@ -110,13 +110,13 @@ async function sendViaHostinger(to: string, subject: string, body: string, html:
     connection.write("DATA\r\n");
     await expect(connection, ["354"]);
     const boundary = "twimzi-alt-" + Date.now().toString(16) + "-" + Buffer.from(to).toString("hex").slice(0, 12);
-    const encodePart = (value: string) => Buffer.from(value, "utf8").toString("base64").replace(/.{1,76}/g, "$&\\r\\n").trimEnd();
+    const encodePart = (value: string) => Buffer.from(value, "utf8").toString("base64").replace(/.{1,76}/g, "$&\r\n").trimEnd();
     const message = [
       "From: " + encodeHeader(from),
       "To: " + encodeHeader(to),
       "Subject: " + encodeSubject(subject),
       "MIME-Version: 1.0",
-      "Content-Type: multipart/alternative; boundary=\\""+boundary+"\\"",
+      "Content-Type: multipart/alternative; boundary=\""+boundary+"\"",
       "",
       "--" + boundary,
       "Content-Type: text/plain; charset=UTF-8",
@@ -131,7 +131,7 @@ async function sendViaHostinger(to: string, subject: string, body: string, html:
       "--" + boundary + "--",
       ".",
       "",
-    ].join("\\r\\n");
+    ].join("\r\n");
     connection.write(message + "\r\n");
     await expect(connection, ["250"]);
     // A 250 response after DATA means the SMTP server accepted the message.
