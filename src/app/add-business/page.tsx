@@ -58,6 +58,8 @@ export default function AddBusiness() {
   const [hashtags, setHashtags] = useState("");
   const [contactName, setContactName] = useState("");
   const [contactEmail, setContactEmail] = useState("");
+  const [authUser, setAuthUser] = useState<{ id: string; email?: string } | null>(null);
+  const [authReady, setAuthReady] = useState(false);
   const [accountPassword, setAccountPassword] = useState("");
   const [confirmAccountPassword, setConfirmAccountPassword] = useState("");
   const [signupOtp, setSignupOtp] = useState("");
@@ -80,6 +82,53 @@ export default function AddBusiness() {
   const [uploadProgress, setUploadProgress] = useState("");
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    const supabase = createSupabaseBrowserClient();
+    let active = true;
+    const syncUser = async () => {
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error) throw error;
+        if (active) setAuthUser(user ? { id: user.id, email: user.email } : null);
+      } catch {
+        if (active) setAuthUser(null);
+      } finally {
+        if (active) setAuthReady(true);
+      }
+    };
+    void syncUser();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!active) return;
+      setAuthUser(session?.user ? { id: session.user.id, email: session.user.email } : null);
+      setAuthReady(true);
+    });
+    return () => { active = false; subscription.unsubscribe(); };
+  }, []);
+
+  async function continueWithGoogle() {
+    setErrorMessage("");
+    setMessage("");
+    try {
+      const supabase = createSupabaseBrowserClient();
+      window.localStorage.setItem("twimzi-business-registration-draft", JSON.stringify({
+        savedAt: Date.now(), analyticsSessionId: getAnalyticsSessionId(),
+        businessName, businessType, contactName, contactEmail, leadCaptureConsent,
+        addressLine1, addressLine2, landmark, city, state, country, postalCode,
+        latitude, longitude, description, keywords, hashtags, phone, website,
+      }));
+      const redirectTo = new URL("/auth/callback", window.location.origin);
+      redirectTo.searchParams.set("next", "/add-business");
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: redirectTo.toString(), queryParams: { prompt: "select_account" } },
+      });
+      if (error) throw error;
+    } catch (error) {
+      setErrorMessage(extractSupabaseError(error));
+      void trackAnalyticsEvent("business_registration_auth_failed", { step_name: "google_oauth_start" });
+    }
+  }
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -622,14 +671,18 @@ export default function AddBusiness() {
     try {
       const supabase = createSupabaseBrowserClient();
 
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-
-      if (userError) {
-        throw userError;
+      let { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError) throw userError;
+      if (!user) {
+        const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession();
+        if (!refreshError && refreshed.user) user = refreshed.user;
       }
+      if (!user) {
+        await new Promise((resolve) => window.setTimeout(resolve, 500));
+        const { data: retry, error: retryError } = await supabase.auth.getUser();
+        if (!retryError && retry.user) user = retry.user;
+      }
+      if (user) setAuthUser({ id: user.id, email: user.email });
 
       if (!user) {
         if (!signupOtpSent) {
@@ -1437,9 +1490,18 @@ export default function AddBusiness() {
                 <span>I agree that Twimzi may securely save the business and contact details I enter here if I do not complete registration, so the Twimzi team can contact me to help finish setup. I can continue registration without opting in.</span>
               </label>
 
-              {!signupOtpSent ? (
+              {!authReady ? (
+                <section className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-secondary)] p-5 text-sm text-[var(--color-text-muted)]">Checking your sign-in securely…</section>
+              ) : authUser ? (
+                <section className="rounded-2xl border border-green-200 bg-green-50 p-5">
+                  <h3 className="font-semibold text-green-900">Signed in successfully</h3>
+                  <p className="mt-1 text-sm text-green-800">Continuing as {authUser.email || "your Twimzi account"}. You do not need to create another password.</p>
+                </section>
+              ) : !signupOtpSent ? (
                 <section className="space-y-4 rounded-2xl border border-[var(--color-border)] bg-[var(--color-secondary)] p-5">
-                  <h3 className="font-semibold">Create your account</h3>
+                  <h3 className="font-semibold">Sign in or create your account</h3>
+                  <Button type="button" variant="outline" className="w-full" onClick={continueWithGoogle}>Continue with Google</Button>
+                  <p className="text-center text-xs text-[var(--color-text-muted)]">Or create an account using your email address</p>
                   <p className="text-sm text-[var(--color-text-muted)]">Your email is compulsory. Set a password, then verify the 6-digit code sent to your email.</p>
                   <div>
                     <label htmlFor="account-password" className="mb-2 block text-sm font-semibold">Password *</label>
@@ -1451,7 +1513,7 @@ export default function AddBusiness() {
                     <input id="confirm-account-password" type="password" autoComplete="new-password" value={confirmAccountPassword} onChange={(event) => setConfirmAccountPassword(event.target.value)} required minLength={12} className="min-h-12 w-full rounded-xl border border-[var(--color-border)] px-4 text-sm" placeholder="Confirm your password" />
                   </div>
                 </section>
-              ) : (
+              ) : !authUser ? (
                 <section className="space-y-3 rounded-2xl border border-green-200 bg-green-50 p-5">
                   <h3 className="font-semibold text-green-900">Verify your email</h3>
                   <p className="text-sm text-green-800">Enter the 6-digit code sent to {contactEmail}.</p>
