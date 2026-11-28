@@ -282,7 +282,8 @@ export async function POST(request: Request) {
       await supabase.from("email_campaigns").update({ status: "failed", failed_count: recipients.length, completed_at: new Date().toISOString() }).eq("id", campaign.id);
       return NextResponse.json({ error: "Duplicate email history could not be checked. No email was sent." }, { status: 500 });
     }
-    if (priorDelivery) {
+    const allowResendPreviouslyContacted = payload.allowResendPreviouslyContacted === true;
+    if (priorDelivery && !allowResendPreviouslyContacted) {
       const reason = priorDelivery.status === "accepted"
         ? "Already accepted by Hostinger SMTP in an earlier campaign."
         : "A previous campaign still has this address queued; delivery is treated as uncertain to prevent duplicates.";
