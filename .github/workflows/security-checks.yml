@@ -51,7 +51,7 @@ jobs:
         run: npx tsc --noEmit
 
   edge-function-check:
-    name: Type-check Supabase upload function
+    name: Type-check Supabase Edge Functions
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -71,6 +71,8 @@ jobs:
         run: deno check --config supabase/functions/upload-media/deno.json supabase/functions/upload-media/index.ts
       - name: Type-check lead generator worker
         run: deno check --config supabase/functions/lead-generator-worker/deno.json supabase/functions/lead-generator-worker/index.ts
+      - name: Type-check OpenStreetMap lead discovery
+        run: deno check supabase/functions/open-map-lead-discovery/index.ts
 
   build:
     name: Production build
