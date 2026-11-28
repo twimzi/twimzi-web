@@ -145,10 +145,22 @@ export default function AdminEmailMessagesPage() {
       for (let index = 0; index < batches.length; index++) {
         const response = await fetch("/api/admin/send-email", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          cache: "no-store",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
           body: JSON.stringify({ recipients: batches[index], subject, body, templateId, campaignName: batches.length > 1 ? campaignName + " (" + (index + 1) + "/" + batches.length + ")" : campaignName, consentConfirmed }),
         });
-        const result = await response.json();
+        const responseText = await response.text();
+        let result: { error?: string; sent?: number; failed?: number; suppressed?: number; failedRecipients?: Array<{ email: string; reason: string }>; suppressedRecipients?: Array<{ email: string; reason: string }> };
+        try {
+          result = JSON.parse(responseText);
+        } catch {
+          const contentType = response.headers.get("content-type") || "unknown content type";
+          const looksLikeHtml = /<!doctype html|<html[\s>]/i.test(responseText);
+          const detail = looksLikeHtml
+            ? "The server returned an HTML page instead of the email API's JSON response. This usually indicates a hosting error page, a missing API route, or a deployment/proxy issue."
+            : "The server returned an unreadable response instead of JSON.";
+          throw new Error("Email API error (HTTP " + response.status + ", " + contentType + "). " + detail + " Check the live deployment and server logs. No automatic retry was made.");
+        }
         if (!response.ok && response.status !== 207) {
           failed += batches[index].length;
           throw new Error((result.error || "Batch " + (index + 1) + " could not be sent.") + " Earlier batches accepted " + accepted + " email(s).");
