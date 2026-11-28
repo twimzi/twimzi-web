@@ -52,7 +52,8 @@ export default function OptimizedImage({
     <Image
       src={imageSource}
       alt={alt}
-      fill
+      width={1600}
+      height={900}
       sizes={sizes}
       quality={88}
       loading={loading}
