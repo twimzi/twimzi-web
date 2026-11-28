@@ -128,13 +128,17 @@ export function renderEmailTemplate(templateKey: string, name: string, payload: 
   const subject = resolveTokens(template.subject, payload, name || "there");
   const body = resolveTokens(template.body, payload, name || "there");
   const rawUrl = resolveTokens(template.ctaUrl, payload, name || "there");
-  const safeUrl = /^https:\\/\\/(www\\.)?twimzi\\.com(?:[/:?#]|$)/i.test(rawUrl) ? rawUrl : "https://www.twimzi.com";
-  const paragraphs = body.split(/\\n\\n+/).map((paragraph) => {
-    const lines = paragraph.split("\\n");
+  let safeUrl = "https://www.twimzi.com";
+  try {
+    const parsed = new URL(rawUrl);
+    if (parsed.protocol === "https:" && (parsed.hostname === "twimzi.com" || parsed.hostname === "www.twimzi.com")) safeUrl = parsed.toString();
+  } catch { /* Keep the safe Twimzi fallback URL. */ }
+  const paragraphs = body.split("\n\n").map((paragraph) => {
+    const lines = paragraph.split("\n");
     const isList = lines.every((line) => line.trim().startsWith("•"));
-    if (isList) return "<ul style=\\"margin:0 0 20px;padding-left:22px;color:#475569;font-size:15px;line-height:1.85\\">" +
-      lines.map((line) => "<li style=\\"padding:2px 0\\">" + escapeHtml(line.replace(/^\\s*•\\s*/, "")) + "</li>").join("") + "</ul>";
-    return "<p style=\\"margin:0 0 18px;color:#475569;font-size:15px;line-height:1.85\\">" +
+    if (isList) return "<ul style=\"margin:0 0 20px;padding-left:22px;color:#475569;font-size:15px;line-height:1.85\">" +
+      lines.map((line) => "<li style=\"padding:2px 0\">" + escapeHtml(line.replace(/^\s*•\s*/, "")) + "</li>").join("") + "</ul>";
+    return "<p style=\"margin:0 0 18px;color:#475569;font-size:15px;line-height:1.85\">" +
       lines.map(escapeHtml).join("<br>") + "</p>";
   }).join("");
   const logo = "https://www.twimzi.com/twimzi-logo.png";
