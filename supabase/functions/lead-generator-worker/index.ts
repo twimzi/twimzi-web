@@ -52,6 +52,13 @@ function normalizePhone(value: unknown): string | null {
   const digits = phone.replace(/[^0-9]/g, "");
   return digits.length >= 7 && digits.length <= 15 ? phone : null;
 }
+function normalizePhoneKey(value: unknown): string | null {
+  const digits = normalizeText(value, 40)?.replace(/[^0-9]/g, "") ?? "";
+  if (!digits) return null;
+  if (digits.length === 12 && digits.startsWith("91")) return digits.slice(-10);
+  if (digits.length === 11 && digits.startsWith("0")) return digits.slice(-10);
+  return digits;
+}
 function safeUrl(value: string): URL {
   const url = new URL(value);
   const host = url.hostname.toLowerCase();
@@ -305,6 +312,21 @@ Deno.serve(async (request) => {
       if (state.toLowerCase() !== String(claimed.region_state).toLowerCase()) { counts.rejected++; continue; }
       if (claimed.districts?.length && (!mapped.district || !claimed.districts.some((d: string) => d.toLowerCase() === String(mapped.district).toLowerCase()))) { counts.rejected++; continue; }
       if (claimed.categories?.length && (!category || !claimed.categories.includes(category))) { counts.rejected++; continue; }
+      if (mapped.business_email || mapped.professional_work_email) {
+        const emailKey = String(mapped.business_email || mapped.professional_work_email).trim().toLowerCase();
+        const { data: emailMatches, error: emailMatchError } = await admin.from("admin_contact_bank_review")
+          .select("id").eq("normalized_email", emailKey).limit(1);
+        if (emailMatchError) throw new Error("Could not check the email against the contact bank.");
+        if (emailMatches?.length) { counts.duplicate++; continue; }
+      }
+      const phoneKey = normalizePhoneKey(mapped.business_phone);
+      if (phoneKey) {
+        const { data: phoneMatches, error: phoneMatchError } = await admin.from("admin_contact_bank_review")
+          .select("id").eq("normalized_phone", phoneKey).limit(1);
+        if (phoneMatchError) throw new Error("Could not check the phone number against the contact bank.");
+        if (phoneMatches?.length) { counts.duplicate++; continue; }
+      }
+
       const domain = websiteHost(mapped.website);
       let duplicateQuery = admin.from("admin_contact_bank").select("id").eq("contact_type", "business").limit(1);
       if (domain) duplicateQuery = duplicateQuery.eq("website_domain", domain).ilike("full_name", name);
