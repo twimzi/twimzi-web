@@ -53,6 +53,7 @@ export default function AdminEmailMessagesPage() {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [audienceLoading, setAudienceLoading] = useState(false);
   const [previouslyContactedEmails, setPreviouslyContactedEmails] = useState<string[]>([]);
+  const [resendPreviouslyContactedEmails, setResendPreviouslyContactedEmails] = useState<string[]>([]);
   const [duplicateHistoryLoading, setDuplicateHistoryLoading] = useState(false);
   const [duplicateHistoryError, setDuplicateHistoryError] = useState("");
   const [audienceMessage, setAudienceMessage] = useState("");
@@ -75,7 +76,9 @@ export default function AdminEmailMessagesPage() {
   const duplicateRecipientCount = rawRecipientEmails.length - recipients.length;
   const previouslyContactedSet = useMemo(() => new Set(previouslyContactedEmails), [previouslyContactedEmails]);
   const alreadyContactedRecipients = useMemo(() => recipients.filter((email) => previouslyContactedSet.has(email)), [recipients, previouslyContactedSet]);
-  const campaignRecipients = useMemo(() => recipients.filter((email) => !previouslyContactedSet.has(email)), [recipients, previouslyContactedSet]);
+  const resendPreviouslyContactedSet = useMemo(() => new Set(resendPreviouslyContactedEmails), [resendPreviouslyContactedEmails]);
+  const selectedResendRecipients = useMemo(() => alreadyContactedRecipients.filter((email) => resendPreviouslyContactedSet.has(email)), [alreadyContactedRecipients, resendPreviouslyContactedSet]);
+  const campaignRecipients = useMemo(() => recipients.filter((email) => !previouslyContactedSet.has(email) || resendPreviouslyContactedSet.has(email)), [recipients, previouslyContactedSet, resendPreviouslyContactedSet]);
   const selectedTemplate = templates.find((item) => item.id === templateId);
   const invalidRecipients = recipients.filter((email) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
   const filteredAudience = useMemo(() => {
@@ -164,7 +167,7 @@ export default function AdminEmailMessagesPage() {
           method: "POST",
           cache: "no-store",
           headers: { "Content-Type": "application/json", Accept: "application/json" },
-          body: JSON.stringify({ recipients: batches[index], subject, body, templateId, campaignName: batches.length > 1 ? campaignName + " (" + (index + 1) + "/" + batches.length + ")" : campaignName, consentConfirmed }),
+          body: JSON.stringify({ recipients: batches[index], subject, body, templateId, campaignName: batches.length > 1 ? campaignName + " (" + (index + 1) + "/" + batches.length + ")" : campaignName, consentConfirmed, allowResendPreviouslyContacted: resendPreviouslyContactedSet.has(batches[index][0]) }),
         });
         const responseText = await response.text();
         let result: { error?: string; sent?: number; failed?: number; suppressed?: number; failedRecipients?: Array<{ email: string; reason: string }>; suppressedRecipients?: Array<{ email: string; reason: string }> };
@@ -193,7 +196,7 @@ export default function AdminEmailMessagesPage() {
           text: "Batch " + (index + 1) + " of " + batches.length + ": " + Number(result.sent || 0) + " accepted, " + Number(result.failed || 0) + " SMTP failed, " + Number(result.suppressed || 0) + " suppressed." + (diagnosticLines.length ? "\\n" + diagnosticLines.join("\\n") : ""),
         });
       }
-      setStatus({ kind: failed ? "error" : "success", text: accepted + " of " + campaignRecipients.length + " new emails accepted by Hostinger SMTP. " + failed + " failed or suppressed. " + alreadyContactedRecipients.length + " previously contacted address(es) skipped." });
+      setStatus({ kind: failed ? "error" : "success", text: accepted + " of " + campaignRecipients.length + " new emails accepted by Hostinger SMTP. " + failed + " failed or suppressed. " + alreadyContactedRecipients.length + " previously contacted address(es) skipped; " + selectedResendRecipients.length + " selected for resend." });
     } catch (error) {
       setStatus({ kind: "error", text: (error instanceof Error ? error.message : "Campaign could not be sent.") + " Accepted so far: " + accepted + "." });
     } finally {
@@ -382,9 +385,22 @@ export default function AdminEmailMessagesPage() {
               <div className="mt-2 flex flex-wrap justify-between gap-2 text-xs text-[var(--color-text-muted)]"><span>{recipients.length} unique email(s) · {campaignRecipients.length} new · maximum 500</span><span>Separate with commas or new lines</span></div>
               <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs">
                 {duplicateRecipientCount > 0 && <span className="font-medium text-amber-700">{duplicateRecipientCount} duplicate entry/entries in this list will be removed.</span>}
-                {duplicateHistoryLoading ? <span className="text-[var(--color-text-muted)]">Checking previous campaign history…</span> : <span className="text-emerald-700">{alreadyContactedRecipients.length} previously emailed / pending address(es) will be skipped.</span>}
+                {duplicateHistoryLoading ? <span className="text-[var(--color-text-muted)]">Checking previous campaign history…</span> : <span className="text-emerald-700">{alreadyContactedRecipients.length} previously emailed / pending address(es) are excluded by default.</span>}
                 {duplicateHistoryError && <span className="text-amber-700">{duplicateHistoryError} Server-side duplicate protection remains active.</span>}
               </div>
+              {!duplicateHistoryLoading && alreadyContactedRecipients.length > 0 && <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div><p className="text-sm font-bold text-amber-950">Previously emailed / pending ({alreadyContactedRecipients.length})</p><p className="mt-1 text-xs text-amber-800">These are skipped by default. Select only the addresses you intentionally want to resend. Pending means the earlier SMTP outcome may be uncertain.</p></div>
+                  <div className="flex gap-3 text-xs font-semibold">
+                    <button type="button" onClick={() => setResendPreviouslyContactedEmails(Array.from(new Set([...resendPreviouslyContactedEmails, ...alreadyContactedRecipients])))} className="text-[var(--color-primary)]">Select all to resend</button>
+                    <button type="button" onClick={() => setResendPreviouslyContactedEmails([])} className="text-slate-600">Skip all</button>
+                  </div>
+                </div>
+                <p className="mt-2 text-xs font-semibold text-amber-900">{selectedResendRecipients.length} selected to resend · {alreadyContactedRecipients.length - selectedResendRecipients.length} will be skipped</p>
+                <div className="mt-3 max-h-48 overflow-y-auto rounded-lg border border-amber-200 bg-white">
+                  {alreadyContactedRecipients.map((email) => <label key={email} className="flex cursor-pointer items-center gap-3 border-b p-2.5 text-sm last:border-b-0 hover:bg-amber-50"><input type="checkbox" checked={resendPreviouslyContactedSet.has(email)} onChange={(event) => setResendPreviouslyContactedEmails((current) => event.target.checked ? Array.from(new Set([...current, email])) : current.filter((item) => item !== email))} className="h-4 w-4 rounded" /><span className="break-all">{email}</span><span className="ml-auto shrink-0 text-[10px] text-amber-700">{resendPreviouslyContactedSet.has(email) ? "Resend" : "Skip"}</span></label>)}
+                </div>
+              </div>}
               <div className="mt-3 flex flex-wrap items-center gap-3">
                 <button type="button" onClick={loadOptedInAudience} disabled={audienceLoading} className="rounded-lg border border-[var(--color-border)] px-3 py-2 text-xs font-semibold hover:bg-gray-50 disabled:opacity-50">{audienceLoading ? "Loading opted-in contacts…" : "Load opted-in audience"}</button>
                 {audienceMessage && <span className="text-xs text-[var(--color-text-secondary)]">{audienceMessage}</span>}
