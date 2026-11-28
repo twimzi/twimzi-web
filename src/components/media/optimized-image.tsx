@@ -55,7 +55,7 @@ export default function OptimizedImage({
       width={1600}
       height={900}
       sizes={sizes}
-      quality={88}
+      quality={85}
       loading={loading}
       fetchPriority={fetchPriority}
       unoptimized={!isTrustedForOptimization(imageSource)}
