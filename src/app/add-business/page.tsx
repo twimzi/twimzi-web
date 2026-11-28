@@ -15,7 +15,7 @@ import { Container } from "@/components/ui/container";
 import { PageHero } from "@/components/ui/page-hero";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { optimizeImageForUpload } from "@/lib/media/optimize-image";
-import { getAnalyticsAttribution, getAnalyticsSessionId, setAnalyticsSessionId, trackAnalyticsEvent } from "@/lib/analytics";
+import { getAnalyticsAttribution, getAnalyticsSessionId, setAnalyticsSessionId, trackAnalyticsEvent, trackRegistrationDiagnostic } from "@/lib/analytics";
 
 type MediaKind = "logo" | "cover" | "gallery";
 
@@ -125,8 +125,10 @@ export default function AddBusiness() {
       });
       if (error) throw error;
     } catch (error) {
-      setErrorMessage(extractSupabaseError(error));
+      const message = extractSupabaseError(error);
+      setErrorMessage(message);
       void trackAnalyticsEvent("business_registration_auth_failed", { step_name: "google_oauth_start" });
+      void trackRegistrationDiagnostic({ eventName: "business_registration_auth_failed", stage: "google_oauth_start", errorMessage: message });
     }
   }
 
@@ -884,7 +886,17 @@ export default function AddBusiness() {
     } catch (error) {
       setUploadProgress("");
 
-      setErrorMessage(extractSupabaseError(error));
+      const message = extractSupabaseError(error);
+      const candidate = error && typeof error === "object" ? error as { code?: string; status?: number; statusCode?: number } : {};
+      setErrorMessage(message);
+      void trackRegistrationDiagnostic({
+        eventName: "business_registration_failed",
+        stage: createdBusinessId ? "media_or_profile_completion" : "business_creation_or_auth",
+        httpStatus: candidate.status ?? candidate.statusCode ?? 400,
+        errorCode: candidate.code,
+        errorMessage: message,
+        metadata: { hasBusinessDraft: Boolean(businessName), hasCreatedBusiness: Boolean(createdBusinessId) },
+      });
     } finally {
       setLoading(false);
     }
