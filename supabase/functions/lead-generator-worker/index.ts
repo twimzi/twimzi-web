@@ -227,17 +227,110 @@ function websiteHost(value: unknown) {
   catch { return null; }
 }
 
+
+type EnrichmentCounts = { checked:number; enriched:number; email_found:number; phone_found:number; failed:number };
+function decodeHtml(value:string) {
+  return value.replace(/&amp;/gi,"&").replace(/&quot;/gi,'"').replace(/&#39;|&apos;/gi,"'").replace(/&lt;/gi,"<").replace(/&gt;/gi,">");
+}
+function extractWebsiteContacts(html:string) {
+  const clean=html.replace(/<(script|style|noscript|svg)[^>]*>[\s\S]*?<\/\1>/gi," ").replace(/<!--[\s\S]*?-->/g," ");
+  const emails:string[]=[]; const phones:string[]=[];
+  const addEmail=(v:string)=>{const e=normalizeEmail(decodeHtml(v).replace(/^mailto:/i,"").split("?")[0]);if(e&&!/\.(png|jpe?g|gif|svg|webp|css|js)$/i.test(e)&&!emails.includes(e))emails.push(e);};
+  const addPhone=(v:string)=>{const p=decodeHtml(v).replace(/^tel:/i,"").split(/[?;]/)[0].trim();const digits=p.replace(/[^0-9]/g,"");if(digits.length>=10&&digits.length<=15&&!phones.includes(p))phones.push(p);};
+  for(const m of clean.matchAll(/href\s*=\s*["']mailto:([^"'\s]+)["']/gi))addEmail(m[1]);
+  for(const m of clean.matchAll(/href\s*=\s*["']tel:([^"'\s]+)["']/gi))addPhone(m[1]);
+  for(const m of clean.matchAll(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi))addEmail(m[0]);
+  const visible=clean.replace(/<[^>]+>/g," ").replace(/\s+/g," ");
+  for(const m of visible.matchAll(/(?:\+?\d[\d ().-]{7,}\d)/g))addPhone(m[0]);
+  return {emails,phones};
+}
+function contactPageUrls(home:URL,html:string) {
+  const found:string[]=[];
+  for(const m of html.matchAll(/<a\b[^>]*href\s*=\s*(["'])(.*?)\1[^>]*>/gi)){
+    const href=decodeHtml(m[2]); if(!/(contact|about|reach|support|enquir|connect|company|team)/i.test(href))continue;
+    try{const u=new URL(href,home);if(u.protocol==="https:"&&u.hostname.toLowerCase()===home.hostname.toLowerCase()&&!found.includes(u.href))found.push(u.href);}catch{/* malformed link */}
+  }
+  for(const path of ["/contact","/contact-us","/about","/about-us"]){const u=new URL(path,home.origin).href;if(!found.includes(u))found.push(u);}
+  return found.slice(0,1);
+}
+async function fetchHtmlPage(url:URL) {
+  await assertPublicDns(url.hostname); await assertRobotsAllows(url);
+  const response=await fetch(url,{method:"GET",redirect:"error",signal:AbortSignal.timeout(FETCH_TIMEOUT_MS),headers:{"Accept":"text/html,application/xhtml+xml;q=0.9","User-Agent":USER_AGENT}});
+  if(!response.ok)throw new Error("Website returned HTTP "+response.status+".");
+  const type=(response.headers.get("content-type")??"").toLowerCase();
+  if(!type.includes("text/html")&&!type.includes("application/xhtml+xml"))throw new Error("Website page is not HTML.");
+  return await readBounded(response);
+}
+async function enrichWebsiteLeads(admin:ReturnType<typeof createClient>) {
+  const cutoff=new Date(Date.now()-30*24*60*60*1000).toISOString();
+  const {data:rows,error}=await admin.from("admin_contact_bank").select("id,full_name,company_name,email,phone,website,source_last_checked_at,notes")
+    .eq("source_type","lead_generator").not("website","is",null)
+    .or("source_last_checked_at.is.null,source_last_checked_at.lt."+cutoff)
+    .or("email.is.null,email.eq.,phone.is.null,phone.eq.")
+    .order("created_at",{ascending:true}).limit(2);
+  if(error)throw new Error("Could not load website enrichment queue.");
+  const counts:EnrichmentCounts={checked:0,enriched:0,email_found:0,phone_found:0,failed:0};
+  const results:Array<JsonRecord>=[];
+  for(const row of rows??[]){
+    counts.checked++;
+    try{
+      const raw=String(row.website??"").trim();
+      const home=safeUrl(raw.startsWith("https://")?raw:"https://"+raw.replace(/^http:\/\//i,""));
+      const html=await fetchHtmlPage(home); const contacts=extractWebsiteContacts(html);
+      for(const page of contactPageUrls(home,html)){
+        if((!row.email&&!contacts.emails.length)||(!row.phone&&!contacts.phones.length)){
+          try{const next=extractWebsiteContacts(await fetchHtmlPage(new URL(page)));contacts.emails.push(...next.emails.filter(x=>!contacts.emails.includes(x)));contacts.phones.push(...next.phones.filter(x=>!contacts.phones.includes(x)));}catch{/* inaccessible subpage */}
+        }
+        if((row.email||contacts.emails.length)&&(row.phone||contacts.phones.length))break;
+      }
+      const email=!row.email?contacts.emails[0]??null:null; const phone=!row.phone?contacts.phones[0]??null:null;
+      const now=new Date().toISOString();
+      const audit="Website enrichment checked "+home.origin+" on "+now+". "+(email?"Published email found. ":"")+(phone?"Published phone found. ":"")+(email||phone?"":"No new contact details found.")+" Details remain unverified; marketing consent not granted.";
+      const patch:JsonRecord={source_last_checked_at:now,updated_at:now,notes:([row.notes,audit].filter(Boolean).join("\n")).slice(-4000)};
+      if(email){patch.email=email;patch.email_kind="business";counts.email_found++;} if(phone){patch.phone=phone;counts.phone_found++;}
+      const {error:updateError}=await admin.from("admin_contact_bank").update(patch).eq("id",row.id);
+      if(updateError)throw new Error("Could not save enrichment results.");
+      if(email||phone)counts.enriched++;
+      results.push({id:row.id,business:row.company_name??row.full_name,email_found:Boolean(email),phone_found:Boolean(phone),status:email||phone?"enriched":"checked_no_new_details"});
+    }catch(error){
+      counts.failed++; const message=error instanceof Error?error.message.slice(0,250):"Website check failed."; const now=new Date().toISOString();
+      await admin.from("admin_contact_bank").update({source_last_checked_at:now,updated_at:now,notes:([row.notes,"Website enrichment failed on "+now+": "+message].filter(Boolean).join("\n")).slice(-4000)}).eq("id",row.id);
+      results.push({id:row.id,business:row.company_name??row.full_name,status:"failed",reason:message});
+    }
+  }
+  return {counts,results};
+}
+
 Deno.serve(async (request) => {
   if (request.method !== "POST") return json({ error: "POST required." }, 405);
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const invocationJwt = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
   const serviceKey = envKey();
-  if (!invocationJwt || request.headers.get("authorization") !== "Bearer " + invocationJwt) {
-    return json({ error: "Unauthorized." }, 401);
-  }
   if (!supabaseUrl || !serviceKey) return json({ error: "Worker is not configured." }, 503);
 
+  const bearer = request.headers.get("authorization")?.replace(/^Bearer\\s+/i, "") ?? "";
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ?? "";
+  let adminAuthorized = Boolean(invocationJwt && bearer === invocationJwt);
+  if (!adminAuthorized && bearer && anonKey) {
+    const caller = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: "Bearer " + bearer } },
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const { data: userData, error: userError } = await caller.auth.getUser();
+    if (!userError && userData.user) {
+      const { data: allowed, error: adminError } = await caller.rpc("is_super_admin");
+      adminAuthorized = !adminError && allowed === true;
+    }
+  }
+  if (!adminAuthorized) return json({ error: "Unauthorized: a verified Super Admin session is required." }, 401);
+
   const admin = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
+  let requestBody: JsonRecord = {};
+  try { const parsed = await request.json(); if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) requestBody = parsed as JsonRecord; } catch { return json({ error: "Request body must be valid JSON." }, 400); }
+  if (requestBody.action === "enrich_websites") {
+    try { const result = await enrichWebsiteLeads(admin); return json({ action: "enrich_websites", ...result }); }
+    catch (error) { return json({ error: error instanceof Error ? error.message : "Website enrichment failed." }, 500); }
+  }
   const { data: candidates, error: queueError } = await admin.from("lead_generator_jobs")
     .select("id,source_id,region_state,districts,categories")
     .eq("status", "queued").not("source_id", "is", null)
@@ -312,8 +405,8 @@ Deno.serve(async (request) => {
       if (state.toLowerCase() !== String(claimed.region_state).toLowerCase()) { counts.rejected++; continue; }
       if (claimed.districts?.length && (!mapped.district || !claimed.districts.some((d: string) => d.toLowerCase() === String(mapped.district).toLowerCase()))) { counts.rejected++; continue; }
       if (claimed.categories?.length && (!category || !claimed.categories.includes(category))) { counts.rejected++; continue; }
-      if (mapped.business_email || mapped.professional_work_email) {
-        const emailKey = String(mapped.business_email || mapped.professional_work_email).trim().toLowerCase();
+      const emailKey = normalizeEmail(mapped.business_email ?? mapped.professional_work_email);
+      if (emailKey) {
         const { data: emailMatches, error: emailMatchError } = await admin.from("admin_contact_bank_review")
           .select("id").eq("normalized_email", emailKey).limit(1);
         if (emailMatchError) throw new Error("Could not check the email against the contact bank.");
@@ -326,7 +419,6 @@ Deno.serve(async (request) => {
         if (phoneMatchError) throw new Error("Could not check the phone number against the contact bank.");
         if (phoneMatches?.length) { counts.duplicate++; continue; }
       }
-
       const domain = websiteHost(mapped.website);
       let duplicateQuery = admin.from("admin_contact_bank").select("id").eq("contact_type", "business").limit(1);
       if (domain) duplicateQuery = duplicateQuery.eq("website_domain", domain).ilike("full_name", name);
