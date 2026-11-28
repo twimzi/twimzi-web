@@ -252,12 +252,15 @@ export async function POST(request: Request) {
     for (const recipient of eligibleRecipients) {
       try {
         let personalizedBody = body.replace(/\{\{name\}\}/g, "there");
+        let personalizedHtml = suppliedHtml || buildBrandedHtml(subject, personalizedBody);
         if (campaignType === "marketing" && unsubscribeSecret) {
           const token = createHmac("sha256", unsubscribeSecret).update(recipient).digest("base64url");
           const site = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.twimzi.com").replace(/\/$/, "");
-          personalizedBody += "\n\n---\nTo stop receiving Twimzi marketing emails, unsubscribe here: " + site + "/api/email/unsubscribe?email=" + encodeURIComponent(recipient) + "&token=" + token;
+          const unsubscribeUrl = site + "/api/email/unsubscribe?email=" + encodeURIComponent(recipient) + "&token=" + token;
+          personalizedBody += "\n\n---\nTo stop receiving Twimzi marketing emails, unsubscribe here: " + unsubscribeUrl;
+          personalizedHtml = personalizedHtml.replace("</body>", '<div style="padding:16px 32px 24px;color:#64748b;font-size:12px;text-align:center">You are receiving this promotional email because you opted in to Twimzi updates. <a href="' + escapeEmailHtml(unsubscribeUrl) + '" style="color:#0d9488">Unsubscribe</a></div></body>');
         }
-        await sendViaHostinger(recipient, subject, personalizedBody, html);
+        await sendViaHostinger(recipient, subject, personalizedBody, personalizedHtml);
         sent += 1;
         await supabase.from("email_campaign_recipients").update({ status: "accepted", accepted_at: new Date().toISOString(), provider_message: "Accepted by Hostinger SMTP" }).eq("campaign_id", campaign.id).eq("email", recipient);
       } catch (error) {
