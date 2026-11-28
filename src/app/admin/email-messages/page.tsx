@@ -20,6 +20,8 @@ type CampaignRecord = {
   created_at: string;
 };
 
+type AudienceContact = { email: string; name: string; company: string; contactType: string; city: string; state: string; country: string; };
+
 type MailboxMessage = {
   uid?: string | number;
   id?: string | number;
@@ -51,6 +53,13 @@ export default function AdminEmailMessagesPage() {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [audienceLoading, setAudienceLoading] = useState(false);
   const [audienceMessage, setAudienceMessage] = useState("");
+  const [audienceContacts, setAudienceContacts] = useState<AudienceContact[]>([]);
+  const [selectedAudienceEmails, setSelectedAudienceEmails] = useState<string[]>([]);
+  const [audienceSearch, setAudienceSearch] = useState("");
+  const [audienceTypeFilter, setAudienceTypeFilter] = useState("all");
+  const [audienceCityFilter, setAudienceCityFilter] = useState("");
+  const [audienceStateFilter, setAudienceStateFilter] = useState("");
+  const [audienceCountryFilter, setAudienceCountryFilter] = useState("");
   const [mailboxMessages, setMailboxMessages] = useState<MailboxMessage[]>([]);
   const [mailboxLoading, setMailboxLoading] = useState(false);
   const [mailboxError, setMailboxError] = useState("");
@@ -60,6 +69,18 @@ export default function AdminEmailMessagesPage() {
 
   const recipients = useMemo(() => Array.from(new Set(recipientsText.split(/[\s,;]+/).map((x) => x.trim().toLowerCase()).filter(Boolean))), [recipientsText]);
   const invalidRecipients = recipients.filter((email) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
+  const filteredAudience = useMemo(() => {
+    const q = audienceSearch.trim().toLowerCase();
+    return audienceContacts.filter((contact) => {
+      const matchesSearch = !q || [contact.email, contact.name, contact.company].some((value) => value.toLowerCase().includes(q));
+      const matchesType = audienceTypeFilter === "all" || contact.contactType === audienceTypeFilter;
+      const matchesCity = !audienceCityFilter.trim() || contact.city.toLowerCase().includes(audienceCityFilter.trim().toLowerCase());
+      const matchesState = !audienceStateFilter.trim() || contact.state.toLowerCase().includes(audienceStateFilter.trim().toLowerCase());
+      const matchesCountry = !audienceCountryFilter.trim() || contact.country.toLowerCase().includes(audienceCountryFilter.trim().toLowerCase());
+      return matchesSearch && matchesType && matchesCity && matchesState && matchesCountry;
+    });
+  }, [audienceContacts, audienceSearch, audienceTypeFilter, audienceCityFilter, audienceStateFilter, audienceCountryFilter]);
+  const allFilteredAudienceSelected = filteredAudience.length > 0 && filteredAudience.every((contact) => selectedAudienceEmails.includes(contact.email));
 
   useEffect(() => {
     if (tab !== "history") return;
@@ -106,20 +127,31 @@ export default function AdminEmailMessagesPage() {
 
   async function sendCampaign(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!recipients.length || invalidRecipients.length || recipients.length > 25) return;
+    if (!recipients.length || invalidRecipients.length || recipients.length > 500) return;
     setSending(true);
     setStatus(null);
+    let accepted = 0;
+    let failed = 0;
+    const batches = Array.from({ length: Math.ceil(recipients.length / 25) }, (_, index) => recipients.slice(index * 25, (index + 1) * 25));
     try {
-      const response = await fetch("/api/admin/send-email", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ recipients, subject, body, campaignName, consentConfirmed }),
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "Campaign could not be sent.");
-      setStatus({ kind: "success", text: result.message || "Campaign submitted." });
+      for (let index = 0; index < batches.length; index++) {
+        const response = await fetch("/api/admin/send-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ recipients: batches[index], subject, body, campaignName: batches.length > 1 ? campaignName + " (" + (index + 1) + "/" + batches.length + ")" : campaignName, consentConfirmed }),
+        });
+        const result = await response.json();
+        if (!response.ok && response.status !== 207) {
+          failed += batches[index].length;
+          throw new Error((result.error || "Batch " + (index + 1) + " could not be sent.") + " Earlier batches accepted " + accepted + " email(s).");
+        }
+        accepted += Number(result.sent || 0);
+        failed += Number(result.failed || 0) + Number(result.suppressed || 0);
+        setStatus({ kind: "success", text: "Sending batch " + (index + 1) + " of " + batches.length + ". " + accepted + " accepted so far." });
+      }
+      setStatus({ kind: failed ? "error" : "success", text: accepted + " of " + recipients.length + " emails accepted by Hostinger SMTP. " + failed + " failed or suppressed across " + batches.length + " batch(es)." });
     } catch (error) {
-      setStatus({ kind: "error", text: error instanceof Error ? error.message : "Campaign could not be sent." });
+      setStatus({ kind: "error", text: (error instanceof Error ? error.message : "Campaign could not be sent.") + " Accepted so far: " + accepted + "." });
     } finally {
       setSending(false);
     }
@@ -132,18 +164,38 @@ export default function AdminEmailMessagesPage() {
       const response = await fetch("/api/admin/email-audience", { cache: "no-store" });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Could not load opted-in users.");
-      const emails = (result.recipients || []).map((item: { email: string }) => item.email);
-      if (!emails.length) {
-        setAudienceMessage("No contacts have a recorded marketing opt-in yet.");
-      } else {
-        setRecipientsText((current) => Array.from(new Set([...current.split(/[\s,;]+/), ...emails].map((value) => value.trim().toLowerCase()).filter(Boolean))).join("\n"));
-        setAudienceMessage(String(emails.length) + " opted-in contact(s) added.");
-      }
+      const contacts = (result.recipients || []) as AudienceContact[];
+      setAudienceContacts(contacts);
+      setSelectedAudienceEmails([]);
+      setAudienceMessage(String(contacts.length) + " eligible opted-in contact(s) loaded. Filter and tick recipients below.");
     } catch (error) {
       setAudienceMessage(error instanceof Error ? error.message : "Could not load opted-in users.");
     } finally {
       setAudienceLoading(false);
     }
+  }
+
+  function applyAudienceSelection(emails: string[]) {
+    setSelectedAudienceEmails(emails);
+    setRecipientsText((current) => {
+      const manual = current.split(/[\\s,;]+/).map((value) => value.trim().toLowerCase()).filter(Boolean)
+        .filter((email) => !audienceContacts.some((contact) => contact.email === email));
+      return Array.from(new Set([...manual, ...emails])).join("\\n");
+    });
+  }
+
+  function toggleAudienceEmail(email: string) {
+    const next = selectedAudienceEmails.includes(email)
+      ? selectedAudienceEmails.filter((value) => value !== email)
+      : [...selectedAudienceEmails, email];
+    applyAudienceSelection(next);
+  }
+
+  function toggleAllFilteredAudience() {
+    const next = allFilteredAudienceSelected
+      ? selectedAudienceEmails.filter((email) => !filteredAudience.some((contact) => contact.email === email))
+      : Array.from(new Set([...selectedAudienceEmails, ...filteredAudience.map((contact) => contact.email)])).slice(0, 500);
+    applyAudienceSelection(next);
   }
 
   async function copyCampaign() {
@@ -266,11 +318,25 @@ export default function AdminEmailMessagesPage() {
             <div>
               <label htmlFor="recipients" className="mb-2 flex items-center gap-2 text-sm font-semibold"><Users size={16} /> Recipients</label>
               <textarea id="recipients" value={recipientsText} onChange={(e) => setRecipientsText(e.target.value)} required rows={4} placeholder={"business@example.com\ncontact@example.com"} className="w-full rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)]" />
-              <div className="mt-2 flex justify-between gap-3 text-xs text-[var(--color-text-muted)]"><span>{recipients.length} unique recipient(s) · maximum 25 per send</span><span>Separate with commas or new lines</span></div>
+              <div className="mt-2 flex justify-between gap-3 text-xs text-[var(--color-text-muted)]"><span>{recipients.length} unique recipient(s) · sent in batches of 25 (maximum 500)</span><span>Separate with commas or new lines</span></div>
               <div className="mt-3 flex flex-wrap items-center gap-3">
-                <button type="button" onClick={loadOptedInAudience} disabled={audienceLoading} className="rounded-lg border border-[var(--color-border)] px-3 py-2 text-xs font-semibold hover:bg-gray-50 disabled:opacity-50">{audienceLoading ? "Loading opted-in contacts…" : "Add all verified opted-in contacts"}</button>
+                <button type="button" onClick={loadOptedInAudience} disabled={audienceLoading} className="rounded-lg border border-[var(--color-border)] px-3 py-2 text-xs font-semibold hover:bg-gray-50 disabled:opacity-50">{audienceLoading ? "Loading opted-in contacts…" : "Load opted-in audience"}</button>
                 {audienceMessage && <span className="text-xs text-[var(--color-text-secondary)]">{audienceMessage}</span>}
               </div>
+              {audienceContacts.length > 0 && <div className="mt-4 rounded-xl border border-[var(--color-border)] bg-slate-50 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-2"><div><p className="text-sm font-bold">Select email recipients</p><p className="mt-1 text-xs text-[var(--color-text-muted)]">{selectedAudienceEmails.length} selected from {audienceContacts.length} eligible opted-in contacts</p></div><button type="button" onClick={() => applyAudienceSelection([])} className="text-xs font-semibold text-[var(--color-primary)]">Clear selection</button></div>
+                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                  <input value={audienceSearch} onChange={(event) => setAudienceSearch(event.target.value)} placeholder="Search email, name or business…" className="rounded-lg border bg-white px-3 py-2 text-sm" />
+                  <select value={audienceTypeFilter} onChange={(event) => setAudienceTypeFilter(event.target.value)} className="rounded-lg border bg-white px-3 py-2 text-sm"><option value="all">All business / contact types</option>{["business","manufacturer","trader","professional","supplier","customer","partner","other"].map((type) => <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>)}</select>
+                  <input value={audienceCityFilter} onChange={(event) => setAudienceCityFilter(event.target.value)} placeholder="Filter city" className="rounded-lg border bg-white px-3 py-2 text-sm" />
+                  <input value={audienceStateFilter} onChange={(event) => setAudienceStateFilter(event.target.value)} placeholder="Filter state / province" className="rounded-lg border bg-white px-3 py-2 text-sm" />
+                  <input value={audienceCountryFilter} onChange={(event) => setAudienceCountryFilter(event.target.value)} placeholder="Filter country" className="rounded-lg border bg-white px-3 py-2 text-sm sm:col-span-2" />
+                </div>
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-2"><label className="flex items-center gap-2 text-sm font-semibold"><input type="checkbox" checked={allFilteredAudienceSelected} onChange={toggleAllFilteredAudience} className="h-4 w-4 rounded" />Select all {filteredAudience.length} filtered contacts</label><span className="text-xs text-[var(--color-text-muted)]">Only recorded marketing opt-ins are listed</span></div>
+                <div className="mt-2 max-h-72 overflow-y-auto rounded-lg border bg-white">
+                  {filteredAudience.length ? filteredAudience.map((contact) => <label key={contact.email} className="flex cursor-pointer items-start gap-3 border-b p-3 last:border-b-0 hover:bg-teal-50/40"><input type="checkbox" checked={selectedAudienceEmails.includes(contact.email)} onChange={() => toggleAudienceEmail(contact.email)} className="mt-1 h-4 w-4 shrink-0 rounded" /><span className="min-w-0 flex-1"><span className="block break-all text-sm font-semibold">{contact.email}</span><span className="mt-0.5 block text-xs text-[var(--color-text-muted)]">{contact.name}{contact.company ? " · " + contact.company : ""} · {contact.contactType}{contact.city || contact.state || contact.country ? " · " + [contact.city, contact.state, contact.country].filter(Boolean).join(", ") : ""}</span></span></label>) : <p className="p-4 text-center text-sm text-[var(--color-text-muted)]">No opted-in contacts match these filters.</p>}
+                </div>
+              </div>}
               {invalidRecipients.length > 0 && <p className="mt-2 text-xs text-red-600">Invalid email(s): {invalidRecipients.slice(0, 3).join(", ")}</p>}
               {recipients.length > 25 && <p className="mt-2 text-xs text-red-600">This batch exceeds 25 recipients. Split it into smaller batches.</p>}
             </div>
@@ -290,7 +356,7 @@ export default function AdminEmailMessagesPage() {
             <div className="flex flex-wrap gap-3">
               <button type="button" onClick={() => setPreview(!preview)} className="inline-flex items-center gap-2 rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm font-semibold hover:bg-gray-50"><Eye size={16} />{preview ? "Hide preview" : "Preview email"}</button>
               <button type="button" onClick={copyCampaign} className="inline-flex items-center gap-2 rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm font-semibold hover:bg-gray-50"><Copy size={16} />{copied ? "Copied" : "Copy campaign"}</button>
-              <button type="submit" disabled={sending || !consentConfirmed || !recipients.length || invalidRecipients.length > 0 || recipients.length > 25 || !subject.trim() || !body.trim()} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-5 py-3 text-sm font-bold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50">{sending ? "Sending…" : <><Send size={17} /> Send campaign <ChevronRight size={16} /></>}</button>
+              <button type="submit" disabled={sending || !consentConfirmed || !recipients.length || invalidRecipients.length > 0 || recipients.length > 500 || !subject.trim() || !body.trim()} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-5 py-3 text-sm font-bold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50">{sending ? "Sending…" : <><Send size={17} /> Send campaign <ChevronRight size={16} /></>}</button>
             </div>
             {preview && <div className="rounded-xl border border-[var(--color-border)] bg-gray-50 p-5"><p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">Email preview · plain text</p><p className="mt-3 text-sm"><strong>Subject:</strong> {subject}</p><div className="my-3 border-t border-[var(--color-border)]" /><p className="whitespace-pre-wrap text-sm leading-6">{body.replaceAll("{{name}}", "there")}</p></div>}
             {status && <div role="status" className={`flex items-start gap-2 rounded-xl p-4 text-sm ${status.kind === "success" ? "bg-emerald-50 text-emerald-800" : "bg-red-50 text-red-800"}`}>{status.kind === "success" ? <CheckCircle2 size={18} className="mt-0.5 shrink-0" /> : <AlertCircle size={18} className="mt-0.5 shrink-0" />}<span>{status.text}</span></div>}
@@ -303,7 +369,7 @@ export default function AdminEmailMessagesPage() {
                   ["Recipients added", recipients.length > 0 && invalidRecipients.length === 0 && recipients.length <= 25],
                   ["Subject added", !!subject.trim()],
                   ["Message ready", !!body.trim()],
-                  ["Batch size within limit", recipients.length <= 25],
+                  ["Campaign size within limit", recipients.length <= 500],
                 ].map(([label, done]) => <li key={String(label)} className="flex items-center gap-2"><span className={`flex h-5 w-5 items-center justify-center rounded-full text-xs ${done ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-400"}`}>{done ? "✓" : "·"}</span><span className={done ? "text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)]"}>{label}</span></li>)}
               </ul>
             </div>
