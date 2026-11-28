@@ -91,14 +91,14 @@ export async function PATCH(request: Request) {
       const updatedIds = new Set<string>();
       const baseUpdate = { updated_by: auth.user.id, updated_at: new Date().toISOString() };
       if (hasEmail) {
-        let emailQuery = auth.supabase.from("admin_contact_bank").update({ ...baseUpdate, email_marketing_consent: changes.email_marketing_consent, email_consent_at: changes.email_marketing_consent ? new Date().toISOString() : null }).in("id", ids).is("archived_at", null).eq("do_not_contact", false);
+        let emailQuery = auth.supabase.from("admin_contact_bank").update({ ...baseUpdate, email_marketing_consent: changes.email_marketing_consent, email_consent_at: changes.email_marketing_consent ? new Date().toISOString() : null }).in("id", ids).is("archived_at", null).or("do_not_contact.is.null,do_not_contact.eq.false");
         if (changes.email_marketing_consent === true) emailQuery = emailQuery.is("email_unsubscribed_at", null).not("email", "is", null);
         const { data, error } = await emailQuery.select("id");
         if (error) return NextResponse.json({ error: "Email consent update failed." }, { status: 500 });
         for (const row of data || []) updatedIds.add(row.id);
       }
       if (hasWhatsapp) {
-        let whatsappQuery = auth.supabase.from("admin_contact_bank").update({ ...baseUpdate, whatsapp_marketing_consent: changes.whatsapp_marketing_consent, whatsapp_consent_at: changes.whatsapp_marketing_consent ? new Date().toISOString() : null }).in("id", ids).is("archived_at", null).eq("do_not_contact", false);
+        let whatsappQuery = auth.supabase.from("admin_contact_bank").update({ ...baseUpdate, whatsapp_marketing_consent: changes.whatsapp_marketing_consent, whatsapp_consent_at: changes.whatsapp_marketing_consent ? new Date().toISOString() : null }).in("id", ids).is("archived_at", null).or("do_not_contact.is.null,do_not_contact.eq.false");
         if (changes.whatsapp_marketing_consent === true) whatsappQuery = whatsappQuery.is("whatsapp_opted_out_at", null).not("phone", "is", null);
         const { data, error } = await whatsappQuery.select("id");
         if (error) return NextResponse.json({ error: "WhatsApp consent update failed." }, { status: 500 });
