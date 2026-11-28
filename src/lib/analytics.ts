@@ -7,6 +7,7 @@ export type AnalyticsEventName =
   | "business_registration_auth_required"
   | "business_registration_submitted"
   | "business_registration_step_completed"
+  | "business_registration_auth_failed"
   | "signup_started"
   | "signup_completed"
   | "whatsapp_click"
@@ -128,5 +129,38 @@ export async function trackAnalyticsEvent(
     });
   } catch {
     // Analytics must never block sign-in, registration, navigation, or checkout.
+  }
+}
+
+export async function trackRegistrationDiagnostic(input: {
+  eventName: string;
+  stage: string;
+  httpStatus?: number;
+  errorCode?: string;
+  errorMessage?: string;
+  metadata?: Record<string, string | number | boolean | null>;
+}): Promise<void> {
+  if (typeof window === "undefined") return;
+  try {
+    const supabase = createSupabaseBrowserClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    const safeMessage = input.errorMessage
+      ?.replace(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/g, "[email]")
+      .replace(/(password|token|authorization|access_token|refresh_token)\s*[:=]\s*[^\s,;]+/gi, "$1=[redacted]")
+      .slice(0, 500);
+    const metadata = Object.fromEntries(Object.entries(input.metadata ?? {}).slice(0, 20));
+    await supabase.from("registration_audit_events").insert({
+      session_id: getAnalyticsSessionId(),
+      profile_id: user?.id ?? null,
+      event_name: input.eventName.slice(0, 80),
+      stage: input.stage.slice(0, 80),
+      path: window.location.pathname.slice(0, 200),
+      http_status: input.httpStatus ?? 500,
+      error_code: input.errorCode?.slice(0, 80) ?? null,
+      error_message: safeMessage ?? null,
+      metadata,
+    });
+  } catch {
+    // Diagnostic logging must never interrupt a customer's registration.
   }
 }
