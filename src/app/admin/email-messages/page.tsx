@@ -52,6 +52,9 @@ export default function AdminEmailMessagesPage() {
   const [campaigns, setCampaigns] = useState<CampaignRecord[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [audienceLoading, setAudienceLoading] = useState(false);
+  const [previouslyContactedEmails, setPreviouslyContactedEmails] = useState<string[]>([]);
+  const [duplicateHistoryLoading, setDuplicateHistoryLoading] = useState(false);
+  const [duplicateHistoryError, setDuplicateHistoryError] = useState("");
   const [audienceMessage, setAudienceMessage] = useState("");
   const [audienceContacts, setAudienceContacts] = useState<AudienceContact[]>([]);
   const [selectedAudienceEmails, setSelectedAudienceEmails] = useState<string[]>([]);
@@ -136,11 +139,19 @@ export default function AdminEmailMessagesPage() {
   async function sendCampaign(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!recipients.length || invalidRecipients.length || recipients.length > 500) return;
+    if (duplicateHistoryLoading) {
+      setStatus({ kind: "error", text: "Please wait while Twimzi checks previous campaign history for duplicate email addresses." });
+      return;
+    }
+    if (!campaignRecipients.length) {
+      setStatus({ kind: "success", text: "Nothing to send. All " + alreadyContactedRecipients.length + " recipient(s) were already accepted or are pending from an earlier campaign." });
+      return;
+    }
     setSending(true);
     setStatus(null);
     let accepted = 0;
     let failed = 0;
-    const batches = Array.from({ length: Math.ceil(recipients.length / 1) }, (_, index) => recipients.slice(index, index + 1));
+    const batches = Array.from({ length: campaignRecipients.length }, (_, index) => campaignRecipients.slice(index, index + 1));
     try {
       for (let index = 0; index < batches.length; index++) {
         const response = await fetch("/api/admin/send-email", {
@@ -176,11 +187,28 @@ export default function AdminEmailMessagesPage() {
           text: "Batch " + (index + 1) + " of " + batches.length + ": " + Number(result.sent || 0) + " accepted, " + Number(result.failed || 0) + " SMTP failed, " + Number(result.suppressed || 0) + " suppressed." + (diagnosticLines.length ? "\\n" + diagnosticLines.join("\\n") : ""),
         });
       }
-      setStatus({ kind: failed ? "error" : "success", text: accepted + " of " + recipients.length + " emails accepted by Hostinger SMTP. " + failed + " failed or suppressed across " + batches.length + " batch(es)." });
+      setStatus({ kind: failed ? "error" : "success", text: accepted + " of " + campaignRecipients.length + " new emails accepted by Hostinger SMTP. " + failed + " failed or suppressed. " + alreadyContactedRecipients.length + " previously contacted address(es) skipped." });
     } catch (error) {
       setStatus({ kind: "error", text: (error instanceof Error ? error.message : "Campaign could not be sent.") + " Accepted so far: " + accepted + "." });
     } finally {
       setSending(false);
+    }
+  }
+
+  async function loadPreviouslyContacted() {
+    setDuplicateHistoryLoading(true);
+    setDuplicateHistoryError("");
+    try {
+      const response = await fetch("/api/admin/send-email", { method: "GET", cache: "no-store", headers: { Accept: "application/json" } });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Previous campaign history could not be checked.");
+      setPreviouslyContactedEmails(Array.isArray(result.previouslyContacted)
+        ? result.previouslyContacted.map((email: string) => String(email).trim().toLowerCase())
+        : []);
+    } catch (error) {
+      setDuplicateHistoryError(error instanceof Error ? error.message : "Previous campaign history could not be checked.");
+    } finally {
+      setDuplicateHistoryLoading(false);
     }
   }
 
@@ -345,7 +373,12 @@ export default function AdminEmailMessagesPage() {
             <div>
               <label htmlFor="recipients" className="mb-2 flex items-center gap-2 text-sm font-semibold"><Users size={16} /> Recipients</label>
               <textarea id="recipients" value={recipientsText} onChange={(e) => setRecipientsText(e.target.value)} required rows={4} placeholder={"business@example.com\ncontact@example.com"} className="w-full rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)]" />
-              <div className="mt-2 flex justify-between gap-3 text-xs text-[var(--color-text-muted)]"><span>{recipients.length} unique recipient(s) · sent one recipient per request (maximum 500)</span><span>Separate with commas or new lines</span></div>
+              <div className="mt-2 flex flex-wrap justify-between gap-2 text-xs text-[var(--color-text-muted)]"><span>{recipients.length} unique email(s) · {campaignRecipients.length} new · maximum 500</span><span>Separate with commas or new lines</span></div>
+              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs">
+                {duplicateRecipientCount > 0 && <span className="font-medium text-amber-700">{duplicateRecipientCount} duplicate entry/entries in this list will be removed.</span>}
+                {duplicateHistoryLoading ? <span className="text-[var(--color-text-muted)]">Checking previous campaign history…</span> : <span className="text-emerald-700">{alreadyContactedRecipients.length} previously emailed / pending address(es) will be skipped.</span>}
+                {duplicateHistoryError && <span className="text-amber-700">{duplicateHistoryError} Server-side duplicate protection remains active.</span>}
+              </div>
               <div className="mt-3 flex flex-wrap items-center gap-3">
                 <button type="button" onClick={loadOptedInAudience} disabled={audienceLoading} className="rounded-lg border border-[var(--color-border)] px-3 py-2 text-xs font-semibold hover:bg-gray-50 disabled:opacity-50">{audienceLoading ? "Loading opted-in contacts…" : "Load opted-in audience"}</button>
                 {audienceMessage && <span className="text-xs text-[var(--color-text-secondary)]">{audienceMessage}</span>}
