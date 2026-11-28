@@ -178,9 +178,9 @@ export default function AdminEmailMessagesPage() {
   function applyAudienceSelection(emails: string[]) {
     setSelectedAudienceEmails(emails);
     setRecipientsText((current) => {
-      const manual = current.split(/[\\s,;]+/).map((value) => value.trim().toLowerCase()).filter(Boolean)
+      const manual = current.split(/[\s,;]+/).map((value) => value.trim().toLowerCase()).filter(Boolean)
         .filter((email) => !audienceContacts.some((contact) => contact.email === email));
-      return Array.from(new Set([...manual, ...emails])).join("\\n");
+      return Array.from(new Set([...manual, ...emails])).join("\n");
     });
   }
 
