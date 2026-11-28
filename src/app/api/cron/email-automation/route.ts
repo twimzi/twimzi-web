@@ -1,38 +1,9 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { renderEmailTemplate } from "@/lib/email/templates";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const templates: Record<string, (name: string, payload: Record<string, unknown>) => { subject: string; body: string }> = {
-  business_welcome: (name, payload) => ({
-    subject: "Welcome to Twimzi — let’s grow your business",
-    body: `Hello ${name || "there"},
-
-Welcome to Twimzi! Your business ${String(payload.business_name || "")} is now part of a platform built to help local businesses get discovered.
-
-Next steps:
-• Complete your business profile
-• Add your products and services
-• Share your business profile with customers
-
-Get started: https://www.twimzi.com
-
-Regards,
-Team Twimzi`,
-  }),
-  profile_reminder: (name, payload) => ({
-    subject: "A quick reminder to complete your Twimzi profile",
-    body: `Hello ${name || "there"},
-
-Your business profile for ${String(payload.business_name || "your business")} may still need a few details. Add your description, contact information, photos, products and services so customers can understand what you offer.
-
-Continue at https://www.twimzi.com
-
-Regards,
-Team Twimzi`,
-  }),
-};
 
 export async function POST(request: Request) {
   const secret = process.env.EMAIL_AUTOMATION_CRON_SECRET;
@@ -74,18 +45,19 @@ export async function POST(request: Request) {
       }
     }
 
-    const build = templates[job.template_key];
-    if (!build) {
+    let email: ReturnType<typeof renderEmailTemplate>;
+    try {
+      email = renderEmailTemplate(job.template_key, job.display_name || "there", (job.payload || {}) as Record<string, unknown>);
+    } catch {
       await supabase.from("email_automation_queue").update({ status: "failed", last_error: "Unknown automation template." }).eq("id", job.id);
       failed += 1;
       continue;
     }
-    const email = build(job.display_name || "there", (job.payload || {}) as Record<string, unknown>);
     try {
       const response = await fetch(new URL("/api/admin/send-email", request.url), {
         method: "POST",
         headers: { "Content-Type": "application/json", authorization: `Bearer ${secret}` },
-        body: JSON.stringify({ recipients: [job.email], subject: email.subject, body: email.body, campaignName: job.template_key, campaignType: "transactional" }),
+        body: JSON.stringify({ recipients: [job.email], subject: email.subject, body: email.body, html: email.html, campaignName: job.template_key, campaignType: "transactional" }),
         cache: "no-store",
       });
       const result = await response.json();
