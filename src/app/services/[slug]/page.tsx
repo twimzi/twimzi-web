@@ -115,6 +115,7 @@ export async function generateMetadata({
       description,
       type: "website",
       url: canonicalUrl,
+      images: [{ url: "/twimzi-logo.png", alt: `${name} on Twimzi` }],
     },
     twitter: {
       card: "summary_large_image",
