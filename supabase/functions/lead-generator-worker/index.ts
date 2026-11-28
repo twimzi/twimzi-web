@@ -261,7 +261,7 @@ async function fetchHtmlPage(url:URL) {
   if(!type.includes("text/html")&&!type.includes("application/xhtml+xml"))throw new Error("Website page is not HTML.");
   return await readBounded(response);
 }
-async function enrichWebsiteLeads(admin:ReturnType<typeof createClient>) {
+async function enrichWebsiteLeads(admin: any) {
   const cutoff=new Date(Date.now()-30*24*60*60*1000).toISOString();
   const {data:rows,error}=await admin.from("admin_contact_bank").select("id,full_name,company_name,email,phone,website,source_last_checked_at,notes")
     .eq("source_type","lead_generator").not("website","is",null)
