@@ -11,6 +11,16 @@ export type EmailTemplate = {
 
 export const EMAIL_TEMPLATE_LIBRARY: EmailTemplate[] = [
   {
+    id: "register_business_invitation",
+    label: "Register your business on Twimzi",
+    category: "Business acquisition",
+    subject: "Give your business a place to grow online with Twimzi",
+    preheader: "Create your free business listing and help more customers discover you.",
+    body: "Hello {{name}},\n\nAre you looking for a simple way to showcase your business online? Join Twimzi and create your business listing so customers can discover what you offer.\n\nWith your Twimzi business profile, you can:\n• Showcase your business, products and services\n• Add photos and important contact information\n• Help nearby customers find and connect with you\n• Keep your business information updated in one place\n\nGetting started is simple. Register your business on Twimzi and take the first step towards building your online presence.\n\nRegards,\nTeam Twimzi",
+    ctaLabel: "Register your business",
+    ctaUrl: "{{register_url}}",
+  },
+  {
     id: "business_welcome",
     label: "Welcome new business",
     category: "Business onboarding",
@@ -101,6 +111,7 @@ function escapeHtml(value: string) {
 function resolveTokens(value: string, payload: Record<string, unknown>, name: string) {
   const values: Record<string, string> = {
     name,
+    register_url: String(payload.register_url || "https://www.twimzi.com/add-business"),
     business_name: String(payload.business_name || "your business"),
     business_url: String(payload.business_url || "https://www.twimzi.com"),
     claim_url: String(payload.claim_url || "https://www.twimzi.com"),
