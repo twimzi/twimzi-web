@@ -180,21 +180,38 @@ export async function POST(request: Request) {
       await supabase.from("email_campaigns").update({ status: "failed", failed_count: recipients.length, completed_at: new Date().toISOString() }).eq("id", campaign.id);
       return NextResponse.json({ error: "Recipient suppression checks failed. No emails were sent." }, { status: 500 });
     }
+    const { data: contactRows, error: contactError } = await supabase
+      .from("admin_contact_bank")
+      .select("email,email_marketing_consent,email_unsubscribed_at,do_not_contact,archived_at")
+      .in("email", recipients);
+    if (contactError) {
+      await supabase.from("email_campaigns").update({ status: "failed", failed_count: recipients.length, completed_at: new Date().toISOString() }).eq("id", campaign.id);
+      return NextResponse.json({ error: "Contact consent and suppression checks failed. No emails were sent." }, { status: 500 });
+    }
+
     const preferenceByEmail = new Map((preferences ?? []).map((row) => [String(row.email).toLowerCase(), row]));
+    const contactRowsByEmail = new Map<string, typeof contactRows>();
+    for (const row of contactRows ?? []) {
+      const key = String(row.email || "").toLowerCase();
+      const existing = contactRowsByEmail.get(key) ?? [];
+      existing.push(row);
+      contactRowsByEmail.set(key, existing);
+    }
     const eligibleRecipients = recipients.filter((email) => {
+      if (campaignType === "transactional") return true;
       const preference = preferenceByEmail.get(email);
-      return campaignType === "transactional" || (!preference?.unsubscribed_at && (preference?.marketing_consent === true || payload.consentConfirmed === true));
+      if (preference?.unsubscribed_at) return false;
+      const contactRecords = contactRowsByEmail.get(email);
+      if (contactRecords?.length) {
+        return contactRecords.some((row) => row.email_marketing_consent === true)
+          && !contactRecords.some((row) => row.email_unsubscribed_at || row.do_not_contact || row.archived_at);
+      }
+      return preference?.marketing_consent === true;
     });
     const suppressedRecipients = recipients.filter((email) => !eligibleRecipients.includes(email));
-    if (campaignType === "marketing" && payload.consentConfirmed === true && eligibleRecipients.length) {
-      await supabase.from("email_preferences").upsert(
-        eligibleRecipients.map((email) => ({ email, marketing_consent: true, consent_source: "admin_campaign_confirmation", consent_at: new Date().toISOString(), updated_at: new Date().toISOString() })),
-        { onConflict: "email", ignoreDuplicates: false }
-      );
-    }
     if (suppressedRecipients.length) {
       await supabase.from("email_campaign_recipients").insert(suppressedRecipients.map((email) => ({
-        campaign_id: campaign.id, email, status: "suppressed", error_message: "Recipient has unsubscribed."
+        campaign_id: campaign.id, email, status: "suppressed", error_message: "No valid recorded marketing opt-in, or recipient is unsubscribed / suppressed."
       })));
     }
     if (eligibleRecipients.length) {
