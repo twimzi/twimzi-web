@@ -118,7 +118,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const supabase = createPublicSupabaseClient();
     const { data: newsPosts, error: newsError } = await supabase
       .from("business_news")
-      .select("slug, updated_at, published_at")
+      .select("slug, featured_image_url, updated_at, published_at")
       .eq("status", "published")
       .lte("published_at", now.toISOString())
       .order("published_at", { ascending: false })
@@ -136,13 +136,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           lastModified: Number.isNaN(modified.getTime()) ? now : modified,
           changeFrequency: "daily",
           priority: 0.7,
+          ...(post.featured_image_url ? { images: [post.featured_image_url] } : {}),
         });
       }
     }
 
     const { data: blogPosts, error: blogError } = await supabase
       .from("blog_posts")
-      .select("slug, updated_at, published_at")
+      .select("slug, featured_image_url, updated_at, published_at")
       .eq("status", "published")
       .order("published_at", { ascending: false })
       .limit(1000);
@@ -159,6 +160,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
           lastModified: Number.isNaN(modified.getTime()) ? now : modified,
           changeFrequency: "monthly",
           priority: 0.65,
+          ...(post.featured_image_url ? { images: [post.featured_image_url] } : {}),
         });
       }
     }
