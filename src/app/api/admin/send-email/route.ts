@@ -44,10 +44,23 @@ function createSmtpConnection(socket: tls.TLSSocket): SmtpConnection {
 }
 
 async function expect(connection: SmtpConnection, expected: string[]) {
-  const response = await connection.nextResponse();
-  const code = response.slice(0, 3);
-  if (!expected.includes(code)) throw new Error("SMTP server rejected a command (" + code + ").");
-  return response;
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const response = await Promise.race([
+      connection.nextResponse(),
+      new Promise<never>((_, reject) => {
+        timeout = setTimeout(() => {
+          connection.close();
+          reject(new Error("Hostinger SMTP response timed out."));
+        }, 8000);
+      }),
+    ]);
+    const code = response.slice(0, 3);
+    if (!expected.includes(code)) throw new Error("SMTP server rejected a command (" + code + ").");
+    return response;
+  } finally {
+    if (timeout) clearTimeout(timeout);
+  }
 }
 
 function encodeHeader(value: string) {
@@ -182,8 +195,8 @@ export async function POST(request: Request) {
 
     const payload = await request.json();
     const rawRecipients: unknown = payload.recipients ?? (typeof payload.to === "string" ? [payload.to] : []);
-    if (!Array.isArray(rawRecipients) || rawRecipients.length < 1 || rawRecipients.length > 25 || !rawRecipients.every((item) => typeof item === "string")) {
-      return NextResponse.json({ error: "Provide between 1 and 25 recipient email addresses per batch." }, { status: 400 });
+    if (!Array.isArray(rawRecipients) || rawRecipients.length < 1 || rawRecipients.length > 1 || !rawRecipients.every((item) => typeof item === "string")) {
+      return NextResponse.json({ error: "Provide exactly one recipient email address per request to stay within hosting request time limits." }, { status: 400 });
     }
     const recipients = Array.from(new Set((rawRecipients as string[]).map((email) => email.trim().toLowerCase())));
     if (recipients.some((email) => email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))) {
