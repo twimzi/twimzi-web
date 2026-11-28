@@ -25,7 +25,7 @@ export default function TwitterImage() {
           <span style={{ fontSize: 34, fontWeight: 800, letterSpacing: -1 }}>Twimzi</span>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 24, maxWidth: 1000 }}>
-          <div style={{ fontSize: 68, lineHeight: 1.08, fontWeight: 800, letterSpacing: -2 }}>
+          <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 12, fontSize: 68, lineHeight: 1.08, fontWeight: 800, letterSpacing: -2 }}>
             Discover local. <span style={{ color: "#0D9488" }}>Grow together.</span>
           </div>
           <div style={{ fontSize: 30, lineHeight: 1.35, color: "#475569" }}>
