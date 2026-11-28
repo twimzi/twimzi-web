@@ -25,8 +25,7 @@ type BlogPost = {
   updated_at: string;
 };
 
-const DEFAULT_COVER =
-  "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1800&q=85";
+const DEFAULT_COVER = "/images/blog-image-fallback.svg";
 
 function getPublicClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -93,7 +92,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       description,
       publishedTime: post.published_at ?? post.created_at,
       modifiedTime: post.updated_at,
-      images: [image],
+      images: [{ url: image, alt: post.title }],
     },
     twitter: { card: "summary_large_image", title, description, images: [image] },
   };
@@ -349,7 +348,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ sl
 
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-12 lg:px-8">
         <main className="min-w-0">
-          <figure className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <figure className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
             <BlogImage src={cover} alt={post.title} className="aspect-[16/9] w-full object-cover" loading="eager" fetchPriority="high" />
             <figcaption className="flex items-center justify-between gap-4 px-4 py-3 text-xs text-slate-500 sm:px-5">
               <span>Twimzi Business Guides</span><span>{post.title.includes("2027") ? "2027 planning guide" : "Business guide"}</span>
@@ -390,7 +389,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ sl
         </aside>
       </div>
 
-      {relatedPosts.length > 0 && <section className="border-t border-slate-200 bg-white py-12 sm:py-16"><div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"><div className="mb-7 flex items-end justify-between gap-4"><div><p className="text-xs font-extrabold uppercase tracking-[0.16em] text-blue-700">Keep exploring</p><h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">More useful reads</h2></div><Link href="/blog" className="text-sm font-bold text-blue-700 hover:underline">All articles →</Link></div><div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{relatedPosts.map((related) => <article key={related.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white transition hover:-translate-y-1 hover:shadow-lg"><Link href={`/blog/${related.slug}`} className="block h-full"><BlogImage src={related.featured_image_url || DEFAULT_COVER} alt={related.title} className="aspect-[16/9] w-full object-cover" loading="lazy" /><div className="p-5"><p className="text-xs font-semibold text-blue-700">{formatDate(related.published_at ?? related.created_at)}</p><h3 className="mt-2 text-lg font-extrabold leading-snug text-slate-900">{related.title}</h3><p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-600">{related.excerpt}</p><span className="mt-4 inline-flex text-sm font-bold text-blue-700">Read article →</span></div></Link></article>)}</div></div></section>}
+      {relatedPosts.length > 0 && <section className="border-t border-slate-200 bg-white py-12 sm:py-16"><div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"><div className="mb-7 flex items-end justify-between gap-4"><div><p className="text-xs font-extrabold uppercase tracking-[0.16em] text-blue-700">Keep exploring</p><h2 className="mt-2 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">More useful reads</h2></div><Link href="/blog" className="text-sm font-bold text-blue-700 hover:underline">All articles →</Link></div><div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{relatedPosts.map((related) => <article key={related.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white transition hover:-translate-y-1 hover:shadow-lg"><Link href={`/blog/${related.slug}`} className="block h-full"><div className="relative aspect-[16/9] overflow-hidden"><BlogImage src={related.featured_image_url || DEFAULT_COVER} alt={related.title} className="h-full w-full object-cover" loading="lazy" /></div><div className="p-5"><p className="text-xs font-semibold text-blue-700">{formatDate(related.published_at ?? related.created_at)}</p><h3 className="mt-2 text-lg font-extrabold leading-snug text-slate-900">{related.title}</h3><p className="mt-2 line-clamp-3 text-sm leading-6 text-slate-600">{related.excerpt}</p><span className="mt-4 inline-flex text-sm font-bold text-blue-700">Read article →</span></div></Link></article>)}</div></div></section>}
 
       <footer className="bg-slate-950 py-8 text-center text-sm text-slate-400"><p>Made for local business growth. <Link href="/" className="font-bold text-white hover:text-blue-300">Discover Twimzi</Link></p></footer>
     </article>
