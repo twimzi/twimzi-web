@@ -112,10 +112,10 @@ export const metadata: Metadata = {
     description: siteConfig.seo.description,
     images: [
       {
-        url: "/twimzi-logo.png",
+        url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "Twimzi",
+        alt: "Twimzi — discover local businesses, products and services",
       },
     ],
   },
@@ -124,7 +124,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: siteConfig.seo.title,
     description: siteConfig.seo.description,
-    images: ["/twimzi-logo.png"],
+    images: ["/twitter-image"],
   },
 
   category: "business",
