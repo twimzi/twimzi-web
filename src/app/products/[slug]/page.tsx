@@ -119,13 +119,13 @@ export async function generateMetadata({
       description,
       type: "website",
       url: canonicalUrl,
-      images: product.thumbnail_url ? [{ url: product.thumbnail_url }] : undefined,
+      images: [{ url: product.thumbnail_url || "/twimzi-logo.png", alt: name }],
     },
     twitter: {
       card: "summary_large_image",
       title: `${name} | Twimzi`,
       description,
-      images: product.thumbnail_url ? [product.thumbnail_url] : ["/twimzi-logo.png"],
+      images: [product.thumbnail_url || "/twimzi-logo.png"],
     },
   };
 }
