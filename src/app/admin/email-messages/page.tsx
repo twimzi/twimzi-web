@@ -95,6 +95,7 @@ export default function AdminEmailMessagesPage() {
     if (tab === "compose" && audienceContacts.length === 0 && !audienceLoading) {
       void loadOptedInAudience();
     }
+    if (tab === "compose") void loadPreviouslyContacted();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
 
