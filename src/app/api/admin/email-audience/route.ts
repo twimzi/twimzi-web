@@ -14,11 +14,7 @@ export async function GET() {
     supabase.from("email_preferences").select("email,marketing_consent,unsubscribed_at"),
     supabase.from("admin_contact_bank")
       .select("full_name,company_name,email,contact_type,city,state,country,email_marketing_consent,email_unsubscribed_at,do_not_contact,archived_at")
-      .not("email", "is", null)
-      .is("archived_at", null)
-      .is("email_unsubscribed_at", null)
-      .or("do_not_contact.is.null,do_not_contact.eq.false")
-      .eq("email_marketing_consent", true),
+      .not("email", "is", null),
   ]);
   if (preferenceError || contactError) {
     return NextResponse.json({ error: "Could not verify the opted-in audience and suppression records." }, { status: 500 });
@@ -40,8 +36,9 @@ export async function GET() {
   }>();
   for (const [email, rows] of contactRowsByEmail) {
     const preference = preferenceByEmail.get(email);
+    const hasOptIn = rows.some((row) => row.email_marketing_consent === true);
     const suppressed = rows.some((row) => row.email_unsubscribed_at || row.do_not_contact || row.archived_at);
-    if (suppressed || preference?.unsubscribed_at) continue;
+    if (!hasOptIn || suppressed || preference?.unsubscribed_at) continue;
     const contact = rows[0];
     recipients.set(email, {
       email,
@@ -59,10 +56,6 @@ export async function GET() {
   for (const [email, preference] of preferenceByEmail) {
     if (recipients.has(email) || preference.marketing_consent !== true || preference.unsubscribed_at) continue;
     if (contactRowsByEmail.has(email)) continue;
-    const { data: bankMatch, error: bankError } = await supabase.from("admin_contact_bank")
-      .select("email").eq("email", email).limit(1);
-    if (bankError) return NextResponse.json({ error: "Could not verify contact suppression records." }, { status: 500 });
-    if (bankMatch?.length) continue;
     recipients.set(email, { email, name: "there", company: "", contactType: "other", city: "", state: "", country: "" });
   }
 
