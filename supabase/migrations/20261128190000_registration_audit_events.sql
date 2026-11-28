@@ -33,3 +33,7 @@ drop policy if exists registration_audit_no_update on public.registration_audit_
 create policy registration_audit_no_update on public.registration_audit_events for update to anon, authenticated using (false) with check (false);
 drop policy if exists registration_audit_no_delete on public.registration_audit_events;
 create policy registration_audit_no_delete on public.registration_audit_events for delete to anon, authenticated using (false);
+
+grant insert on public.registration_audit_events to anon, authenticated;
+grant select on public.registration_audit_events to authenticated;
+revoke update, delete on public.registration_audit_events from anon, authenticated;
