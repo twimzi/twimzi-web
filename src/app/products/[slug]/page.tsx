@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import OptimizedImage from "@/components/media/optimized-image";
 import Link from "next/link";
 import { ArrowLeft, Check, Package, Store, Tag } from "lucide-react";
 import { notFound } from "next/navigation";
