@@ -68,6 +68,10 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "www.icar.org.in",
+      },
+      {
+        protocol: "https",
         hostname: "assets.science.nasa.gov",
         pathname: "/content/dam/science/esd/eo/images/bmng/**",
       },
