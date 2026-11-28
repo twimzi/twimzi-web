@@ -91,13 +91,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       description,
       publishedTime: item.published_at,
       siteName: siteConfig.name,
-      images: item.featured_image_url ? [item.featured_image_url] : [],
+      images: [{ url: item.featured_image_url || "/images/blog-image-fallback.svg", alt: item.title }],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: item.featured_image_url ? [item.featured_image_url] : [],
+      images: [item.featured_image_url || "/images/blog-image-fallback.svg"],
     },
   };
 }
