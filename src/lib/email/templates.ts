@@ -118,7 +118,7 @@ export function renderEmailTemplate(templateKey: string, name: string, payload: 
   const body = resolveTokens(template.body, payload, name || "there");
   const ctaLabel = template.ctaLabel;
   const rawUrl = resolveTokens(template.ctaUrl, payload, name || "there");
-  const safeUrl = /^https:\/\/(www\\.)?twimzi\\.com(?:[/:?#]|$)/i.test(rawUrl) ? rawUrl : "https://www.twimzi.com";
+  const safeUrl = /^https:\/\/(www\.)?twimzi\.com(?:[/:?#]|$)/i.test(rawUrl) ? rawUrl : "https://www.twimzi.com";
   const paragraphs = body.split(/\n\n+/).map((paragraph) => {
     const lines = paragraph.split("\n");
     const isList = lines.every((line) => line.trim().startsWith("•"));
