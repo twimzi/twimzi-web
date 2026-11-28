@@ -388,18 +388,20 @@ export default function AdminEmailMessagesPage() {
                 {duplicateHistoryLoading ? <span className="text-[var(--color-text-muted)]">Checking previous campaign history…</span> : <span className="text-emerald-700">{alreadyContactedRecipients.length} previously emailed / pending address(es) are excluded by default.</span>}
                 {duplicateHistoryError && <span className="text-amber-700">{duplicateHistoryError} Server-side duplicate protection remains active.</span>}
               </div>
-              {!duplicateHistoryLoading && alreadyContactedRecipients.length > 0 && <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
+              {!duplicateHistoryLoading && <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div><p className="text-sm font-bold text-amber-950">Previously emailed / pending ({alreadyContactedRecipients.length})</p><p className="mt-1 text-xs text-amber-800">These are skipped by default. Select only the addresses you intentionally want to resend. Pending means the earlier SMTP outcome may be uncertain.</p></div>
-                  <div className="flex gap-3 text-xs font-semibold">
+                  <div><p className="text-sm font-bold text-amber-950">Previously emailed / pending ({alreadyContactedRecipients.length})</p><p className="mt-1 text-xs text-amber-800">Choose which earlier recipients to resend. Unselected addresses are skipped for this campaign. Pending means the earlier SMTP outcome may be uncertain.</p></div>
+                  {alreadyContactedRecipients.length > 0 && <div className="flex gap-3 text-xs font-semibold">
                     <button type="button" onClick={() => setResendPreviouslyContactedEmails(Array.from(new Set([...resendPreviouslyContactedEmails, ...alreadyContactedRecipients])))} className="text-[var(--color-primary)]">Select all to resend</button>
-                    <button type="button" onClick={() => setResendPreviouslyContactedEmails([])} className="text-slate-600">Skip all</button>
+                    <button type="button" onClick={() => setResendPreviouslyContactedEmails((current) => current.filter((email) => !alreadyContactedRecipients.includes(email)))} className="text-slate-600">Skip all</button>
+                  </div>}
+                </div>
+                {alreadyContactedRecipients.length > 0 ? <>
+                  <p className="mt-2 text-xs font-semibold text-amber-900">{selectedResendRecipients.length} selected to resend · {alreadyContactedRecipients.length - selectedResendRecipients.length} will be skipped</p>
+                  <div className="mt-3 max-h-48 overflow-y-auto rounded-lg border border-amber-200 bg-white">
+                    {alreadyContactedRecipients.map((email) => <label key={email} className="flex cursor-pointer items-center gap-3 border-b p-2.5 text-sm last:border-b-0 hover:bg-amber-50"><input type="checkbox" checked={resendPreviouslyContactedSet.has(email)} onChange={(event) => setResendPreviouslyContactedEmails((current) => event.target.checked ? Array.from(new Set([...current, email])) : current.filter((item) => item !== email))} className="h-4 w-4 rounded" /><span className="break-all">{email}</span><span className="ml-auto shrink-0 text-[10px] text-amber-700">{resendPreviouslyContactedSet.has(email) ? "Resend" : "Skip for now"}</span></label>)}
                   </div>
-                </div>
-                <p className="mt-2 text-xs font-semibold text-amber-900">{selectedResendRecipients.length} selected to resend · {alreadyContactedRecipients.length - selectedResendRecipients.length} will be skipped</p>
-                <div className="mt-3 max-h-48 overflow-y-auto rounded-lg border border-amber-200 bg-white">
-                  {alreadyContactedRecipients.map((email) => <label key={email} className="flex cursor-pointer items-center gap-3 border-b p-2.5 text-sm last:border-b-0 hover:bg-amber-50"><input type="checkbox" checked={resendPreviouslyContactedSet.has(email)} onChange={(event) => setResendPreviouslyContactedEmails((current) => event.target.checked ? Array.from(new Set([...current, email])) : current.filter((item) => item !== email))} className="h-4 w-4 rounded" /><span className="break-all">{email}</span><span className="ml-auto shrink-0 text-[10px] text-amber-700">{resendPreviouslyContactedSet.has(email) ? "Resend" : "Skip"}</span></label>)}
-                </div>
+                </> : <p className="mt-2 text-xs text-emerald-800">No addresses in this draft match an earlier accepted or pending campaign. All {recipients.length} unique address(es) are currently treated as new.</p>}
               </div>}
               <div className="mt-3 flex flex-wrap items-center gap-3">
                 <button type="button" onClick={loadOptedInAudience} disabled={audienceLoading} className="rounded-lg border border-[var(--color-border)] px-3 py-2 text-xs font-semibold hover:bg-gray-50 disabled:opacity-50">{audienceLoading ? "Loading opted-in contacts…" : "Load opted-in audience"}</button>
