@@ -112,7 +112,7 @@ export default function AddBusiness() {
     try {
       const supabase = createSupabaseBrowserClient();
       window.localStorage.setItem("twimzi-business-registration-draft", JSON.stringify({
-        savedAt: Date.now(), analyticsSessionId: getAnalyticsSessionId(),
+        analyticsSessionId: getAnalyticsSessionId(),
         businessName, businessType, contactName, contactEmail, leadCaptureConsent,
         addressLine1, addressLine2, landmark, city, state, country, postalCode,
         latitude, longitude, description, keywords, hashtags, phone, website,
