@@ -83,6 +83,13 @@ export default function AdminEmailMessagesPage() {
   const allFilteredAudienceSelected = filteredAudience.length > 0 && filteredAudience.every((contact) => selectedAudienceEmails.includes(contact.email));
 
   useEffect(() => {
+    if (tab === "compose" && audienceContacts.length === 0 && !audienceLoading) {
+      void loadOptedInAudience();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab]);
+
+  useEffect(() => {
     if (tab !== "history") return;
     let active = true;
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -323,7 +330,7 @@ export default function AdminEmailMessagesPage() {
                 <button type="button" onClick={loadOptedInAudience} disabled={audienceLoading} className="rounded-lg border border-[var(--color-border)] px-3 py-2 text-xs font-semibold hover:bg-gray-50 disabled:opacity-50">{audienceLoading ? "Loading opted-in contacts…" : "Load opted-in audience"}</button>
                 {audienceMessage && <span className="text-xs text-[var(--color-text-secondary)]">{audienceMessage}</span>}
               </div>
-              {audienceContacts.length > 0 && <div className="mt-4 rounded-xl border border-[var(--color-border)] bg-slate-50 p-4">
+              <div className="mt-4 rounded-xl border border-[var(--color-border)] bg-slate-50 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2"><div><p className="text-sm font-bold">Select email recipients</p><p className="mt-1 text-xs text-[var(--color-text-muted)]">{selectedAudienceEmails.length} selected from {audienceContacts.length} eligible opted-in contacts</p></div><button type="button" onClick={() => applyAudienceSelection([])} className="text-xs font-semibold text-[var(--color-primary)]">Clear selection</button></div>
                 <div className="mt-3 grid gap-2 sm:grid-cols-2">
                   <input value={audienceSearch} onChange={(event) => setAudienceSearch(event.target.value)} placeholder="Search email, name or business…" className="rounded-lg border bg-white px-3 py-2 text-sm" />
@@ -336,7 +343,7 @@ export default function AdminEmailMessagesPage() {
                 <div className="mt-2 max-h-72 overflow-y-auto rounded-lg border bg-white">
                   {filteredAudience.length ? filteredAudience.map((contact) => <label key={contact.email} className="flex cursor-pointer items-start gap-3 border-b p-3 last:border-b-0 hover:bg-teal-50/40"><input type="checkbox" checked={selectedAudienceEmails.includes(contact.email)} onChange={() => toggleAudienceEmail(contact.email)} className="mt-1 h-4 w-4 shrink-0 rounded" /><span className="min-w-0 flex-1"><span className="block break-all text-sm font-semibold">{contact.email}</span><span className="mt-0.5 block text-xs text-[var(--color-text-muted)]">{contact.name}{contact.company ? " · " + contact.company : ""} · {contact.contactType}{contact.city || contact.state || contact.country ? " · " + [contact.city, contact.state, contact.country].filter(Boolean).join(", ") : ""}</span></span></label>) : <p className="p-4 text-center text-sm text-[var(--color-text-muted)]">No opted-in contacts match these filters.</p>}
                 </div>
-              </div>}
+              </div>
               {invalidRecipients.length > 0 && <p className="mt-2 text-xs text-red-600">Invalid email(s): {invalidRecipients.slice(0, 3).join(", ")}</p>}
               {recipients.length > 500 && <p className="mt-2 text-xs text-red-600">Select no more than 500 recipients per campaign.</p>}
             </div>
