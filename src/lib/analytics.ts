@@ -11,7 +11,17 @@ export type AnalyticsEventName =
   | "signup_started"
   | "signup_completed"
   | "whatsapp_click"
-  | "cta_click";
+  | "cta_click"
+  | "ux_click"
+  | "ux_form_started"
+  | "ux_form_submitted"
+  | "ux_form_error"
+  | "ux_js_error"
+  | "ux_resource_error"
+  | "ux_page_performance"
+  | "ux_scroll_depth"
+  | "ux_outbound_click"
+  | "ux_search";
 
 type Attribution = {
   utm_source?: string;
@@ -25,6 +35,19 @@ type EventExtras = {
   cta_label?: string;
   destination_host?: string;
   step_name?: string;
+  element_type?: string;
+  element_label?: string;
+  form_id?: string;
+  error_message?: string;
+  error_name?: string;
+  error_code?: string;
+  metric_name?: string;
+  metric_value?: number;
+  duration_ms?: number;
+  scroll_depth?: number;
+  target_path?: string;
+  input_type?: string;
+  status_code?: number;
 };
 
 const SESSION_KEY = "twimzi:analytics-session:v1";
@@ -114,6 +137,19 @@ export async function trackAnalyticsEvent(
         ? { destination_host: clean(extras.destination_host, 160) }
         : {}),
       ...(extras.step_name ? { step_name: clean(extras.step_name, 80) } : {}),
+      ...(extras.element_type ? { element_type: clean(extras.element_type, 40) } : {}),
+      ...(extras.element_label ? { element_label: clean(extras.element_label, 100) } : {}),
+      ...(extras.form_id ? { form_id: clean(extras.form_id, 100) } : {}),
+      ...(extras.error_message ? { error_message: clean(extras.error_message.replace(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/g, "[email]").replace(/(password|token|authorization|access_token|refresh_token)\s*[:=]\s*[^\s,;]+/gi, "$1=[redacted]"), 300) } : {}),
+      ...(extras.error_name ? { error_name: clean(extras.error_name, 100) } : {}),
+      ...(extras.error_code ? { error_code: clean(extras.error_code, 80) } : {}),
+      ...(extras.metric_name ? { metric_name: clean(extras.metric_name, 40) } : {}),
+      ...(typeof extras.metric_value === "number" && Number.isFinite(extras.metric_value) ? { metric_value: extras.metric_value } : {}),
+      ...(typeof extras.duration_ms === "number" && Number.isFinite(extras.duration_ms) ? { duration_ms: extras.duration_ms } : {}),
+      ...(typeof extras.scroll_depth === "number" ? { scroll_depth: extras.scroll_depth } : {}),
+      ...(extras.target_path ? { target_path: clean(extras.target_path, 200) } : {}),
+      ...(extras.input_type ? { input_type: clean(extras.input_type, 40) } : {}),
+      ...(typeof extras.status_code === "number" ? { status_code: extras.status_code } : {}),
     };
 
     const supabase = createSupabaseBrowserClient();
