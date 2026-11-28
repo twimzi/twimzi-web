@@ -18,13 +18,13 @@ export async function GET(request: Request) {
   const q = (params.get("q") || "").trim().slice(0, 120);
   const status = params.get("status") || "all";
   let query = auth.supabase.from("support_tickets")
-    .select("id,ticket_number,profile_id,business_id,category,priority,status,subject,description,assigned_to,resolution,metadata,resolved_at,closed_at,created_at,updated_at,requester:profiles!support_tickets_profile_id_fkey(full_name,email,phone),assignee:profiles!support_tickets_assigned_to_fkey(full_name)")
+    .select("id,ticket_number,profile_id,business_id,category,priority,status,subject,description,assigned_to,resolution,metadata,resolved_at,closed_at,created_at,updated_at")
     .order("created_at", { ascending: false }).limit(300);
   if (status !== "all" && statuses.includes(status as typeof statuses[number])) query = query.eq("status", status);
   if (q) { const safe = q.replace(/[,%()]/g, " "); query = query.or("subject.ilike.%"+safe+"%,ticket_number.ilike.%"+safe+"%,description.ilike.%"+safe+"%"); }
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: "Could not load support submissions." }, { status: 500 });
-  return NextResponse.json({ tickets: data || [] });
+  return NextResponse.json({ tickets: (data || []).map((ticket) => ({ ...ticket, requester: { full_name: typeof ticket.metadata?.name === "string" ? ticket.metadata.name : null, email: typeof ticket.metadata?.email === "string" ? ticket.metadata.email : null, phone: null } })) });
 }
 export async function PATCH(request: Request) {
   const auth = await getAdmin();
