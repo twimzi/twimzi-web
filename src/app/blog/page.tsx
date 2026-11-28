@@ -29,8 +29,7 @@ type BlogPost = {
   created_at: string;
 };
 
-const DEFAULT_COVER =
-  "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1400&q=85";
+const DEFAULT_COVER = "/images/blog-image-fallback.svg";
 
 function getPublicClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
