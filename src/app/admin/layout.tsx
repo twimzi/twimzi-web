@@ -28,6 +28,7 @@ const sections = [
     "Growth",
     [
       ["Analytics", "/admin/analytics"],
+      ["User Experience Monitor", "/admin/user-experience"],
       ["Analytics Integrations", "/admin/integrations"],
       ["SEO", "/admin/seo"],
       ["Growth Dashboard", "/admin/growth"],
