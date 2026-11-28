@@ -154,7 +154,14 @@ export default function AdminEmailMessagesPage() {
         }
         accepted += Number(result.sent || 0);
         failed += Number(result.failed || 0) + Number(result.suppressed || 0);
-        setStatus({ kind: "success", text: "Sending batch " + (index + 1) + " of " + batches.length + ". " + accepted + " accepted so far." });
+        const diagnosticLines = [
+          ...(Array.isArray(result.failedRecipients) ? result.failedRecipients.map((item: { email: string; reason: string }) => "SMTP failed — " + item.email + ": " + item.reason) : []),
+          ...(Array.isArray(result.suppressedRecipients) ? result.suppressedRecipients.map((item: { email: string; reason: string }) => "Suppressed — " + item.email + ": " + item.reason) : []),
+        ];
+        setStatus({
+          kind: diagnosticLines.length ? "error" : "success",
+          text: "Batch " + (index + 1) + " of " + batches.length + ": " + Number(result.sent || 0) + " accepted, " + Number(result.failed || 0) + " SMTP failed, " + Number(result.suppressed || 0) + " suppressed." + (diagnosticLines.length ? "\\n" + diagnosticLines.join("\\n") : ""),
+        });
       }
       setStatus({ kind: failed ? "error" : "success", text: accepted + " of " + recipients.length + " emails accepted by Hostinger SMTP. " + failed + " failed or suppressed across " + batches.length + " batch(es)." });
     } catch (error) {
@@ -366,7 +373,7 @@ export default function AdminEmailMessagesPage() {
               <button type="submit" disabled={sending || !consentConfirmed || !recipients.length || invalidRecipients.length > 0 || recipients.length > 500 || !subject.trim() || !body.trim()} className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-5 py-3 text-sm font-bold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50">{sending ? "Sending…" : <><Send size={17} /> Send campaign <ChevronRight size={16} /></>}</button>
             </div>
             {preview && <div className="rounded-xl border border-[var(--color-border)] bg-gray-50 p-5"><p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">Email preview · plain text</p><p className="mt-3 text-sm"><strong>Subject:</strong> {subject}</p><div className="my-3 border-t border-[var(--color-border)]" /><p className="whitespace-pre-wrap text-sm leading-6">{body.replaceAll("{{name}}", "there")}</p></div>}
-            {status && <div role="status" className={`flex items-start gap-2 rounded-xl p-4 text-sm ${status.kind === "success" ? "bg-emerald-50 text-emerald-800" : "bg-red-50 text-red-800"}`}>{status.kind === "success" ? <CheckCircle2 size={18} className="mt-0.5 shrink-0" /> : <AlertCircle size={18} className="mt-0.5 shrink-0" />}<span>{status.text}</span></div>}
+            {status && <div role="status" className={`flex items-start gap-2 rounded-xl p-4 text-sm ${status.kind === "success" ? "bg-emerald-50 text-emerald-800" : "bg-red-50 text-red-800"}`}>{status.kind === "success" ? <CheckCircle2 size={18} className="mt-0.5 shrink-0" /> : <AlertCircle size={18} className="mt-0.5 shrink-0" />}<span className="whitespace-pre-wrap">{status.text}</span></div>}
           </div>
           <aside className="space-y-4">
             <div className="rounded-2xl border border-[var(--color-border)] bg-white p-5">
