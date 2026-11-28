@@ -47,6 +47,12 @@ export async function GET(request: Request) {
   let query = auth.supabase.from("admin_contact_bank").select("*", { count: "exact" }).order("created_at", { ascending: false }).order("id", { ascending: false });
   query = includeArchived ? query.not("archived_at", "is", null) : query.is("archived_at", null);
   if (sourceType && sourceType !== "all") query = query.eq("source_type", sourceType);
+  const contactTypes = (url.searchParams.get("contactTypes") || "").split(",").filter((value) => ["business","manufacturer","trader","professional","supplier","customer","partner","other"].includes(value));
+  if (contactTypes.length) query = query.in("contact_type", contactTypes);
+  const emailConsent = url.searchParams.get("emailConsent");
+  if (emailConsent === "true" || emailConsent === "false") query = query.eq("email_marketing_consent", emailConsent === "true");
+  const whatsappConsent = url.searchParams.get("whatsappConsent");
+  if (whatsappConsent === "true" || whatsappConsent === "false") query = query.eq("whatsapp_marketing_consent", whatsappConsent === "true");
   if (q) query = query.or(`full_name.ilike.%${q.replace(/[,%()]/g, " ")}%,company_name.ilike.%${q.replace(/[,%()]/g, " ")}%,email.ilike.%${q.replace(/[,%()]/g, " ")}%,phone.ilike.%${q.replace(/[,%()]/g, " ")}%`);
   const { data, error, count } = await query.range(from, from + pageSize - 1);
   if (error) return NextResponse.json({ error: "Could not load contacts." }, { status: 500 });
@@ -76,6 +82,28 @@ export async function PATCH(request: Request) {
   if ("error" in auth) return auth.error;
   try {
     const payload = await request.json();
+    if (payload.action === "bulk-consent") {
+      const ids = Array.isArray(payload.ids) ? Array.from(new Set(payload.ids.filter((id: unknown): id is string => typeof id === "string" && /^[0-9a-f-]{36}$/i.test(id)))).slice(0, 500) : [];
+      const changes = payload.changes && typeof payload.changes === "object" ? payload.changes as Record<string, unknown> : {};
+      const hasEmail = typeof changes.email_marketing_consent === "boolean";
+      const hasWhatsapp = typeof changes.whatsapp_marketing_consent === "boolean";
+      if (!ids.length || (!hasEmail && !hasWhatsapp)) return NextResponse.json({ error: "Select contacts and at least one consent change." }, { status: 400 });
+      const update: Record<string, unknown> = { updated_by: auth.user.id, updated_at: new Date().toISOString() };
+      if (hasEmail) {
+        update.email_marketing_consent = changes.email_marketing_consent;
+        update.email_consent_at = changes.email_marketing_consent ? new Date().toISOString() : null;
+      }
+      if (hasWhatsapp) {
+        update.whatsapp_marketing_consent = changes.whatsapp_marketing_consent;
+        update.whatsapp_consent_at = changes.whatsapp_marketing_consent ? new Date().toISOString() : null;
+      }
+      let bulkQuery = auth.supabase.from("admin_contact_bank").update(update).in("id", ids).is("archived_at", null).eq("do_not_contact", false);
+      if (hasEmail && changes.email_marketing_consent === true) bulkQuery = bulkQuery.is("email_unsubscribed_at", null).not("email", "is", null);
+      if (hasWhatsapp && changes.whatsapp_marketing_consent === true) bulkQuery = bulkQuery.is("whatsapp_opted_out_at", null).not("phone", "is", null);
+      const { data, error } = await bulkQuery.select("id");
+      if (error) return NextResponse.json({ error: "Bulk consent update failed." }, { status: 500 });
+      return NextResponse.json({ updated: data?.length || 0, skipped: ids.length - (data?.length || 0) });
+    }
     const id = clean(payload.id, 80);
     if (!id) return NextResponse.json({ error: "Contact ID is required." }, { status: 400 });
     const record = normalize(payload);
