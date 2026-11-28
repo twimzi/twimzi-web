@@ -70,7 +70,12 @@ export default function AdminEmailMessagesPage() {
   const [mailboxPage, setMailboxPage] = useState(1);
   const [selectedMessage, setSelectedMessage] = useState<MailboxMessage | null>(null);
 
-  const recipients = useMemo(() => Array.from(new Set(recipientsText.split(/[\s,;]+/).map((x) => x.trim().toLowerCase()).filter(Boolean))), [recipientsText]);
+  const rawRecipientEmails = useMemo(() => recipientsText.split(/[\\s,;]+/).map((x) => x.trim().toLowerCase()).filter(Boolean), [recipientsText]);
+  const recipients = useMemo(() => Array.from(new Set(rawRecipientEmails)), [rawRecipientEmails]);
+  const duplicateRecipientCount = rawRecipientEmails.length - recipients.length;
+  const previouslyContactedSet = useMemo(() => new Set(previouslyContactedEmails), [previouslyContactedEmails]);
+  const alreadyContactedRecipients = useMemo(() => recipients.filter((email) => previouslyContactedSet.has(email)), [recipients, previouslyContactedSet]);
+  const campaignRecipients = useMemo(() => recipients.filter((email) => !previouslyContactedSet.has(email)), [recipients, previouslyContactedSet]);
   const selectedTemplate = templates.find((item) => item.id === templateId);
   const invalidRecipients = recipients.filter((email) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
   const filteredAudience = useMemo(() => {
