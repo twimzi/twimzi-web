@@ -68,14 +68,31 @@ function escapeEmailHtml(value: string) {
 }
 
 function buildBrandedHtml(subject: string, body: string, ctaLabel?: string, ctaUrl?: string) {
-  const paragraphs = body.split(/\n\n+/).map((part) =>
-    '<p style="margin:0 0 18px;color:#475569;font-size:15px;line-height:1.8">' +
-    part.split("\n").map(escapeEmailHtml).join("<br>") + "</p>"
-  ).join("");
+  const paragraphs = body.split(/\\n\\n+/).map((part) => {
+    const lines = part.split("\\n");
+    const isList = lines.every((line) => line.trim().startsWith("•"));
+    if (isList) {
+      return '<ul style="margin:0 0 20px;padding-left:22px;color:#475569;font-size:15px;line-height:1.85">' +
+        lines.map((line) => '<li style="padding:2px 0">' + escapeEmailHtml(line.replace(/^\\s*•\\s*/, "")) + "</li>").join("") + "</ul>";
+    }
+    return '<p style="margin:0 0 18px;color:#475569;font-size:15px;line-height:1.85">' +
+      lines.map(escapeEmailHtml).join("<br>") + "</p>";
+  }).join("");
   const cta = ctaLabel && ctaUrl
-    ? '<table role="presentation" cellspacing="0" cellpadding="0" style="margin:26px 0 24px"><tr><td bgcolor="#0d9488" style="border-radius:9px"><a href="' + escapeEmailHtml(ctaUrl) + '" style="display:inline-block;padding:14px 22px;color:#fff;font-size:14px;font-weight:700;text-decoration:none">' + escapeEmailHtml(ctaLabel) + '</a></td></tr></table>'
-    : '';
-  return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:32px 12px;background:#f1f5f9"><tr><td align="center"><table role="presentation" width="600" cellspacing="0" cellpadding="0" style="width:100%;max-width:600px;background:#fff;border-radius:16px;overflow:hidden"><tr><td style="padding:24px 32px;background:#0d9488;color:#fff;font-size:25px;font-weight:800">twimzi</td></tr><tr><td style="padding:34px 32px"><h1 style="margin:0 0 22px;color:#0f172a;font-size:22px">' + escapeEmailHtml(subject) + '</h1>' + paragraphs + cta + '<p style="margin-top:28px;color:#64748b;font-size:12px">© ' + new Date().getFullYear() + ' Twimzi · <a href="https://www.twimzi.com" style="color:#0d9488">www.twimzi.com</a></p></td></tr></table></td></tr></table></body></html>';
+    ? '<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:28px 0 26px"><tr><td align="center" bgcolor="#0d9488" style="border-radius:10px"><a href="' + escapeEmailHtml(ctaUrl) + '" style="display:inline-block;padding:15px 25px;color:#ffffff;font-size:14px;font-weight:700;letter-spacing:.2px;text-decoration:none;border-radius:10px">' + escapeEmailHtml(ctaLabel) + '</a></td></tr></table>'
+    : "";
+  const logo = "https://www.twimzi.com/twimzi-logo.png";
+  return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="x-apple-disable-message-reformatting"><title>' + escapeEmailHtml(subject) + '</title></head>' +
+    '<body style="margin:0;padding:0;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif;color:#0f172a;-webkit-text-size-adjust:100%">' +
+    '<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent">' + escapeEmailHtml(subject) + ' — Discover. Connect. Grow.</div>' +
+    '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f1f5f9;padding:28px 12px"><tr><td align="center">' +
+    '<table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:600px;background:#ffffff;border-radius:18px;overflow:hidden">' +
+    '<tr><td align="center" style="padding:22px 28px;background:#ffffff;border-bottom:1px solid #e2e8f0"><a href="https://www.twimzi.com" style="text-decoration:none"><img src="' + logo + '" width="156" alt="Twimzi" style="display:block;width:156px;max-width:60%;height:auto;border:0;outline:none;text-decoration:none"></a></td></tr>' +
+    '<tr><td style="padding:0;background:#0d9488"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td style="padding:27px 32px 29px"><p style="margin:0 0 9px;color:#ccfbf1;font-size:11px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase">DISCOVER · CONNECT · GROW</p><h1 style="margin:0;color:#ffffff;font-size:25px;line-height:1.3;font-weight:700">' + escapeEmailHtml(subject) + '</h1></td></tr></table></td></tr>' +
+    '<tr><td style="padding:32px 32px 30px">' + paragraphs + cta +
+    '<p style="margin:24px 0 0;color:#64748b;font-size:13px;line-height:1.7">We’re here to help. Visit <a href="https://www.twimzi.com" style="color:#0d9488;font-weight:700;text-decoration:none">Twimzi.com</a> to explore more.</p></td></tr>' +
+    '<tr><td style="padding:22px 32px;background:#f8fafc;border-top:1px solid #e2e8f0"><p style="margin:0 0 8px;color:#334155;font-size:12px;font-weight:700">Twimzi — Digital Operating System for Every Local Business</p><p style="margin:0;color:#64748b;font-size:11px;line-height:1.7">You are receiving this email because of activity related to your Twimzi account or business listing, or because you opted in to receive updates. Please use the unsubscribe link in marketing emails to change your preferences.</p><p style="margin:12px 0 0;color:#94a3b8;font-size:11px">© ' + new Date().getFullYear() + ' Twimzi · <a href="https://www.twimzi.com" style="color:#0d9488;text-decoration:none">www.twimzi.com</a></p></td></tr>' +
+    '</table></td></tr></table></body></html>';
 }
 
 async function sendViaHostinger(to: string, subject: string, body: string, html: string) {
