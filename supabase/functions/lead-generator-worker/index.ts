@@ -217,6 +217,10 @@ async function fetchJson(url: URL) {
   if (!type.includes("application/json") && !type.includes("+json")) throw new Error("Source did not return JSON.");
   return { status: response.status, body: await readBounded(response) };
 }
+function createAdminClient(url: string, key: string) {
+  return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+}
+
 function normalizeName(value: unknown) {
   return (normalizeText(value, 200) ?? "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 }
@@ -261,7 +265,7 @@ async function fetchHtmlPage(url:URL) {
   if(!type.includes("text/html")&&!type.includes("application/xhtml+xml"))throw new Error("Website page is not HTML.");
   return await readBounded(response);
 }
-async function enrichWebsiteLeads(admin: any) {
+async function enrichWebsiteLeads(admin: ReturnType<typeof createAdminClient>) {
   const cutoff=new Date(Date.now()-30*24*60*60*1000).toISOString();
   const {data:rows,error}=await admin.from("admin_contact_bank").select("id,full_name,company_name,email,phone,website,source_last_checked_at,notes")
     .eq("source_type","lead_generator").not("website","is",null)
@@ -324,7 +328,7 @@ Deno.serve(async (request) => {
   }
   if (!adminAuthorized) return json({ error: "Unauthorized: a verified Super Admin session is required." }, 401);
 
-  const admin = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
+  const admin = createAdminClient(supabaseUrl, serviceKey);
   let requestBody: JsonRecord = {};
   try { const parsed = await request.json(); if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) requestBody = parsed as JsonRecord; } catch { return json({ error: "Request body must be valid JSON." }, 400); }
   if (requestBody.action === "enrich_websites") {
