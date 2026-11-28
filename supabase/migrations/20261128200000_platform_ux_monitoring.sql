@@ -5,7 +5,7 @@ for insert to anon
 with check (
   event_name = any (array[
     'page_view','business_registration_viewed','business_registration_started',
-    'business_registration_submitted','business_registration_auth_required',
+    'business_registration_submitted','business_registration_auth_required','business_registration_auth_failed',
     'signup_started','signup_completed','whatsapp_click','cta_click',
     'ux_click','ux_form_started','ux_form_submitted','ux_form_error',
     'ux_js_error','ux_resource_error','ux_page_performance','ux_scroll_depth',
