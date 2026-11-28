@@ -63,6 +63,10 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "images.unsplash.com",
+      },
+      {
+        protocol: "https",
         hostname: "assets.science.nasa.gov",
         pathname: "/content/dam/science/esd/eo/images/bmng/**",
       },
