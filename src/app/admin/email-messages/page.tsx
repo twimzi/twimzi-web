@@ -140,7 +140,7 @@ export default function AdminEmailMessagesPage() {
     setStatus(null);
     let accepted = 0;
     let failed = 0;
-    const batches = Array.from({ length: Math.ceil(recipients.length / 25) }, (_, index) => recipients.slice(index * 25, (index + 1) * 25));
+    const batches = Array.from({ length: Math.ceil(recipients.length / 1) }, (_, index) => recipients.slice(index, index + 1));
     try {
       for (let index = 0; index < batches.length; index++) {
         const response = await fetch("/api/admin/send-email", {
@@ -345,7 +345,7 @@ export default function AdminEmailMessagesPage() {
             <div>
               <label htmlFor="recipients" className="mb-2 flex items-center gap-2 text-sm font-semibold"><Users size={16} /> Recipients</label>
               <textarea id="recipients" value={recipientsText} onChange={(e) => setRecipientsText(e.target.value)} required rows={4} placeholder={"business@example.com\ncontact@example.com"} className="w-full rounded-xl border border-[var(--color-border)] px-4 py-3 text-sm outline-none focus:border-[var(--color-primary)]" />
-              <div className="mt-2 flex justify-between gap-3 text-xs text-[var(--color-text-muted)]"><span>{recipients.length} unique recipient(s) · sent in batches of 25 (maximum 500)</span><span>Separate with commas or new lines</span></div>
+              <div className="mt-2 flex justify-between gap-3 text-xs text-[var(--color-text-muted)]"><span>{recipients.length} unique recipient(s) · sent one recipient per request (maximum 500)</span><span>Separate with commas or new lines</span></div>
               <div className="mt-3 flex flex-wrap items-center gap-3">
                 <button type="button" onClick={loadOptedInAudience} disabled={audienceLoading} className="rounded-lg border border-[var(--color-border)] px-3 py-2 text-xs font-semibold hover:bg-gray-50 disabled:opacity-50">{audienceLoading ? "Loading opted-in contacts…" : "Load opted-in audience"}</button>
                 {audienceMessage && <span className="text-xs text-[var(--color-text-secondary)]">{audienceMessage}</span>}
