@@ -16,6 +16,7 @@ export const metadata: Metadata = {
     url: "/blog",
     title: "Twimzi Blog — Small Business Tips & Local Guides",
     description: "Practical guides for local businesses, shoppers and service seekers.",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Twimzi business guides and local discovery" }],
   },
 };
 
