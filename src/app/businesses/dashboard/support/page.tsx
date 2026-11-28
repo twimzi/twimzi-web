@@ -44,7 +44,7 @@ export default function BusinessSupportPage() {
     finally {setLoading(false);}
   },[supabase]);
 
-  useEffect(()=>{void load();},[load]);
+  useEffect(()=>{void Promise.resolve().then(()=>load());},[load]);
 
   async function submit(event:FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -75,7 +75,7 @@ export default function BusinessSupportPage() {
       <div>
         <Link href="/businesses/dashboard" className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-[var(--color-text-secondary)] hover:text-[var(--color-primary)]"><ArrowLeft size={16}/> Back to Business Dashboard</Link>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div><p className="text-sm font-semibold text-[var(--color-primary)]">We're here to help</p><h1 className="mt-1 text-3xl font-extrabold tracking-tight text-[var(--color-text)]">Business Support</h1><p className="mt-2 text-sm text-[var(--color-text-secondary)]">{business ? "Support for " + business.business_name : "Get help with your Twimzi business profile."}</p></div>
+          <div><p className="text-sm font-semibold text-[var(--color-primary)]">We&apos;re here to help</p><h1 className="mt-1 text-3xl font-extrabold tracking-tight text-[var(--color-text)]">Business Support</h1><p className="mt-2 text-sm text-[var(--color-text-secondary)]">{business ? "Support for " + business.business_name : "Get help with your Twimzi business profile."}</p></div>
           <button onClick={()=>void load()} disabled={loading} className="inline-flex items-center justify-center gap-2 rounded-xl border border-[var(--color-border)] bg-white px-4 py-2.5 text-sm font-semibold text-[var(--color-text)] disabled:opacity-50"><RefreshCw size={16}/> Refresh requests</button>
         </div>
       </div>
