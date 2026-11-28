@@ -60,7 +60,21 @@ function encodeSubject(value: string) {
 
 
 
-async function sendViaHostinger(to: string, subject: string, body: string) {
+function escapeEmailHtml(value: string) {
+  return value.replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;",
+  })[character] || character);
+}
+
+function buildBrandedHtml(subject: string, body: string) {
+  const paragraphs = body.split(/\\n\\n+/).map((part) =>
+    "<p style=\\"margin:0 0 18px;color:#475569;font-size:15px;line-height:1.8\\">" +
+    part.split("\\n").map(escapeEmailHtml).join("<br>") + "</p>"
+  ).join("");
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:32px 12px;background:#f1f5f9"><tr><td align="center"><table role="presentation" width="600" cellspacing="0" cellpadding="0" style="width:100%;max-width:600px;background:#fff;border-radius:16px;overflow:hidden"><tr><td style="padding:24px 32px;background:#0d9488;color:#fff;font-size:25px;font-weight:800">twimzi</td></tr><tr><td style="padding:34px 32px"><h1 style="margin:0 0 22px;color:#0f172a;font-size:22px">${escapeEmailHtml(subject)}</h1>${paragraphs}<p style="margin-top:28px;color:#64748b;font-size:12px">© ${new Date().getFullYear()} Twimzi · <a href="https://www.twimzi.com" style="color:#0d9488">www.twimzi.com</a></p></td></tr></table></td></tr></table></body></html>`;
+}
+
+async function sendViaHostinger(to: string, subject: string, body: string, html: string) {
   const host = process.env.HOSTINGER_SMTP_HOST;
   const port = Number(process.env.HOSTINGER_SMTP_PORT || "465");
   const user = process.env.HOSTINGER_SMTP_USER;
@@ -95,18 +109,29 @@ async function sendViaHostinger(to: string, subject: string, body: string) {
     await expect(connection, ["250", "251"]);
     connection.write("DATA\r\n");
     await expect(connection, ["354"]);
+    const boundary = "twimzi-alt-" + Date.now().toString(16) + "-" + Buffer.from(to).toString("hex").slice(0, 12);
+    const encodePart = (value: string) => Buffer.from(value, "utf8").toString("base64").replace(/.{1,76}/g, "$&\\r\\n").trimEnd();
     const message = [
       "From: " + encodeHeader(from),
       "To: " + encodeHeader(to),
       "Subject: " + encodeSubject(subject),
       "MIME-Version: 1.0",
+      "Content-Type: multipart/alternative; boundary=\\""+boundary+"\\"",
+      "",
+      "--" + boundary,
       "Content-Type: text/plain; charset=UTF-8",
       "Content-Transfer-Encoding: base64",
       "",
-      Buffer.from(body, "utf8").toString("base64").replace(/.{1,76}/g, "$&\r\n").trimEnd(),
+      encodePart(body),
+      "--" + boundary,
+      "Content-Type: text/html; charset=UTF-8",
+      "Content-Transfer-Encoding: base64",
+      "",
+      encodePart(html),
+      "--" + boundary + "--",
       ".",
       "",
-    ].join("\r\n");
+    ].join("\\r\\n");
     connection.write(message + "\r\n");
     await expect(connection, ["250"]);
     // A 250 response after DATA means the SMTP server accepted the message.
@@ -145,13 +170,15 @@ export async function POST(request: Request) {
     }
     const subject = typeof payload.subject === "string" ? payload.subject.trim() : "";
     const body = typeof payload.body === "string" ? payload.body.trim() : "";
+    const suppliedHtml = typeof payload.html === "string" ? payload.html.trim() : "";
     const campaignName = typeof payload.campaignName === "string" ? payload.campaignName.trim().slice(0, 120) : "Email campaign";
     if (!subject || subject.length > 200 || /[\r\n]/.test(subject)) {
       return NextResponse.json({ error: "Enter a subject of up to 200 characters." }, { status: 400 });
     }
-    if (!body || body.length > 20000) {
-      return NextResponse.json({ error: "Enter a message up to 20,000 characters." }, { status: 400 });
+    if (!body || body.length > 20000 || suppliedHtml.length > 60000) {
+      return NextResponse.json({ error: "Enter a message up to 20,000 characters and HTML up to 60,000 characters." }, { status: 400 });
     }
+    const html = suppliedHtml || buildBrandedHtml(subject, body);
 
     const campaignType = payload.campaignType === "transactional" ? "transactional" : "marketing";
     const unsubscribeSecret = process.env.EMAIL_UNSUBSCRIBE_SECRET || process.env.EMAIL_AUTOMATION_CRON_SECRET;
@@ -230,7 +257,7 @@ export async function POST(request: Request) {
           const site = (process.env.NEXT_PUBLIC_SITE_URL || "https://www.twimzi.com").replace(/\/$/, "");
           personalizedBody += "\n\n---\nTo stop receiving Twimzi marketing emails, unsubscribe here: " + site + "/api/email/unsubscribe?email=" + encodeURIComponent(recipient) + "&token=" + token;
         }
-        await sendViaHostinger(recipient, subject, personalizedBody);
+        await sendViaHostinger(recipient, subject, personalizedBody, html);
         sent += 1;
         await supabase.from("email_campaign_recipients").update({ status: "accepted", accepted_at: new Date().toISOString(), provider_message: "Accepted by Hostinger SMTP" }).eq("campaign_id", campaign.id).eq("email", recipient);
       } catch (error) {
