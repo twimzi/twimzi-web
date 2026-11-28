@@ -176,6 +176,33 @@ async function sendViaHostinger(to: string, subject: string, body: string, html:
   }
 }
 
+export async function GET() {
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Please sign in." }, { status: 401 });
+    const { data: isSuperAdmin, error: roleError } = await supabase.rpc("is_super_admin");
+    if (roleError || isSuperAdmin !== true) return NextResponse.json({ error: "Super Admin access required." }, { status: 403 });
+
+    const { data, error } = await supabase
+      .from("email_campaign_recipients")
+      .select("email")
+      .in("status", ["accepted", "queued"])
+      .order("created_at", { ascending: false })
+      .limit(10000);
+    if (error) {
+      console.error("[admin/send-email] duplicate history lookup failed", error.message);
+      return NextResponse.json({ error: "Previously emailed contacts could not be checked." }, { status: 500 });
+    }
+    const previouslyContacted = Array.from(new Set((data ?? [])
+      .map((row) => String(row.email || "").trim().toLowerCase())
+      .filter(Boolean)));
+    return NextResponse.json({ previouslyContacted });
+  } catch (error) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Could not check email history." }, { status: 500 });
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const internalSecret = process.env.EMAIL_AUTOMATION_CRON_SECRET;
@@ -242,6 +269,32 @@ export async function POST(request: Request) {
     if (campaignError || !campaign) {
       console.error("[admin/send-email] campaign log insert failed", campaignError?.message);
       return NextResponse.json({ error: "Campaign history could not be saved. No email was sent." }, { status: 500 });
+    }
+
+    const { data: priorDelivery, error: priorDeliveryError } = await supabase
+      .from("email_campaign_recipients")
+      .select("status")
+      .eq("email", recipients[0])
+      .in("status", ["accepted", "queued"])
+      .limit(1)
+      .maybeSingle();
+    if (priorDeliveryError) {
+      await supabase.from("email_campaigns").update({ status: "failed", failed_count: recipients.length, completed_at: new Date().toISOString() }).eq("id", campaign.id);
+      return NextResponse.json({ error: "Duplicate email history could not be checked. No email was sent." }, { status: 500 });
+    }
+    if (priorDelivery) {
+      const reason = priorDelivery.status === "accepted"
+        ? "Already accepted by Hostinger SMTP in an earlier campaign."
+        : "A previous campaign still has this address queued; delivery is treated as uncertain to prevent duplicates.";
+      await supabase.from("email_campaign_recipients").insert({
+        campaign_id: campaign.id, email: recipients[0], status: "suppressed", error_message: reason
+      });
+      await supabase.from("email_campaigns").update({ status: "completed", accepted_count: 0, failed_count: 1, completed_at: new Date().toISOString() }).eq("id", campaign.id);
+      return NextResponse.json({
+        ok: true, campaignId: campaign.id, sent: 0, failed: 0, suppressed: 1,
+        suppressedRecipients: [{ email: recipients[0], reason }],
+        message: "Duplicate skipped. This email address was already accepted or is pending from an earlier campaign."
+      }, { status: 207 });
     }
 
     const { data: preferences, error: preferenceError } = await supabase
