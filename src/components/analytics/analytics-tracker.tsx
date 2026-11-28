@@ -168,7 +168,7 @@ export function AnalyticsTracker() {
       void trackAnalyticsEvent("ux_resource_error", {
         element_type: target.tagName.toLowerCase(),
         target_path: (() => {
-          try { return new URL(target.src || target.href, window.location.origin).pathname.slice(0, 200); } catch { return undefined; }
+          try { const resourceUrl = target instanceof HTMLLinkElement ? target.href : target.src; return new URL(resourceUrl, window.location.origin).pathname.slice(0, 200); } catch { return undefined; }
         })(),
         error_message: "Page resource failed to load",
       });
