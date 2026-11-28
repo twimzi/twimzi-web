@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 type PageRow = { path: string; views: number };
@@ -47,7 +47,7 @@ function Metric({ label, value, note, alert = false }: { label: string; value: n
 }
 
 export default function AdminUserExperiencePage() {
-  const supabase = useMemo(() => createSupabaseBrowserClient(), []);
+  const supabase = createSupabaseBrowserClient();
   const [data, setData] = useState<MonitorData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
