@@ -19,6 +19,7 @@ export const metadata: Metadata = {
     url: "/news",
     title: "Twimzi Business News & Insights",
     description: "Important business developments, explained with original source links.",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Twimzi business news and insights" }],
   },
 };
 
