@@ -3,13 +3,9 @@
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { AlertCircle, CheckCircle2, ChevronRight, Clock3, Copy, Eye, Mail, Send, Users, WandSparkles } from "lucide-react";
+import { EMAIL_TEMPLATE_LIBRARY } from "@/lib/email/templates";
 
-const templates = [
-  { id: "invite", label: "Business invitation", category: "Acquisition", subject: "Get your business discovered on Twimzi", body: "Hello {{name}},\n\nWe’re introducing Twimzi — a platform to help local businesses grow their online presence.\n\nCreate your business profile, showcase your products and services, and help more customers discover you.\n\nRegister here: https://www.twimzi.com\n\nWe look forward to welcoming your business to Twimzi.\n\nRegards,\nTeam Twimzi" },
-  { id: "products", label: "Add products", category: "Activation", subject: "Showcase your products on Twimzi", body: "Hello {{name}},\n\nHelp customers discover what your business offers by adding your products and services to your Twimzi profile.\n\nVisit https://www.twimzi.com to get started.\n\nRegards,\nTeam Twimzi" },
-  { id: "profile", label: "Complete profile", category: "Activation", subject: "Complete your Twimzi business profile", body: "Hello {{name}},\n\nPlease complete your business profile on Twimzi by adding your business details, photos, products, and services. A complete profile helps customers understand your business.\n\nContinue at https://www.twimzi.com\n\nRegards,\nTeam Twimzi" },
-  { id: "announcement", label: "Product announcement", category: "Announcement", subject: "An update from Twimzi", body: "Hello {{name}},\n\nWe have an update from Twimzi. Visit https://www.twimzi.com to explore local businesses, products, and services.\n\nThank you for being part of Twimzi.\n\nRegards,\nTeam Twimzi" },
-];
+const templates = EMAIL_TEMPLATE_LIBRARY;
 
 type Tab = "inbox" | "sent" | "compose" | "templates" | "automations" | "history" | "settings";
 
@@ -41,11 +37,11 @@ type MailboxMessage = {
 
 export default function AdminEmailMessagesPage() {
   const [tab, setTab] = useState<Tab>("compose");
-  const [campaignName, setCampaignName] = useState("Business invitation");
-  const [templateId, setTemplateId] = useState("invite");
+  const [campaignName, setCampaignName] = useState("Welcome new business");
+  const [templateId, setTemplateId] = useState("business_welcome");
   const [recipientsText, setRecipientsText] = useState("");
-  const [subject, setSubject] = useState(templates[0].subject);
-  const [body, setBody] = useState(templates[0].body);
+  const [subject, setSubject] = useState(EMAIL_TEMPLATE_LIBRARY[0].subject);
+  const [body, setBody] = useState(EMAIL_TEMPLATE_LIBRARY[0].body);
   const [preview, setPreview] = useState(false);
   const [sending, setSending] = useState(false);
   const [status, setStatus] = useState<{ kind: "success" | "error"; text: string } | null>(null);
