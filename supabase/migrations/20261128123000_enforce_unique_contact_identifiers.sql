@@ -35,6 +35,10 @@ set duplicate_email_value = case when r.email_rank > 1 then c.email else c.dupli
     duplicate_phone_value = case when r.phone_rank > 1 then c.phone else c.duplicate_phone_value end,
     duplicate_phone_of = case when r.phone_rank > 1 then r.phone_keeper else c.duplicate_phone_of end,
     phone = case when r.phone_rank > 1 then null else c.phone end,
+    email_marketing_consent = case when r.email_rank > 1 then false else c.email_marketing_consent end,
+    email_consent_at = case when r.email_rank > 1 then null else c.email_consent_at end,
+    whatsapp_marketing_consent = case when r.phone_rank > 1 then false else c.whatsapp_marketing_consent end,
+    whatsapp_consent_at = case when r.phone_rank > 1 then null else c.whatsapp_consent_at end,
     archived_at = case when c.source_type = 'lead_generator'
       and (case when r.email_rank > 1 then null else c.email end) is null
       and (case when r.phone_rank > 1 then null else c.phone end) is null
