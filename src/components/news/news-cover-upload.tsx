@@ -37,6 +37,7 @@ export default function NewsCoverUpload({ initialValue = "" }: NewsCoverUploadPr
     setUploading(true);
     try {
       const optimizedFile = await optimizeImageForUpload(file);
+      if (optimizedFile.size > MAX_FILE_SIZE) throw new Error("The optimized image exceeds the 5 MB upload limit. Choose a smaller source image.");
       const supabase = createSupabaseBrowserClient();
       const extensionByType: Record<string, string> = {
         "image/jpeg": "jpg",
