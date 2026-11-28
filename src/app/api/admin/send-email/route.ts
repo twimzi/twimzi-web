@@ -236,9 +236,25 @@ export async function POST(request: Request) {
       return preference?.marketing_consent === true;
     });
     const suppressedRecipients = recipients.filter((email) => !eligibleRecipients.includes(email));
+    const suppressedDetails = suppressedRecipients.map((email) => {
+      const preference = preferenceByEmail.get(email);
+      const rows = contactRowsByEmail.get(email) ?? [];
+      const reason = preference?.unsubscribed_at
+        ? "Unsubscribed in email preferences."
+        : rows.some((row) => row.email_unsubscribed_at)
+          ? "Unsubscribed in the contact bank."
+          : rows.some((row) => row.do_not_contact)
+            ? "Marked do-not-contact."
+            : rows.some((row) => row.archived_at)
+              ? "Contact is archived."
+              : rows.length && !rows.some((row) => row.email_marketing_consent === true)
+                ? "No recorded email marketing opt-in in the contact bank."
+                : "No valid recorded marketing opt-in.";
+      return { email, reason };
+    });
     if (suppressedRecipients.length) {
-      await supabase.from("email_campaign_recipients").insert(suppressedRecipients.map((email) => ({
-        campaign_id: campaign.id, email, status: "suppressed", error_message: "No valid recorded marketing opt-in, or recipient is unsubscribed / suppressed."
+      await supabase.from("email_campaign_recipients").insert(suppressedDetails.map(({ email, reason }) => ({
+        campaign_id: campaign.id, email, status: "suppressed", error_message: reason
       })));
     }
     if (eligibleRecipients.length) {
@@ -248,7 +264,7 @@ export async function POST(request: Request) {
     }
 
     let sent = 0;
-    const failed: string[] = [];
+    const failed: Array<{ email: string; reason: string }> = [];
     for (const recipient of eligibleRecipients) {
       try {
         let personalizedBody = body.replace(/\{\{name\}\}/g, "there");
@@ -269,8 +285,9 @@ export async function POST(request: Request) {
           recipient,
           error: error instanceof Error ? error.message : "Unknown SMTP error",
         });
-        failed.push(recipient);
-        await supabase.from("email_campaign_recipients").update({ status: "failed", error_message: error instanceof Error ? error.message.slice(0, 500) : "SMTP error" }).eq("campaign_id", campaign.id).eq("email", recipient);
+        const reason = error instanceof Error ? error.message.slice(0, 500) : "SMTP error";
+        failed.push({ email: recipient, reason });
+        await supabase.from("email_campaign_recipients").update({ status: "failed", error_message: reason }).eq("campaign_id", campaign.id).eq("email", recipient);
       }
     }
     await supabase.from("email_campaigns").update({ status: failed.length ? (sent ? "partially_sent" : "failed") : "sent", accepted_count: sent, failed_count: failed.length + suppressedRecipients.length, completed_at: new Date().toISOString() }).eq("id", campaign.id);
@@ -278,7 +295,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No emails were accepted by SMTP. Check Hostinger SMTP settings or recipient suppression.", campaignId: campaign.id, suppressed: suppressedRecipients.length }, { status: 502 });
     }
     const message = `${sent} of ${recipients.length} emails accepted by Hostinger SMTP for "${campaignName}". ${failed.length} failed; ${suppressedRecipients.length} unsubscribed/suppressed.`;
-    return NextResponse.json({ ok: failed.length === 0, campaignId: campaign.id, sent, failed: failed.length, suppressed: suppressedRecipients.length, message }, { status: failed.length ? 207 : 200 });
+    return NextResponse.json({ ok: failed.length === 0 && suppressedRecipients.length === 0, campaignId: campaign.id, sent, failed: failed.length, suppressed: suppressedRecipients.length, failedRecipients: failed, suppressedRecipients: suppressedDetails, message }, { status: failed.length || suppressedRecipients.length ? 207 : 200 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to send email.";
     return NextResponse.json({ error: message }, { status: 500 });
