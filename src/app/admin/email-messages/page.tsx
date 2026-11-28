@@ -338,7 +338,7 @@ export default function AdminEmailMessagesPage() {
                 </div>
               </div>}
               {invalidRecipients.length > 0 && <p className="mt-2 text-xs text-red-600">Invalid email(s): {invalidRecipients.slice(0, 3).join(", ")}</p>}
-              {recipients.length > 25 && <p className="mt-2 text-xs text-red-600">This batch exceeds 25 recipients. Split it into smaller batches.</p>}
+              {recipients.length > 500 && <p className="mt-2 text-xs text-red-600">Select no more than 500 recipients per campaign.</p>}
             </div>
             <label className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
               <input type="checkbox" checked={consentConfirmed} onChange={(event) => setConsentConfirmed(event.target.checked)} className="mt-1 h-4 w-4 shrink-0" />
@@ -366,7 +366,7 @@ export default function AdminEmailMessagesPage() {
               <h3 className="font-bold">Campaign checklist</h3>
               <ul className="mt-4 space-y-3 text-sm">
                 {[
-                  ["Recipients added", recipients.length > 0 && invalidRecipients.length === 0 && recipients.length <= 25],
+                  ["Recipients added", recipients.length > 0 && invalidRecipients.length === 0 && recipients.length <= 500],
                   ["Subject added", !!subject.trim()],
                   ["Message ready", !!body.trim()],
                   ["Campaign size within limit", recipients.length <= 500],
