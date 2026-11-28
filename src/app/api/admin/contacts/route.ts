@@ -39,12 +39,19 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const q = clean(url.searchParams.get("q"), 120);
   const includeArchived = url.searchParams.get("archived") === "true";
-  let query = auth.supabase.from("admin_contact_bank").select("*").order("created_at", { ascending: false }).limit(500);
+  const sourceType = clean(url.searchParams.get("sourceType"), 40);
+  const requestedPage = Number(url.searchParams.get("page") || "1");
+  const page = Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+  const pageSize = 500;
+  const from = (page - 1) * pageSize;
+  let query = auth.supabase.from("admin_contact_bank").select("*", { count: "exact" }).order("created_at", { ascending: false }).order("id", { ascending: false });
   query = includeArchived ? query.not("archived_at", "is", null) : query.is("archived_at", null);
+  if (sourceType && sourceType !== "all") query = query.eq("source_type", sourceType);
   if (q) query = query.or(`full_name.ilike.%${q.replace(/[,%()]/g, " ")}%,company_name.ilike.%${q.replace(/[,%()]/g, " ")}%,email.ilike.%${q.replace(/[,%()]/g, " ")}%,phone.ilike.%${q.replace(/[,%()]/g, " ")}%`);
-  const { data, error } = await query;
+  const { data, error, count } = await query.range(from, from + pageSize - 1);
   if (error) return NextResponse.json({ error: "Could not load contacts." }, { status: 500 });
-  return NextResponse.json({ contacts: data || [] });
+  const total = count || 0;
+  return NextResponse.json({ contacts: data || [], pagination: { page, pageSize, total, pages: Math.max(1, Math.ceil(total / pageSize)) } });
 }
 
 export async function POST(request: Request) {
