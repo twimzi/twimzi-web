@@ -7,7 +7,7 @@ alter table public.admin_contact_bank
   add column if not exists duplicate_phone_of uuid references public.admin_contact_bank(id) on delete set null;
 
 create or replace function public.normalize_admin_contact_phone(p_phone text)
-returns text language sql immutable parallel safe as $$
+returns text language sql immutable parallel safe set search_path = pg_catalog as $
   with digits as (select regexp_replace(coalesce(p_phone, ''), '[^0-9]', '', 'g') as value)
   select case when value = '' then null
     when length(value) = 12 and left(value, 2) = '91' then right(value, 10)
