@@ -17,6 +17,8 @@ const DEFAULT_FALLBACK = "/images/blog-image-fallback.svg";
 const OPTIMIZED_HOSTS = new Set([
   "images.unsplash.com",
   "twimzi-media.twimziofficial.workers.dev",
+  "assets.science.nasa.gov",
+  "www.icar.org.in",
 ]);
 
 function isTrustedForOptimization(source: string) {
