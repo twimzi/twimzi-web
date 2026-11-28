@@ -1525,7 +1525,7 @@ export default function AddBusiness() {
                     <input id="confirm-account-password" type="password" autoComplete="new-password" value={confirmAccountPassword} onChange={(event) => setConfirmAccountPassword(event.target.value)} required minLength={12} className="min-h-12 w-full rounded-xl border border-[var(--color-border)] px-4 text-sm" placeholder="Confirm your password" />
                   </div>
                 </section>
-              ) : !authUser ? (
+              ) : (
                 <section className="space-y-3 rounded-2xl border border-green-200 bg-green-50 p-5">
                   <h3 className="font-semibold text-green-900">Verify your email</h3>
                   <p className="text-sm text-green-800">Enter the 6-digit code sent to {contactEmail}.</p>
@@ -1552,7 +1552,7 @@ export default function AddBusiness() {
               )}
               {!signupOtpSent ? (
                 <Button type="submit" disabled={loading}>
-                  {loading ? uploadProgress || "Continuing..." : "Continue & send email OTP"}
+                  {loading ? uploadProgress || "Continuing..." : authUser ? "Submit business for review" : "Continue & send email OTP"}
                 </Button>
               ) : null}
 
